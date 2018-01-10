@@ -1,0 +1,63 @@
+---
+title: "mmselva_7"
+output: html_document
+---
+Exercise 4:
+
+```{r}
+mod4=lm(Temp~Ozone, data=airquality)
+res4 = residuals(mod4)
+RSS4=sum(res4^2)
+k=2
+n=length(res4)
+
+mod.ex=subset(airquality, Ozone!= "NA")
+
+SSY4=deviance(lm(Temp~1, data=mod.ex))
+SSY4.1=var(mod.ex$Temp)*115
+
+adjR2= 1 - (RSS4/(n-k))/(SSY4.1/(n-1))
+adjR2
+```
+
+END EXERCISE 4
+
+```{r}
+data("airquality")
+head(airquality, 15)
+
+mod1=lm(Temp~Ozone, data=airquality)
+summary(mod1)
+plot(Temp~Ozone, data=airquality)
+abline(lm(Temp~Ozone, data=airquality), col="red")
+```
+
+Exercise 5:
+
+a.
+```{r}
+library(lmtest)
+dwtest(mod1, alternative=c("two.sided"))
+
+```
+When running this test for autocorrelation, a signficant result will allow us to reject the null hypothesis that there is no auto correlation. We do not want autocorrelation. Therefore, the fact that we get a significant p-value of 7.276e-06 means that there is auto correlation, and we should manipulate the data before fiting a linear model.
+
+b.
+```{r}
+plot(residuals(mod1)~fitted(mod1))
+abline(lm(residuals(mod1)~fitted(mod1)), col="red")
+bptest(mod1)
+
+```
+This second test checks for homoschedasticity of the residuals, which essentially means that the residuals are predictably different sizes as you move along the x axis. Usually, they start out small and gradually get bigger, which we do not want. The p-value of this test is not signficant, so the residuals of this model do not display homoschedasticity, which is what we want.
+
+c.
+```{r}
+qqnorm(residuals(mod1))
+qqline(residuals(mod1), col="red")
+
+shapiro.test(residuals(mod1))
+```
+These test check for normality of the residuals. The qqnorm visually shows us that the residuals are not quite normal because they don't follow the 1:1 line. The Shapiro-Wilk test further tells us with a significant p-value, that the residuals are not normally distributed.
+
+END EXERCISE 5

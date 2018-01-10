@@ -1,0 +1,208 @@
+---
+title: "NRE538_ANOVA"
+author: "Oscar Feng-Hsun Chang"
+date: "Week5"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+```{r, set global theme, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=10)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE}
+library(rmarkdown) # Make cool dynamic documents
+library(knitr) # Run R Code Chunks
+library(ggplot2) # For plotting
+library(DT) # Interactive HTML tables
+library(RCurl)
+library(dplyr)
+library(tidyr)
+library(scales)
+```
+
+# One-way ANOVA
+
+## Read-in data
+
+Let's load the [OrchardSprays data](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/OrchardSprays.html) to demonstrate how different sprays (treatment) repel honeybees. 
+
+```{r, read in OrchardSprays data set, collapse=TRUE}
+data(OrchardSprays)
+head(OrchardSprays)
+pairs(OrchardSprays, main = "OrchardSprays data")
+str(OrchardSprays)
+```
+
+## Visualizing data
+
+Let's first visualize the mean of each treatment (effect size) by plotting the box plot. 
+
+```{r, visualization}
+boxplot(decrease~treatment, data=OrchardSprays, xlab="treatment", ylab="decrease mean (effect size)")
+```
+
+## Performaing ANOVA
+
+There are multiple ways to do ANOVA
+
+```{r, multiple ways to do ANOVA}
+spray.aov1 = aov(decrease~treatment, data=OrchardSprays)
+spray.aov2.1 = lm(decrease~treatment, data=OrchardSprays)
+spray.aov2.2 = lm(decrease~treatment-1, data=OrchardSprays)
+```
+
+```{r, summary table for each ANOVA method}
+summary(spray.aov1)
+summary(spray.aov2.1)
+summary(spray.aov2.2)
+```
+
+* Try the above code and see what are the differences among them, especially the `spray.aov2.1` and `spray.aov2.2`.  
+*hint:*  
+What is the mean of decrease variable in each treatment?  
+You can also try `model.tables(spray.aov1, "effects", se=TRUE)` to see what would happen. 
+
+> `aov()` only returns whether the differences among treatments are significantly different.  
+> `lm()` without -1 returns effects size model, so the estimate of each treatment is the difference of that treatment effects comparing to the first one (first treatment).  
+> `lm()` with -1 returns the mean model, so the the estimate of each treatment is the mean effect size of that treatment.
+
+## Reorder the level
+
+When doing `lm()`, treatments are always being compared to the first one that goes into the linear model, and by default the level is ordered alphabetically. If we wish to compare each treatment not to the first treatment, we need to reorder the levels (treatments). For example, if we want to compare each treatment to treatment B instead of A, we have to do the following.
+
+```{r, reorder level}
+OrchardSprays$treatment = factor(OrchardSprays$treatment, levels=(c("B", "A", "C", "D", "E", "F", "G", "H")))
+spray.aov2.3 = lm(decrease~treatment, data=OrchardSprays)
+summary(spray.aov2.3)
+```
+
+## Post-hoc test
+
+One-way ANOVA only shows if the differences among treatments are significant. It does *NOT!* show how large the differences are.  
+We have to perform post-hoc multiple comparison to see if certain treatment is significantly different from another. To do so, we will use [Tukey's honest significant differences](https://en.wikipedia.org/wiki/Tukey%27s_range_test), which is a t-test based statistical method to *simultaneously* calculate the confidence intervals of all pair-wise differences. By doing so, we can avoid the deflation of type-I error probability (i.e. declaring significant difference when it is not) when performing the traditional t-test multiple times. The Tukey's honest significant differences in R is `TukeyHSD()`. 
+
+```{r, post-hoc comparison for one way ANOVA}
+TukeyHSD(spray.aov1)
+```
+
+* Challenge yourself! What is the probability to commit type I error if one is using t-test instead of ANOVA? Say three groups are being compared, and there's only one group (it can be either one or specific one) that is truely different from others. 
+
+# ANOVA for factorial design
+
+## Read-in data
+
+Let's load the [CO2](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/zCO2.html) to demonstrate the experimental design where two different treatments are implemented. 
+
+```{r, read in CO2 data, collapse=TRUE}
+data(CO2)
+head(CO2, 10)
+str(CO2)
+```
+
+As you can see, there are 3 factors, plant individual (Plant), origin of the plant (Type), treatment (chilled or nonchilled), and ambient CO2 concentration (conc). There is also a measurement (uptake) We can use anova to investigate if treatment and the origin of the plant have effects on the CO2 uptake rate. Let's ignore the potential influences of plant individual and ambient CO2 concentration for now. We will revisit these influences later as they belong to the topics of random effects and ANCOVA.  
+
+## Visualizing data
+
+Let's take a look of the mean uptake rate of each group (Treatment X Type).
+
+```{r, visualize CO2, echo=FALSE}
+ggplot(data=CO2)+
+  geom_boxplot(aes(x=Treatment, y=uptake, fill=Type))
+```
+
+## Performing two-way ANOVA
+
+We now used the following argument to compare the uptake rate in different treatments and different type simultaneously. 
+
+```{r, two-way ANOVA}
+CO2.aov = aov(uptake~Treatment + Type, data = CO2)
+summary(CO2.aov)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 1__  
+Extract the effect size of each factor (i.e. Treatment and Type) with `$`. Make sure that you comment on the results (e.g. what do those numbers means and how do you know that?).
+
+```{r, include=FALSE}
+model.tables(CO2.aov, "mean")
+```
+
+
+__Exercise 2 (Bonus!)__  
+I've showed you one of multiple ways to do this two way ANOVA. Can you do it with `lm()` function and summarize and interpret the output table? This has something to do with interaction and the fact the those "Estimates" are actually regression coefficients.
+
+```{r, echo=FALSE, eval=FALSE}
+CO2.lm = lm(uptake~Treatment + Type, data = CO2)
+summary(CO2.lm)$coefficients[2,1]
+```
+
+To interpret the output table correctly, we should know couple things before hand.
+
+What `lm()` does is to find a line that connects your data. The estimates in the `lm()` output is the regression coefficients, which mean how much the response variable (Y) would change with one unit change of the explanatory variable (X). If the explanatory variable is categorical, one unit change means moving from one group to another. For instance, the estimates in the first example are the changes of _decrease_ (response variable) with one unit change of _treatment_ group (explanatory variable), which mean moving from one _treatment_ to any other one _treatment_, how much the _decrease_ variable would change. In linear model with categorical explanatory variable (ANOVA is one type of linear model), the first is always the one that is being compared to. This is way we said that it is the changes of _decrease_ between treatment A and other treatments.  
+
+When there are two treatments (two-way factorial design like the second example), there can be "interaction term". Interaction term describe how much the change of response variable due to one treatment differ from due to the other treatment. For instance, in the second example, if there is no interaction (you do not specifiy it to be fitted), using `lm()` will only estimate the change of _uptake_ due to the change of _Type_ (Quebec or Mississippi) and _treatment_ (chilled or nonchilled). However, the two changes are not allowed to depend on each other. You can think of is as a general change or _uptake_ due to plant type (treatment) regardless of treatment (plant type). 
+
+```{r, echo=FALSE, eval=FALSE}
+CO2.lm = lm(uptake~Treatment + Type, data = CO2)
+summary(CO2.lm)
+```
+
+The `r summary(CO2.lm)$coefficients[2,1]` is the mean difference between chilled VS nonchilled (calculate the mean of the two groups to proof to yourself). The `r summary(CO2.lm)$coefficients[3,1]` is the mean difference between Quebec VS Mississippi (calculate the mean of the two groups to proof to yourself). __R__ does not do pair wise comparison like the one-way anova because there are two factors. One unit change of explanatory only moves from chilled to nonchilled ot Quebec to Mississippi. `lm()` can only estimat the generally effects of plant type and treatment. 
+
+The reason `r summary(CO2.lm)$coefficients[1,1]` is not exactly the mean _uptake_ of nonchilled Quebec plants is that `lm()` is trying to find a intercept (mean of nonchilled Quebec plants) given a fixed effects of treatment and plant type. So, `r summary(CO2.lm)$coefficients[1,1]` is what `lm()` "think" what the mean of nonchilled Quebec plants should be. Note that the two effects are forced to not interact with each other. 
+
+However, if we include interaction term to allow the two changes to depend on each other, we have a third estimate (third regression coefficient, "Treatmentchilled:TypeMississippi"). This is showing the change of _uptake_ from nonchilled to chilled in Quebec plants versus in Mississippi plans.
+
+```{r, echo=FALSE, eval=FALSE}
+CO2.lm2 = lm(uptake ~ Treatment*Type, data = CO2)
+summary(CO2.lm2)
+```
+
+From the output, we see that _uptake_ in nonchilled treatment is `r summary(CO2.lm2)$coefficients[2,1]` higher than in chilled treatment __FOR Quebec plants__! The _uptake_ of Quebec plants is `r summary(CO2.lm2)$coefficients[3,1]` higher than Mississippii plants in __nonchilled treatment__! The third estimate (regression coefficient) describes how much more _uptake_ would decrease from nonchilled to chilled in Mississippi than in Quebec, OR how much more _uptake_ would decrease from Quebec to Mississippi in nonchilled than in chilled. The two are equal. 
+
+The reason why `r summary(CO2.lm2)$coefficients[2,1]` is exactly the same as the nonchilled Quebec plants is that we now have interaction term to adjust for the change from nonchilled Quebec plants to chilled Mississippi plant. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+## Post-hoc test
+
+Similarly, we used the following argument to post-hoc multiple comparison.  
+
+```{r, post-hoc comparison for CO2 two way ANOVA}
+TukeyHSD(CO2.aov)
+```
+
+## Some notes
+
+`summary(aov())` is equivalent to `anova(lm())`. They are used to calculate if the differences among treatments (effects size of each treatment) are significant.  
+`summary(lm())` is equivalent to `smmary.lm(aov())`. They are used to estimate the effect size of each treatment.  
+
+# Non-parametric one-way ANOVA
+
+[Kruskal¡VWallis test](https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance) can be used if the sample distribution is not normal. The arguments are similar to `aov()` or `lm()`. However, the Kruskal-Wallis test can only be used in one-way ANOVA!
+
+```{r}
+kruskal.test(uptake~Treatment, data = CO2)
+```
+
+The associated post-hoc test can be the Dunn's test, `dunn.test()` in the [`dunn.test`](https://cran.r-project.org/web/packages/dunn.test/dunn.test.pdf) package or its wrapper, `dunnTest()` in the [`FSA`](http://derekogle.com/fishR/packages) package. The usage are as follow. 
+
+```{r, message=FALSE}
+library(dunn.test)
+dunn.test(CO2$uptake, CO2$Treatment, method="bonferroni")
+```
+* Since we only have two groups in Treatment and Type, it is basically the [Mann-Whitney U test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test). That is to say, we have to specify the method to `bonferroni`, the most basic adjustment when comparing multiple groups. Other adjustment methods would work for more than two groups. The following are examples of using other adjustment methods. 
+
+> If more than two treatments are being compared, there are not much options to deal with perform non-parametric multi-way ANOVA. We might have to resort to the resampling method to build our own non-parametric test.

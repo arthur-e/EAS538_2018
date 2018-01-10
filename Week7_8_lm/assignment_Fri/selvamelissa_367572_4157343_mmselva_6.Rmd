@@ -1,0 +1,51 @@
+---
+title: "mmselva_6"
+output: html_document
+---
+
+Exercise 1:
+```{r}
+data("faithful")
+head(faithful)
+plot(eruptions~waiting, data=faithful)
+cor(faithful$eruptions, faithful$waiting)
+```
+
+We know that the correlation between waiting time and eruption is positive because r (0.9008) is positive, which means that as waiting time between eruptions gets longer then eruption duration gets longer. We also know that the correlation is fairly strong because 0.9008 is closer to 1 than to 0.
+
+End Exercise 1
+
+Exercise 2:
+```{r}
+mod1=lm(Temp~Ozone, data=airquality)
+summary(mod1)
+plot(Temp~Ozone, data=airquality)
+abline(lm(Temp~Ozone, data=airquality), col="red")
+```
+
+The y-intercept is 69.41, which means that when ozone is at 0, the base temperature is 69.41 degrees. The slope is 0.20081, which means that for every increase of 1 in ozone, the temperature increases 0.20081 degrees. The relationship between temperature and ozone is significant because the p-value is very, very small.
+
+```{r}
+mod2=lm(eruptions~waiting, data=faithful)
+summary(mod2)
+plot(eruptions~waiting, data=faithful)
+abline(lm(eruptions~waiting, data=faithful), col="red")
+```
+
+The y-intercept is -1.87, which means that when waiting time is at 0 minutes, the base eruption time is -1.87 minuntes. The slope is 0.0756, which means that for every increase of 1 minute in waiting time, the eruption duration increases 0.0756 minutes. The relationship between waiting time and eruption duration is significant because the p-value is very, very small.
+
+END Exercise 2
+
+Exercise 3:
+```{r}
+res = residuals(mod1)
+RSS = sum(res^2)
+RSE = sqrt(RSS/summary(mod1)$df[2])
+RSE
+MSE = RSS/summary(mod1)$df[2]
+MSE
+```
+
+First, we need to calculate the distance between each value and the line of best fit, i.e. the residuals. Then, to get the residuals sums squared (RSS), we square each residual and then sum them all together. Next, to get the residual standard error (RSE), we take the square root of RSS and divide that value the degrees of freedom. The value is 6.82. Lastly, to get the mean square error (MSE), we take the RSS (not the square root) and divide by the degrees of freedom. The value is 46.50. The relationship between RSE and MSE is very much like the relationship between standard deviation and variance.
+
+END Exercise 3

@@ -1,0 +1,95 @@
+---
+title: "akinzer_08"
+author: "Andrew Kinzer"
+date: "March 18, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Exerecise 1
+Try to use the following data set to execute ANCOVA and make interaction plots. This data set contains the fruit weight (Fruit) of different plants with different root depth (Root) and different treatment (Grazing).
+
+
+```{r include=FALSE}
+library(RCurl)
+library(interplot)
+```
+
+
+```{r include=FALSE}
+gz = read.table(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_ANCOVA_n_Interaction/ipomopsis.txt"), sep="", header=T,comment.char="#")
+head(gz)
+```
+
+First we run a linear model, with an interaction term "*", examining the effect that root depth and grazing treatment has on fruit weight, as well as the effect of the interaction between grazing and root depth on fruit weight.
+
+```{r}
+
+mod=lm(Fruit~Root*Grazing, data=gz)
+summary(mod)
+```
+The summary output from the linear model shows us that Root has the only significant effect on fruit weight, with a p-value of 2e-16. For each increase in root, there is a 23.240 unit increase in fruit weight. 
+
+Root length has a significant effect on fruit weight in grazed areas. 
+There is no significant effect on fruit weight between grazed and ungrazed.
+There is not a significant on root length between grazed and ungrazed areas.
+
+
+```{r}
+interplot(m=mod, var1="Root", var2="Grazing")+
+  labs(x="Grazing Type", y="Estimated coefficient for Root Depth", title="Estimated Coefficient of Root Depth on Grazing Type")
+```
+
+The effect of root on fruit weight is higher in the grazed areas, but the difference is not significant. The two points fall well within the confidence intervals of each other. 
+
+```{r}
+interplot(m=mod, var1="Grazing", var2="Root")+
+  labs(x="Root", y="Estimated coefficient for Grazing", title="Estimated Coefficient of Grazing on Root")
+```
+
+This graph also shows that fruit length in ungrazed areas is lower than grazed areas, but that the effect gradually decreases with an increase in root length.However, we still know that the change is not significant.
+
+> Fruit weight is _higher_ in ungrazed area and the effect of ungrazing gradually increase, although this increase is non-significant. 
+
+#Exercise 2
+1. Use F-test to compare the two interaction models. Explain why you chose one over another to explain the data.
+```{r}
+data("airquality")
+```
+
+```{r}
+mod1=lm(Temp~Wind, data=airquality)
+mod2=lm(Temp~Wind+Ozone, data=airquality)
+mod3=lm(Temp~Wind*Ozone, data=airquality)
+anova(mod2,mod3)
+```
+
+From the output table, we see that the RSS=5166.5 for mod2, the model that does not include the interaction term (*). The RSS=4482.7 for mod3, the model that considers that there is an interaction between wind and ozone. Because mod3 has a lower RSS, the F-statistic is 17.085, and the pr(>F)=6.927e-5 indicates that mod3 would be a better explanation of the data. I would end up choosing the model that includes the interaction between wind and ozone to explain the temperature.
+
+
+
+2. Plot two interaction plots with interplot() for the model with wind and solar radiation as the independent variables. Interprete the two interaction plots.
+```{r}
+modws=lm(Temp~Wind*Solar.R, data=airquality)
+summary(modws)
+```
+Interaction Plots
+
+```{r}
+interplot(m=modws, var1="Wind", var2="Solar.R")+
+  labs(x="Solar Radiation", y="Estimated coefficient for Wind", title="Estimated Coefficient of Wind on Solar Radiation")
+```
+This interaction plot, combined with the summary table above, indicates that the interaction between Wind and solar radiation is not signicant. This plot shows that as the coefficient for wind decreases, interaction between wind and solar radiation increases. However, the interaction is still insignificant.
+
+> The interaction term will not change. Teh interpretation is that with the increase of solar radiation, the regression coefficient (effect) of wind gradually decrease. 
+
+```{r}
+interplot(m=modws, var1="Solar.R", var2="Wind")+
+  labs(x="Wind", y="Estimated coefficient for Solar Radiation", title="Estimated Coefficient of Solar Radiation on Wind")
+```
+
+Likewise, this plot shows that as the estimated coefficient for solar radiation decreases, the interaction between wind and solar radiation increases, however the because of the summary tables, the interaction is still not significant.
+
+> Same as above, the interaction will not change. It is the regression coefficient of solar radiation being affected by wind.

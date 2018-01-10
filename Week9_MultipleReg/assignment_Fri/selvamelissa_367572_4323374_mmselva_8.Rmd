@@ -1,0 +1,57 @@
+---
+title: "mmselva_8"
+output: html_document
+---
+
+```{r}
+data("airquality")
+library(dplyr)
+airquality.new = airquality %>%
+  subset(is.na(Solar.R) == FALSE & is.na(Ozone) == FALSE)
+```
+
+Exercise 1:
+
+```{r}
+Y = seq(from=0, to=20, by=0.1)
+X1 = (Y-2)/50 + runif(length(Y), min=0.5, max=2)
+X2 = (Y+3)/55 + runif(length(Y), min=0.5, max=2)
+df = as.data.frame(cbind(Y, X1, X2))
+summary(lm(Y~X1, data=df))
+summary(lm(Y~X2, data=df))
+summary(lm(Y~X1+X2, data=df))
+cor(X1,X2)
+plot(X1~X2)
+```
+
+If we increase the background noise in the independent variables X1 and X2 to 50 and 55, respectively, so that they are more likely to be dissimilar, then we find that the two variables become less correlated with one another, thus reducing co-linearity. When we run the models separately, we get these results: for Y~X1, an intercept of 3.127 and for Y~X2, an intercept of 3.919. When we run the model with both X1 and X2, we get intercepts of 3.097 and 3.895, respectively, which are very close to the intercepts we got when runnning models with the individual variables. Additionally, the correlation coefficient that we calculate is 0.0075, very small, and the plot of X1 vs. X2 shows no distinct trend, so we seem to have successfully reduced the co-linearity of the two variables.
+
+END Exercise 1
+
+Exercise 2:
+
+```{r}
+mod1 = lm(Temp~Wind, data=airquality.new)
+summary(mod1)
+mod2 = lm(Temp~Wind+Solar.R, data=airquality.new)
+summary(mod2)
+mod3= lm(Temp~Wind+Solar.R+Ozone, data=airquality.new)
+summary(mod3)
+
+anova(mod1, mod2, mod3)
+```
+When a third variable (Ozone) is added into the third model, it actually explains much more of the variation than the addition of the second variable, Solar.R, into the model. The p-value of 2.42e-09 is very, very small, which is the probability that model 2 would explain as much variance as model 3 by chance. However, this third model does not provide a very reliable estimate of regression coefficients because as we first noticed, the variables ozone and wind are fairly highly correlated. Where as the estimates for Wind and Solar.R were -1.25 and 0.024, respectively, before Ozone was added in, they were calcualted as -0.322 and 0.007 once Ozone was added in. 
+
+END Exercise 2
+
+Exercise 3
+
+```{r}
+AIC(lm(Temp~Wind, data=airquality.new))
+AIC(lm(Temp~Wind+Solar.R, data=airquality.new))
+AIC(lm(Temp~Wind+Solar.R+Ozone, data=airquality.new))
+```
+
+After calculating the AIC values for each of the three models, it still seems that model 3 is the model that performs best, or in this case, the model in which the least information is lost after taking the number of parameters into account. Model 3, with an AIC value of 747 (which is more than 10 less than both model 2 and model 3), is the best performing model.
+
+END Exercise 3

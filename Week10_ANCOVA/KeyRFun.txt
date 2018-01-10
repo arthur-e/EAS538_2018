@@ -1,0 +1,21 @@
+##### Key R functions REVIEW
+Three critical assumptions of t-test are:
+1. samples have equal variance--
+2. samples are normally distributed
+3. each observation is sampled independently
+
+lm() for linear regression and ANOVA
+
+cor()
+
+linear model check:
+1. residual independency (possibly with the dwtest) 
+2. residual homoscedasticity (possibly with the bptest) 
+3. residual normality (possibly with the shapiro.test)
+
+Model comparison:
+F-test:¡@anova()
+AIC()
+
+ANCOVA
+

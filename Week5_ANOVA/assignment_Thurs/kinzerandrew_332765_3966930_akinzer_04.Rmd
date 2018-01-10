@@ -1,0 +1,63 @@
+---
+title: "akinzer_04"
+author: "Andrew Kinzer"
+date: "February 3, 2017"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+
+The first step was to read in the CO2 data and to run a two way ANOVA, testing the H~0~:The CO~2~ uptake is not effected by the Treatment or the Type.
+
+```{r read data and run two way anova}
+data(CO2)
+CO2.aov=aov(uptake~Treatment+Type, data=CO2)
+summary(CO2.aov)
+
+```
+
+Because the p-values are so small, we can reject the null that the Treatment and the Type do not have a significant effect on the uptake of CO~2~.
+
+Next I ran the model summary to test the effects that the variables had on the grand mean.
+
+```{r testing the effects of variables against the grand mean}
+effects=model.tables(CO2.aov, "effects", se=TRUE)
+effects
+```
+
+Next I separated out the Treatment and the Type.
+
+```{r isolating the effects of the variables}
+effects$tables$Treatment
+effects$tables$Type
+```
+
+
+The master mean was calculated, and, which is what the "effect" model was testing the means of each variable against.
+
+```{r generating the value of the grand mean of the variables}
+mean=model.tables(CO2.aov, "mean", se=TRUE)
+mean
+```
+
+This table is just explaining the values in the "effects" table above. If you subtract each value from the Treatment and Type from the Grand Mean, you end up with the "effects" values in the earlier table. The model summary shows that the Type had a greater effect on the uptake than the Treatment because the effects of the type (=6.33) is greater than the effect of the treatment (=3.43). 
+
+
+
+
+## Exercise 2
+
+Calculating a MANOVA using a linear model.
+
+```{r linear model MANOVA - including an interaction}
+C02.lm=lm(uptake~Treatment + Type + Treatment*Type, data=CO2)
+
+summary(C02.lm)
+```
+
+From these results, the intercept is being set as the interaction of Quebec and Unchilled which is significant (p-value - 2e^16). Given that information, there is a significant difference between Unchilled Quebec, and Unchilled Mississippi (p-value - 0.000284). The interaction between those terms is approaching significance (p-value - 0.064213).

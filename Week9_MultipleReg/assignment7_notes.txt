@@ -1,0 +1,32 @@
+EX1
+I would expect to see more discussion on this exercise. Like how do you think the estimated coefficients? Are they more close to the true value or are they more close to the estimate from uni-variate regression? The following interpretation are some examples. 
+
+#Increasing the max from 2 to 20 to create more noise decreased the correlation from 0.9643281 to 0.189586
+#BUT this method makes it so that the coefficient estimate for x1 and x2 are more different from the true values (this is a tradeoff)
+
+#we see that there is much less change in the regression coefficients calculated by univariate vs. 
+#multivariate models, indicating that there is less collinearity between our explanitory variables
+
+#One of you used log-transformation to deal with colinearity, which is good!
+
+EX2 F-test
+
+Excellent interpretation from one of you: 
+The p-value of 2.42e-09 is very, very small, which is the probability that model 1 would explain as much variance as model 3 by chance. However, this third model does not provide a very reliable estimate of regression coefficients because as we first noticed, the variables ozone and wind are fairly highly correlated. Where as the estimates for Wind and Solar.R were -1.25 and 0.024, respectively, before Ozone was added in, they were calcualted as -0.322 and 0.007 once Ozone was added in.
+
+##### Oscar: Explaining more variance does not mean there is no correlation among independent variables.
+#####        Whether a regression coefficient is reasonable depends on whether this varaible is correlated with others.
+#####        Also, In the f-test output, model3 is actually being compared to model 1, NOT model 2. 
+##### Oscar: Model comparison does NOT tell us which "variable" explain more variation. 
+#####        It only tell us which "model" explain more variance. 
+#####        You also can NOT use f-test to compare different univariate models (not nested apparently). 
+#####        There is no way you can judge which variable explains more without doing variance partitioning.
+
+EX3 AIC
+##### Oscar: The lower the AIC value is, the higher the probability of seeing the data given the model (likelihood), which is good.
+#####        Likelihood (what the AIC is based on) does NOT mean the probability of explaining data. 
+#####        It is the probability of reproducing the same data with the estimated model or parameters.
+##### Oscar: From AIC, the better model means the one that has higher probability to regenerate the data we observed. 
+#####        Also, AIC comparison never does significant test. 
+#####        We can NOT say any model is "significantly" better than others based on AIC difference.
+

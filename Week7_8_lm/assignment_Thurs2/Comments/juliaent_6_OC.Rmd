@@ -1,0 +1,89 @@
+---
+title: "juliaent_5"
+output: html_document
+---
+
+##Exercise 1
+Try to plot and calculate the correlation coefficients between the waiting time between eruptions and the duration of the eruption for the Old Faithful geyser in Yellowstone National Park. The dataset is built in R named faithful.
+```{r}
+cor(faithful$waiting, faithful$eruptions)
+cor(faithful[, c("waiting", "eruptions")], use="na.or.complete")
+pairs(faithful[, c("waiting", "eruptions")])
+plot(faithful$waiting, faithful$eruptions)
+```
+#There appears to be a linear relationship between waiting time and eruption duration
+
+
+##Exercise 2
+Build another linear model with another independent variable, Ozone, and plot it with estimated regression line.
+
+Build a linear model to explain if you see longer eruption time if you wait for longer in the faithful dataset.
+```{r}
+mod = lm(Temp~Ozone, data = airquality)
+summary(mod)
+plot(Temp~Ozone, data=airquality)
+abline(lm(Temp~Ozone, data=airquality), col="red")
+
+mod1 = lm(waiting~eruptions, data = faithful)
+summary(mod1)
+plot(waiting~eruptions, data=faithful)
+abline(lm(waiting~eruptions, data=faithful), col="red")
+```
+# At the intercept Ozone will equal 69.41072, the slope is .20081
+# As Temp inceases by 1, Ozone increases by .20081
+# At the intercept Eruptions will equal 33.4744, the slope is 10.7296
+# As waiting time increases by 1, eruption duration increases by 10.7296
+
+
+##Exercise 3
+Calculate the residual standard error (RSE) and mean square error (MSE) manually for the model you built last time (Ozone as the independent variable).
+```{r}
+mod = lm(Temp~Ozone, data = airquality)
+res = residuals(mod)
+RSS = sum(res^2)
+RSE = sqrt(RSS/summary(mod)$df[2])
+print(RSE)
+MSE = RSS/summary(mod)$df[2]
+print(MSE)
+anova(mod)
+```
+
+##Exercise 4
+Calculate the adjust R2 manually.
+```{r}
+which(is.na(airquality$Ozone)==FALSE)
+airquality[which(is.na(airquality$Ozone)==FALSE),]
+aa = subset(airquality, is.na(airquality$Ozone)==FALSE)
+mod = lm(Temp~Ozone, data = airquality)
+summary(mod)
+res = residuals(mod)
+RSS = sum(res^2)
+SSY = deviance(lm(airquality$Temp~1))
+SSY1 = var(airquality$Temp)*115
+R2 = 1 - RSS/SSY1
+AdjR2 = 1 - (RSS/(116-2))/(SSY1/(116-1)) 
+AdjR2
+```
+
+> You are still using the airqaulity dataframe to calculate SSY, so your number is off. You have to give te dataframe a name after sutbet(). 
+
+##Exercise 5
+Check residual independency, homoscedasticity, and normality for the model with ozone as the independent variable and interpret the results briefly.
+```{r}
+mod = lm(Temp~Ozone, data = airquality)
+library(lmtest)
+dwtest(mod, alternative=c("two.sided"))
+plot(residuals(mod)~fitted(mod))
+abline(lm(residuals(mod)~fitted(mod)), col="red")
+bptest(mod)
+qqnorm(residuals(mod))
+qqline(residuals(mod), col="red")
+shapiro.test(residuals(mod))
+```
+
+> You have to library(lmtest), or the html file cannot be generated. 
+
+#The DWtest shows that there is a linear correlation in the model and there is structure in the residual.
+#homoscedasticity tell us if the residual is a constant. The p value of the BP test is greater than .05 so there is no pattern in the residual, the residual is not homoscedastic.
+#The qqplot and Shapiro test shows us that the residual follows a normal distribution. 
+> No, it does NOT pass the Shapiro test. If you plot the qqplot of the residuals, you will find that it does not look normal. 

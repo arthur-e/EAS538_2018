@@ -1,0 +1,200 @@
+---
+title: "akinzer_07"
+author: "Andrew Kinzer"
+date: "March 9, 2017"
+output: html_document
+---
+
+```{r echo=FALSE}
+library(dplyr)
+```
+
+
+
+```{r echo=FALSE}
+data("airquality")
+head(airquality, 15)
+```
+
+
+```{r echo=FALSE}
+airquality=airquality%>%
+  subset(is.na(Solar.R)==FALSE&is.na(Ozone)==FALSE)
+```
+
+We can use the pair() function to see see what the relationship between variables is.
+
+```{r}
+pairs(airquality[,c(1:4)])
+cor(airquality[,c(1:4)], use="na.or.complete")
+
+```
+
+```{r}
+Y = seq(from=0, to=20, by=0.1)
+X1 = (Y-2)/3 + runif(length(Y), min=0.5, max=2)
+X2 = (Y+3)/2 + runif(length(Y), min=0.5, max=2)
+df = as.data.frame(cbind(Y, X1, X2))
+summary(lm(Y~X1, data=df))
+```
+
+```{r}
+summary(lm(Y~X2, data=df))
+```
+
+Both X1 and X2 seem to be significant coefficients in the model. However, when we add them together, making the model an multi-linear regression, we can see tha the variables are highly correlated.The estimate coefficients change when both variables are included in the model.
+
+```{r}
+summary(lm(Y~X1+X2, data=df))
+```
+
+If we plot the two datasets we can see that they are highly correlated.
+
+```{r}
+plot(X1~X2)
+```
+
+Additionally, if we call up the correlation coefficient between the two of them we get...
+
+```{r}
+cor(X1, X2)
+```
+This correlation coefficient shows us that the variables are highly correlated.
+
+#Exercise 1
+
+Manipulate the code to reduce the correlation between X1 and X2 and recalculate the regression coefficients. Explain what was found.
+
+```{r}
+Y2 = seq(from=0, to=20, by=0.1)
+X3 = (Y2-2)/3 + runif(length(Y2), min=3, max=20)
+X4 = (Y2+3)/2 + runif(length(Y2), min=0.5, max=1)
+df = as.data.frame(cbind(Y2, X3, X4))
+summary(lm(Y2~X3, data=df))
+```
+
+```{r}
+summary(lm(Y2~X4, data=df))
+```
+
+If we run the summary with them combined we get: 
+
+```{r}
+summary(lm(Y2~X3+X4, data=df))
+```
+
+```{r}
+plot(X3~X4) 
+```
+
+
+What I found is that I could increase the amount of noise in the data by changing the length of the noise for Y in each of the X3 and X4 formulas. The length of X3 is going from 3-20, so quite a lot of noise around the mean, and the length of x4 is from 0.5-1, very smallamount of noise around the line. This ended up reducing the level of correlation between the variables. 
+
+```{r}
+y=seq(from=1, to=20, by=0.1)
+y=runif(length(y), min=3, max=5)
+x1=seq(from=5, to=24, by=0.1)
+x2=x1*2+5
+df = data.frame(y, x1, x2)
+pairs(df)
+```
+
+```{r}
+summary(lm(y~x1+x2))
+```
+ 
+ We get the NA value for X2 because X1 and X2 are exaclty the same, or perfectly correlated.
+ 
+```{r}
+mod1 = lm(Temp~Wind, data=airquality)
+summary(mod1)
+```
+
+The F-test only works when models are nested in each other. 
+
+
+```{r}
+mod2 = lm(Temp~Wind+Solar.R, data=airquality)
+summary(mod2)
+```
+```{r}
+anova(mod1, mod2)
+```
+IS the reduction in the residual sum of squares significant or not? Because the P-value is 0.0046, the drop is significant, which says that model 2 explains a greater amount of variance than model 1. 
+
+#Exercise 2
+
+
+Compare a third model (mod3) with ozone as a third variable to mod1 and mod2. Does it explain more variance? Does it give you a reasonable estimate of the regression coefficients. 
+
+
+```{r}
+mod1 = lm(Temp~Wind, data=airquality)
+mod2 = lm(Temp~Wind+Solar.R, data=airquality)
+mod3 = lm(Temp~Wind+Solar.R+Ozone, data=airquality)
+summary(mod1)
+summary(mod2)
+summary(mod3)
+```
+
+Adding in Ozone does explain more more variance (Higher adjusted R^2^ value than the other models).
+
+Additionally, when Ozone is added to the model, the other two factors, Wind and Solar, are no longer significant. This would indicate that ozone has a much stronger effect on temperature than the other two factors, as well as explaining more of the variance. 
+
+If we run an anova() function to compare all three models, we can futher explore the effectiveness of each one.
+
+```{r}
+anova(mod1,mod2,mod3)
+```
+The RSS values further show that model three, with RSS=4996.6, is the most effective model, as it has the smallest RSS, and the likelihood of any of the other models explaing more of the variance is 2.42e-9, which is much smaller than the value for mod2.
+
+#Exercise 2 Bonus
+
+Bonus: calculate the RSS of the two models, the F statistic, and the p value by hand, not using anova....
+
+```{r}
+res = residuals(mod1)
+RSS1 = sum(res^2)
+RSS1
+```
+
+
+```{r}
+res = residuals(mod2)
+RSS2 = sum(res^2)
+RSS2
+```
+
+
+```{r}
+fstat=((RSS1-RSS2)/(3-2))/((RSS2)/summary(mod2)$df[2])
+fstat
+```
+
+As we can see above, the F-stat=8.374 between the two models.
+
+To calculate the p-value from the fstat:
+
+
+```{r}
+1-pf(fstat, df1=1, df2=nrow(airquality)-3)
+```
+
+We got it! A matching p-value and a matching f-statistic manually! We can confirm it by running an anova() with mod1 and mod2.
+
+```{r}
+anova(mod1,mod2)
+```
+
+The interpretation of the results is the same as what I discussed in the non-bonus section of Exercise 2. Model 2 is the better fit, and explains more of the residuals than model 1. 
+
+#Exercise3
+
+Compare the AIC of mod1, mod2, and mod3. Do you have different conclusion in terms of which model performs better? 
+
+
+```{r}
+AIC(mod1,mod2,mod3)
+```
+Based on the AIC value, mod3 is still the best model in explaining the data. We can say that mod3 explains more variation than the other two models, without losing information.
+

@@ -1,0 +1,20 @@
+library(RCurl)
+guns=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_Lab2/guns.csv"), sep=",", header=T, comment.char="#")
+guns.mi=subset(guns, state=="Michigan")
+
+### Exercise 1
+# Ho 1 tailed: Is the robbery rate in MI greater than the US average of 234 per 10^5?
+mean(guns$robbery)
+t.test(guns.mi[,"robbery"], mu=234, alternative = 'greater')
+# Reject null hypothesis, the MI rate is 233.9, p-value = 0.503
+
+# Ho 2 tailed: Is the violent crame rate in MI the same as the US average of 503 per 10^5?
+mean(guns$violent)
+t.test(guns.mi[,"violent"], mu=503)
+# Reject null hypothesis, the MI average is 695, p-val = 1.002e-10
+
+### Exercise 2
+guns.WAS=subset(guns, state=="Washington")
+guns.MIN=subset(guns, state=="Minnesota")
+t.test(guns.WAS$murder, guns.MIN$murder, paired = F)$p.value
+#p-val: 1.545712e-15

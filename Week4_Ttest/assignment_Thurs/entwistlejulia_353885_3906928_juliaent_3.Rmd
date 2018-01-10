@@ -1,0 +1,33 @@
+guns=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_Lab2/guns.csv"), sep=",", header=T, comment.char="#")
+# Exercise1
+guns.MI = subset(guns, state=="Michigan")
+#H0 = The robbery rate in MI is significantly different than 9 incidents per 10^5 people
+t.test(guns.MI[,"robbery"], mu=9)
+#Results of t.test cannot reject the Null Hypothesis 
+# Exercise2
+#H0 = The murder rate of Washington state and the murder rate of Minnesota state are not significantly different from each other
+guns.WAS = subset(guns, state=="Washington")
+guns.MIN = subset(guns, state=="Minnesota")
+t.test(guns.WAS[,"murder"], guns.MIN[,"murder"], paired=FALSE)
+shapiro.test(guns.WAS[,"murder"])
+shapiro.test(guns.MIN[,"murder"])
+var.test(guns.WAS[,"murder"], guns.MIN[,"murder"])
+muA=4.773913
+muB=2.669565
+sdA=0.6166017
+sdB=0.5611958
+set.seed(32)
+A = rnorm(30, mean=muA, sd=sdA)
+B = rnorm(30, mean=muB, sd=sdB)
+set.seed(32)
+dif.s=c() 
+for (i in 1:10000){
+  dif.s[i]=mean(sample(A, 30, replace=TRUE)) - mean(sample(B, 30, replace=TRUE))
+}
+dif.s.mean = mean(dif.s)
+dif.s.sd = sd(dif.s)
+CI95.lo = sort(dif.s)[10000*0.025]
+CI95.hi = sort(dif.s)[10000*0.975]
+2*(length(which(dif.s>0))/length(dif.s))
+
+# The rates are significantly different, p-value = 1.546e-15. We can reject the null hypothesis.

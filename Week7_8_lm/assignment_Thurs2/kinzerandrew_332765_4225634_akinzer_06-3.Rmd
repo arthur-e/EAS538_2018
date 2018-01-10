@@ -1,0 +1,106 @@
+---
+title: "akinzer_06"
+author: "Andrew Kinzer"
+date: "February 23, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 3
+
+Calculate the residual standard error and mean square error manually for the model using Ozone as the independent variable.
+
+```{r echo=FALSE}
+data("airquality")
+mod.ozone=lm(Temp~Ozone, data=airquality)
+```
+
+The residual standard error (RSE) is calculated with the following code.
+
+```{r}
+res = residuals(mod.ozone)
+RSS = sum(res^2)
+RSE = sqrt(RSS/summary(mod.ozone)$df[2])
+```
+
+The mean standard error, MSE is calculated by the following code.
+```{r}
+MSE = RSS/summary(mod.ozone)$df[2]
+MSE
+```
+
+By running the ANOVA() function I can check to see if my calculations are correct.
+
+```{r}
+anova(mod.ozone)
+```
+
+Mean square error of the residuals is 46.5! It matches!
+
+##Exercise 4
+Manually calculate *R*^2^
+
+```{r}
+subAQ=airquality[!(is.na(airquality$Ozone)),]
+
+mod3=lm(Temp~Ozone, data=subAQ)
+
+res = residuals(mod3)
+RSS = sum(res^2)
+RSE = sqrt(RSS/summary(mod3)$df[2])
+
+SSY = deviance(lm(subAQ$Temp~1))
+
+adjusted.r2=1-(RSS/(116-2))/(SSY/(116-1))
+adjusted.r2
+```
+
+Again, if we check it with summary() 
+```{r}
+summary(mod3)
+```
+If we look at the adjusted *R*^2^ in the summary, it matches!
+
+##Exercise 5 
+The residual independency, homoscedasticity, and normality tests for the linear model testing the relationship between temperature and ozone.
+
+```{r echo=FALSE}
+library(lmtest)
+```
+
+```{r}
+dwtest(mod.ozone, alternative=c("two.sided"))
+```
+Because the p-value < 0.05 we reject the null that there is no correlation between the residuals. Because there is an autocorrelation the variables are not independent.
+
+It is also important to check residual homoscedasticity of the model.
+
+```{r}
+plot(residuals(mod.ozone)~fitted(mod.ozone))
+abline(lm(residuals(mod.ozone)~fitted(mod.ozone)), col="red")
+```
+
+Running the Studentized Breusch-Pagan test shows us:
+```{r}
+bptest(mod.ozone)
+```
+Because the p-value from the bp test is >.05, we cannot reject the null that the values are homoscedastic.
+
+The last test to run is to test for residual normality.
+
+```{r}
+qqnorm(residuals(mod.ozone))
+qqline(residuals(mod.ozone), col="red")
+
+shapiro.test(residuals(mod.ozone))
+```
+
+In the qq plot, the points deviate from the abline, which would indicate that the model isn't normal. Additionally, after running the Shapiro test, we see that the p-value = 0.000226. This leads us to reject the null that the model is normal.
+
+
+Overall, our model didn't pass any of our assumption tests. Perhaps the linear model we ran is not the most appropriate way to demonstrate, or examine, the relationship between temperature and ozone.
+
+

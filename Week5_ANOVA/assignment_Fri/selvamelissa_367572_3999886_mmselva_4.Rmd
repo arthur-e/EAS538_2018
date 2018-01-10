@@ -1,0 +1,68 @@
+---
+title: "mmselva_4"
+output: html_document
+---
+
+```{r}
+setwd("~/Desktop/NREStats")
+getwd()
+```
+
+```{r}
+data("OrchardSprays")
+head(OrchardSprays)
+```
+
+```{r}
+data(CO2)
+head(CO2, 10)
+```
+
+Exercise 1:
+
+```{r}
+boxplot(uptake~Type+Treatment, data=CO2, xlab="Treatment",ylab="uptake rate")
+```
+
+```{r}
+CO2.aov = aov(uptake~Treatment + Type, data = CO2)
+CO2.aov.1=lm(uptake~Treatment + Type, data = CO2)
+summary(CO2.aov.1)
+
+model.tables(CO2.aov, "means", se=TRUE)
+str(model.tables(CO2.aov, "effects", se=TRUE))
+
+model.tables(CO2.aov,"effects",se=TRUE)$tables$Treatment
+
+```
+
+List of 3
+ $ tables:List of 2
+  ..$ Treatment: mtable [1:2(1d)] 3.43 -3.43
+  .. ..- attr(*, "dimnames")=List of 1
+  .. .. ..$ Treatment: chr [1:2] "nonchilled" "chilled"
+  ..$ Type     : mtable [1:2(1d)] 6.33 -6.33
+  .. ..- attr(*, "dimnames")=List of 1
+  .. .. ..$ Type: chr [1:2] "Quebec" "Mississippi"
+ $ n     : Named int [1:2] 42 42
+  ..- attr(*, "names")= chr [1:2] "Treatment" "Type"
+ $ se    :Class 'mtable'  atomic [1:2] 1.25 1.25
+  .. ..- attr(*, "type")= chr "effects"
+ - attr(*, "type")= chr "effects"
+ - attr(*, "class")= chr [1:2] "tables_aov" "list.of"
+
+With the values obtained by the model.tables and str function, we see that for the variable "treatment" the mean of nonchilled plants' uptake is 3.43 greater than the grand mean uptake (27.21) and the mean of chilled plants' uptake is 3.43 less than the grand mean. We can also see that for the variable "type", the mean of Quebec plants' uptake is 6.33 greater than the grand mean and the mean of Mississippi plants' uptake is 6.33 less than the grand mean. Aka, Type had a GREATER effect size on the uptake of plants than did Treatment.
+
+
+END EXERCISE 1
+
+BONUS: Exercise 2
+
+```{r}
+CO2.aov.2=lm(uptake~Treatment-1 + Type, data=CO2)
+summary(CO2.aov.2)
+
+kruskal.test(uptake~Treatment, data=CO2)
+```
+
+EXERCISE 2

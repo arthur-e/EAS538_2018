@@ -1,0 +1,195 @@
+---
+title: "Selva_3"
+output: html_document
+---
+
+```{r}
+guns=read.table("guns_NRE538.csv",header=T,fill=T,sep=",")
+```
+
+```{r}
+guns.MI = subset(guns, state=="Michigan")
+t.test(guns.MI[,"murder"], mu=9)
+```
+
+```{r}
+hist(guns.MI[,"murder"], breaks=20)
+abline(v=mean(guns.MI[,"murder"]), col="blue")
+abline(v=9, col="dark green")
+  legend("topleft", legend = c("sample mean", "specified value=9"),text.col=c("blue", "dark green"))
+```
+
+Exercise 1:
+
+One-tail t-test:
+
+Null: The violent crime rate in MI state is not significantly greater than 500 (per 10^5).
+
+```{r}
+t.test(guns.MI[,"violent"], mu=500, alternative='greater')
+```
+
+We can reject the null hypothesis that the violent crime rate is not greater than 500 (per 10^5) because our p-value is 3.733e-11. Therefore, we can safely conclude that the violent crime rate is greater than 500 (per 10^5).
+
+Two-tailed t-test:
+
+Null: The robbery rate of MI state is equal to 400 (per 10^5).
+
+```{r}
+t.test(guns.MI[,"robbery"], mu=400, alternative = 'two.sided')
+```
+
+We can reject the null hypothesis that the robbery rate in MI is equal to 400 (per 10^5) because our p-value is 3.538e-14. Therefore, we can safely conclude that the robbery rate in MI is different from 400 (per 10^5).
+
+END EXERCISE 1
+
+```{r}
+guns.WAS = subset(guns, state=="Washington")
+guns.MIN = subset(guns, state=="Minnesota")
+t.test(guns.WAS[,"murder"], guns.MIN[,"murder"], paired=FALSE)
+```
+
+```{r}
+hist(guns.WAS[,"murder"], breaks=15, col="light blue", xlim=c(0, 7), ylim=c(0,5), xlab="murder rate", main="")
+abline(v=mean(guns.WAS[,"murder"]), col="blue")
+par(new=TRUE)
+hist(guns.MIN[,"murder"], breaks=15, col="light green", xlim=c(0, 7), ylim=c(0,5), xlab="", main="")
+abline(v=mean(guns.MIN[,"murder"]), col="dark green")
+  legend("topright", legend = c("Washington mean", "Minnesota mean"),text.col=c("blue", "dark green"))
+```
+
+```{r}
+shapiro.test(guns.WAS[,"murder"])
+shapiro.test(guns.MIN[,"murder"])
+var.test(guns.WAS[,"murder"], guns.MIN[,"murder"])
+```
+
+```{r}
+library(Lahman)
+data(Batting)
+bat15 = subset(Batting, yearID==2015 & AB>200)
+bat15$avg = bat15$H/bat15$AB
+hist(bat15$avg, breaks=30, freq=FALSE)
+lines(density(bat15$avg), col="red")
+```
+
+```{r}
+shapiro.test(bat15$avg)
+qqnorm(bat15$avg); qqline(bat15$avg, col="Red")
+```
+
+```{r}
+se=sd(bat15$avg)/(sqrt(length(bat15$avg)))
+mean.avg=mean(bat15$avg)
+upper=mean(mean.avg)+qnorm(0.975)*se
+lower=mean(mean.avg)-qnorm(0.975)*se
+```
+
+```{r}
+muA=4
+sdA=1
+set.seed(32)
+A = rnorm(30, mean=muA, sd=sdA)
+A.mean=mean(A)
+
+A.mean.SE=sqrt(var(A)/length(A))
+A.mean.CI=c(A.mean-qnorm(0.975)*A.mean.SE, A.mean+qnorm(0.975)*A.mean.SE)
+A.mean.CI
+```
+
+```{r}
+xs = seq(0, 15, by =0.01)
+fA = dnorm(xs, mean=A.mean, sd=A.mean.SE)
+plot(fA~xs, type="l", lwd=3, col="blue", xlim=c(3.5, 5), ylim=c(0, 3), 
+     main="distribution of means of sample A", xlab="value", ylab="density")
+abline(v=c(qnorm(0.025, mean=A.mean, sd=A.mean.SE), qnorm(0.975, mean=A.mean, sd=A.mean.SE)), col="blue", lty="dashed")
+abline(v=4.5, col="dark green", lty="solid", lwd=3)
+```
+
+```{r}
+p.m=2*(1-pnorm(4.5, mean=A.mean, sd=A.mean.SE))
+p.m
+```
+
+```{r}
+t.test(A, mu=4.5)$p.value
+```
+
+```{r}
+muA=4
+muB=4.5
+sdA=1
+sdB=1
+set.seed(32)
+A = rnorm(30, mean=muA, sd=sdA)
+B = rnorm(30, mean=muB, sd=sdB)
+hist(A,breaks=30,col=rgb(1,0,0,0.5),xlim=c(0,10), ylim=c(0,10), xlab="Value", main="histogram of sample A and B")
+hist(B,breaks=30,col=rgb(0,1,0,0.5),add=TRUE)
+box()
+```
+
+```{r}
+set.seed(9487)
+dif.s=c() # creating an empty vector to store the "differences" in the for loop
+for (i in 1:10000){
+  dif.s[i]=mean(sample(A, 30, replace=TRUE)) - mean(sample(B, 30, replace=TRUE))
+}
+dif.s.mean = mean(dif.s)
+dif.s.sd = sd(dif.s)
+CI95.lo = sort(dif.s)[10000*0.025]
+CI95.hi = sort(dif.s)[10000*0.975]
+
+hist(dif.s, probability=TRUE, main="distribution of differences")
+lines(density(dif.s), col="red")
+abline(v=c(CI95.lo, CI95.hi), col="blue", lty="dashed")
+abline(v=0, col="dark green", lty="solid", lwd=3)
+
+legend("topright", legend = c("95% confidence interval", 
+                              "0"), 
+       col=c("blue", "dark green"),
+       text.col=c("blue", "dark green"),
+       lty=c("dashed", "solid"), bty="n")
+```
+
+```{r}
+2*(length(which(dif.s>0))/length(dif.s))
+t.test(A, B, paired = FALSE)
+```
+
+Exercise 2:
+
+Null: The murder rate of Washington state is not significnatly different from that of Minnesota state.
+
+```{r}
+dif.g=c()
+for (i in 1:10000){
+  dif.g[i]=mean(sample(guns.WAS[,"murder"],nrow(guns.WAS), replace=TRUE)) - mean(sample(guns.MIN[,"murder"], nrow(guns.MIN), replace=TRUE))
+}
+dif.g.mean=mean(dif.g)
+dif.g.sd=sd(dif.g)
+CI95.g.lo=sort(dif.g)[10000*0.025]
+CI95.g.hi=sort(dif.g)[10000*0.975]
+
+ 
+hist(dif.g, probability=TRUE, main="distribution of differences")
+lines(density(dif.g), col="red")
+abline(v=c(CI95.g.lo, CI95.g.hi), col="blue", lty="dashed")
+abline(v=0, col="dark green", lty="solid", lwd=3)
+
+legend("topright", legend = c("95% confidence interval", 
+                              "0"), 
+       col=c("blue", "dark green"),
+       text.col=c("blue", "dark green"),
+       lty=c("dashed", "solid"), bty="n")
+ 
+2*(length(which(dif.g>0))/length(dif.g))
+
+t.test(guns.WAS[,"murder"],guns.MIN[,"murder"], paired = FALSE)
+```
+
+Since the p-value of the t-test comparing the average murder rate in Washington state and Minnesota state is 1.546e-15, we can reject the null hypothesis that the murder rates are not significantly different because it is less than 0.05.
+
+> Why do you need to do `t.test()` after manually testing the hypothesis and calculating the p-value?
+
+END EXERCISE 2
+

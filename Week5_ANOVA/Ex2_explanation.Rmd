@@ -1,0 +1,32 @@
+---
+title: "Ex2 to Assignment 4 (Week 5)"
+author: "Feng-Hsun Chang"
+date: "2017 Feb. 06"
+output: html_document
+---
+
+To interpret the output table correctly, we should know couple things before hand.
+
+What `lm()` does is to find a line that connects your data. The estimates in the `lm()` output is the regression coefficients, which mean how much the response variable (Y) would change with one unit change of the explanatory variable (X). If the explanatory variable is categorical, one unit change means moving from one group to another. For instance, the estimates in the first example are the changes of _decrease_ (response variable) with one unit change of _treatment_ group (explanatory variable), which mean moving from one _treatment_ to any other one _treatment_, how much the _decrease_ variable would change. In linear model with categorical explanatory variable (ANOVA is one type of linear model), the first is always the one that is being compared to. This is way we said that it is the changes of _decrease_ between treatment A and other treatments.  
+
+When there are two treatments (two-way factorial design like the second example), there can be "interaction term". Interaction term describe how much the change of response variable due to one treatment differ from due to the other treatment. For instance, in the second example, if there is no interaction (you do not specifiy it to be fitted), using `lm()` will only estimate the change of _uptake_ due to the change of _Type_ (Quebec or Mississippi) and _treatment_ (chilled or nonchilled). However, the two changes are not allowed to depend on each other. You can think of is as a general change or _uptake_ due to plant type (treatment) regardless of treatment (plant type). 
+
+```{r}
+CO2.lm = lm(uptake~Treatment + Type, data = CO2)
+summary(CO2.lm)
+```
+
+The `r summary(CO2.lm)$coefficients[2,1]` is the mean difference between chilled VS nonchilled (calculate the mean of the two groups to proof to yourself). The `r summary(CO2.lm)$coefficients[3,1]` is the mean difference between Quebec VS Mississippi (calculate the mean of the two groups to proof to yourself). __R__ does not do pair wise comparison like the one-way anova because there are two factors. One unit change of explanatory only moves from chilled to nonchilled ot Quebec to Mississippi. `lm()` can only estimat the generally effects of plant type and treatment. 
+
+The reason `r summary(CO2.lm)$coefficients[1,1]` is not exactly the mean _uptake_ of nonchilled Quebec plants is that `lm()` is trying to find a intercept (mean of nonchilled Quebec plants) given a fixed effects of treatment and plant type. So, `r summary(CO2.lm)$coefficients[1,1]` is what `lm()` "think" what the mean of nonchilled Quebec plants should be. Note that the two effects are forced to not interact with each other. 
+
+However, if we include interaction term to allow the two changes to depend on each other, we have a third estimate (third regression coefficient, "Treatmentchilled:TypeMississippi"). This is showing the change of _uptake_ from nonchilled to chilled in Quebec plants versus in Mississippi plans.
+
+```{r}
+CO2.lm2 = lm(uptake ~ Treatment*Type, data = CO2)
+summary(CO2.lm2)
+```
+
+From the output, we see that _uptake_ in nonchilled treatment is `r summary(CO2.lm2)$coefficients[2,1]` higher than in chilled treatment __FOR Quebec plants__! The _uptake_ of Quebec plants is `r summary(CO2.lm2)$coefficients[3,1]` higher than Mississippii plants in __nonchilled treatment__! The third estimate (regression coefficient) describes how much more _uptake_ would decrease from nonchilled to chilled in Mississippi than in Quebec, OR how much more _uptake_ would decrease from Quebec to Mississippi in nonchilled than in chilled. The two are equal. 
+
+The reason why `r summary(CO2.lm2)$coefficients[2,1]` is exactly the same as the nonchilled Quebec plants is that we now have interaction term to adjust for the change from nonchilled Quebec plants to chilled Mississippi plant.

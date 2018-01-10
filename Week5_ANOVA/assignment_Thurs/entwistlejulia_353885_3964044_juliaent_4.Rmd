@@ -1,0 +1,24 @@
+# Exercise 1
+#Extract the effect size of each factor (i.e. Treatment and Type) with $. Make sure that you comment on the results. Use CO2 data
+
+```{r}
+CO2.aov1 = aov(uptake~Treatment, data=CO2)
+A = model.tables(CO2.aov1, "effects", se=TRUE)$tables
+A$Treatment
+
+CO2.aov2 = aov(uptake~Type, data=CO2)
+A = model.tables(CO2.aov2, "effects", se=TRUE)$tables
+A$Type
+```
+
+#The effects of the model table is the difference of that mean of that treatment group. The grand mean is the average of the averages.
+
+#Exercise 2
+#I?€™ve showed you one of multiple ways to do this two way ANOVA. Can you do it with lm() function and summarize (and interpret) it?
+
+```{r}
+CO2.aov = lm(uptake~Treatment + Type, data = CO2)
+summary(CO2.aov)
+```
+
+# The four marginal means show that there is a significant difference. There is a greater effect between nonchilled and chilled Quebec than nonchilled and chilled Mississippi.

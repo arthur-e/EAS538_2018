@@ -1,0 +1,30 @@
+Ex 1. 
+
+1. Root length has a significantly positive effect (23.24) on fruit weight. Ungrazed treatment has almost significant higher fruit weight than grazed treatment. [Note that I wrote the above interpreation because the interaction term is not significant.]
+The effects (i.e. regression coefficient) of root length (grazing treatment) is not being influenced by grazing treatment (root length) and vice versa.  
+
+2. The interaction will not change. Interaction is the influence of one variable on the regression coefficient of the other variable. 
+
+
+
+##### REVIEW
+Three critical assumptions of t-test are:
+1. samples have equal variance
+2. samples are normally distributed
+3. each observation is sampled independently
+
+lm() for linear regression and ANOVA
+
+cor()
+
+linear model check:
+1. residual independency (possibly with the dwtest) 
+2. residual homoscedasticity (possibly with the bptest) 
+3. residual normality (possibly with the shapiro.test)
+
+Model comparison:
+F-test:¡@anova()
+AIC()
+
+ANCOVA
+

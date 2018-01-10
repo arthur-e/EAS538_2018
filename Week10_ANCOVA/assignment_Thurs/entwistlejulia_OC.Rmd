@@ -1,0 +1,52 @@
+---
+title: "juliaent_8"
+output: html_document
+---
+
+```{r}
+library(Lahman)
+library(dplyr)
+library(ggplot2)
+```
+
+## Exercise 1
+Try to use the following data set to execute ANCOVA and make interaction plots. This data set contains the fruit weight (Fruit) of different plants with different root depth (root) and different treatment (Grazing).
+```{r}
+gz = read.table(("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_ANCOVA_n_Interaction/ipomopsis.txt"), sep="", header=T,comment.char="#")
+head(gz)
+mod = lm(Fruit~ Root*Grazing, data=gz)
+aov = aov(Fruit~ Root*Grazing, data=gz)
+summary(mod)
+anova(mod)
+summary(aov)
+library(interplot)
+interplot(m=mod, var1="Root", var2="Grazing")+
+  labs(x="Fruit", y="Estimated coefficient for Root", title="Estimated Coefficient of Root on Grazing")
+interplot(m=mod, var1="Grazing", var2="Root")+
+  labs(x="Root", y="Estimated coefficient for Grazing", title="Estimated Coefficient of Grazing on Root")
+```
+
+> What is your interpretation on these two interaction plots?
+
+## Exercise 2
+1. Use F-test to compare mod.1 and mod.2. Explain why you chose one over another to explain the data.
+2. Plot two interaction plots with interplot() for the model with wind and solar radiation as the independent variables. Interprete the two interaction plots.
+```{r}
+data("airquality")
+mod = lm(Temp~Wind, data=airquality)
+summary(mod)
+mod1 = lm(Temp~Wind + Solar.R, data=airquality)
+summary(mod1)
+mod2 = lm(Temp~Wind * Solar.R, data=airquality)
+summary(mod2)
+anova(mod1, mod2)
+interplot(mod2, var1="Wind", var2="Solar.R")+
+  labs(x="Wind", y="coefficient for Solar")
+interplot(mod2, var1="Solar.R", var2="Wind")+
+  labs(x="Solar", y="coefficient for Wind")
+```
+
+# The models are not significantly different.
+# From the interaction plots we can see that there is a significant interaction between Wind and Solar.
+
+> No, from the summary table of model 2, the interaction is not significant.

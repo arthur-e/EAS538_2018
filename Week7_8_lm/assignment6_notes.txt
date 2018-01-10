@@ -1,0 +1,20 @@
+1. dwtest
+From the dwtest, we can only say there is autocorrelation or not. But always keep in mind that this is only one of the structure that should be inspected.
+show the help page of dwtest, "order.by="
+
+2. bptest
+Good explanation:
+plot(residuals(mod4)~fitted(mod4))
+abline(lm(residuals(mod4)~fitted(mod4)), col="red")
+##it looks like there is a pattern in the varience of the residuals
+library(lmtest)
+bptest(mod4)
+#The p value is about 0.07 so there is a fair chance that there is a pattern
+
+3. shapiro test
+
+
+
+#The results of our tests suggest that the data displays homoscedasticity which is great, 
+#but also displays autocorrelation, and is not normally distributed. Therefore, a linear model using ozone
+#as an indepedent variable may not be the best option.

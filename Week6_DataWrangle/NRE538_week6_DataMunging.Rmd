@@ -1,0 +1,177 @@
+---
+title: "NRE538_Data Munging"
+author: "Oscar Feng-Hsun Chang"
+date: "Week6"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+We have seen some basic functions built in the _base_ package of __R__ (which means you don't have to install anything). However, there are several packages that allows you to clean/reorganize/munge the data in a more elegant and efficient fashion. They are [__reshape2__](https://cran.r-project.org/web/packages/reshape2/reshape2.pdf), [__plyr__](https://cran.r-project.org/web/packages/plyr/plyr.pdf),
+[__dplyr__](https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html), or 
+[__tidyr__](https://cran.r-project.org/web/packages/tidyr/tidyr.pdf) packages. There even exists a cheat sheet for [__dplyr__ and __tidyr__](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) packages.
+
+We've seen `order`, `subset`, `r/cbind`, and `merge` before. Let's explore some more handy functions in the __reshape2__ and __plyr__ packages.
+
+```{r}
+library(reshape2)
+library(plyr)
+library(magrittr)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(rmarkdown)
+library(knitr) # Run R Code Chunks
+library(ggplot2) # For plotting
+library(RCurl)
+```
+
+
+```{r}
+RY=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/RY.csv"), sep=",", header=T,comment.char="#")
+
+id=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/sp_id.csv"), sep=",", header=T,comment.char="#")
+
+trait=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/sp_stoi_traits.csv"), sep=",", header=T,comment.char="#")
+```
+
+```{r, echo=FALSE}
+goal=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/goal.csv"), sep=",", header=T,comment.char="#")
+```
+
+Our goal is to organize the three data frames into the `goal` data frame.  
+Following are some functions for organizing/cleaning/munging data in R. 
+
+```{r}
+head(goal)
+```
+
+# mutate
+
+Given a data frame, `mutate()` modifies, adds, or removes variables.
+
+```{r}
+head(RY)
+
+RY = RY %>%
+  mutate(avgry = (RY1+RY2)/2)
+head(RY)
+
+RY = RY %>%
+  mutate(avgry = avgry/2)
+head(RY)
+```
+
+# subset
+
+This allows you to `subset()` rows or `select` (this is an argument in `subset()`, NOT a function here!) columns.
+
+```{r}
+sp1 = RY %>%
+  subset(sp1==1, select=c(RY1))
+head(sp1)
+```
+
+This can also be achieved by the `filter()` (for rows) and `select()` (for columns) functions in the __dplyr__ package.
+
+# merge/join
+
+These two, by its name, do the *join* operation.
+The `merge()` belongs to the __base__ package, and the `join()` belongs to __plyr__.
+
+```{r}
+RY.m = RY %>%
+  merge(id, by.x="sp2", by.y="id") %>%
+  merge(id, by.x="sp1", by.y="id") %>%
+  arrange(sp1)
+
+colnames(RY.m)[c(7:8)]=c("sp2_name", "sp1_name")
+head(RY.m)
+```
+
+In the `join()`, we can specify the `type`, which is the same with the `all` argument in the `merge()` function. Try `? join` to understand it. 
+
+```{r}
+colnames(trait)[1] = "sp"
+trait.1 = trait %>%
+  join(id, by="sp", type="left")
+  # merge(id, by="sp", all.x=TRUE) This and the above arguments will do the same thing.
+head(trait.1)
+```
+
+Let's merge the two data frames but exclude species that have no trait information. We should have the following data frame. 
+
+```{r, echo=FALSE}
+trait.2 = trait %>%
+  join(id, by="sp", type="inner")
+  # merge(id, by="sp", all=FALSE) This and the above arguments will do the same thing.
+  # subset(select=c(id, C.N, C.P, N.P))
+head(trait.2)
+```
+
+# ddply
+
+This is a very useful function that allows you to apply a function to a data frame and reture a data frame back.  
+I always use this to summarize my own data. 
+
+```{r}
+sum = RY.m %>%
+  ddply(~sp1, summarize,
+        mean=mean(RY1),
+        med=quantile(RY1, 0.5),
+        lo=quantile(RY1, 0.05),
+        hi=quantile(RY1, 0.95))
+sum
+```
+
+# melt/cast
+
+`melt` function can make a data frame from "wide" form into a "long" form.
+
+```{r}
+RY.long = RY %>%
+  melt(id.vars=c("sp1", "sp2"), measure.vars=c("RY1", "RY2"), variable.name="RY_type", value.name="value")
+head(RY.long)
+```
+
+`cast` function can do the reverse of `melt`
+
+```{r}
+RY.wide = RY.long %>%
+  dcast(sp2+sp1~RY_type)
+head(RY.wide)
+```
+
+# The GOAL
+
+1. Your turn. Use what we've learned to generate the `goal` data frame. 
+
+```{r, echo=FALSE}
+final = RY.m %>%
+  subset(select=c(1:5)) %>%
+  merge(trait.2, by.x="sp2", by.y="id") %>%
+  merge(trait.2, by.x="sp1", by.y="id") %>%
+  arrange(sp1)
+colnames(final)[6:13] = c("sp2.name", "C.N.sp2", "C.P.sp2", "N.P.sp2", "sp1.name", "C.N.sp1", "C.P.sp1", "N.P.sp1")
+head(final)
+```
+
+In addition, if you are dealing with large dataset, [__data.table__](https://cran.r-project.org/web/packages/data.table/index.html) package will be your good friend!
+
+2. Conduct some analysis to answer the following questions:   
+2.1 Does different species have different relative yield (RY)? _hint_: ANOVA  
+2.2 Does the RY of ones species depend on the other species? _hint_: interaction term  
+2.3 Does different species have different C:N, C:P, N:P ratio? _hint_: ANOVA or MANOVA
+```{r, include=FALSE}
+RYaov = lm(RY1~as.factor(sp1)*as.factor(sp2), data=final)
+summary.aov(RYaov)
+```  

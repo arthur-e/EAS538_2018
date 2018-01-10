@@ -1,0 +1,326 @@
+---
+title: "NRE538_ANCOVA and interactions"
+author: "Oscar Feng-Hsun Chang"
+date: "Week10"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+\newcommand\expect[1]{\mathbb{E}\left[{#1}\right]}
+\newcommand\var[1]{\mathrm{Var}\left[{#1}\right]}
+
+```{r, set global theme, eval=FALSE, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=10)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(rmarkdown)
+library(knitr) # Run R Code Chunks
+library(ggplot2) # For plotting
+library(DT) # Interactive HTML tables
+library(RCurl)
+library(dplyr)
+library(tidyr)
+library(scales)
+library(MASS)
+library(manipulate)
+```
+
+# ANCOVA
+
+Now we have learned to compare a variable (dependent variable) "linearly" in response to categorical variables (ANOVA) and in response to continuous variables (linear regression). How about you have both categorical and continuous variables?  
+
+Analysis of covariance (ANCOVA) combines elements from regression and ANOVA. The dependent variable is continuous, and there is at least one continuous explanatory variable (it often being called the _covariate_) and at least one categorical explanatory variable. It allows you to examine whether the effect of one independent variable is significant when controlled for the effect of other independent variables.  
+
+Here I will use data from the [__Lahman__](https://cran.r-project.org/web/packages/Lahman/Lahman.pdf) package again to demonstrate ANCOVA. 
+
+```{r, Lahman, eval=FALSE}
+install.packages("Lahman")
+```
+
+```{r, library(Lahman)}
+library(Lahman)
+library(dplyr)
+library(ggplot2)
+data("Salaries")
+data("Batting")
+```
+
+Now let's subset the salaries from one single year (say 2015). Do you remember how to do it?
+
+```{r, prepare data}
+money15 = subset(Salaries, yearID==2015)
+bat14 = subset(Batting, yearID==2014 & AB>100) %>%
+  battingStats(idvars = c("playerID", "stint", "teamID", "lgID"), cbind = FALSE)
+
+dat = inner_join(money15, bat14, by="playerID") %>%
+  filter(BA != "NA") %>%
+  subset(select=c("lgID.x", "salary", "BA"))
+head(dat, 15)
+```
+
+* Notes that I'm using a cool function to join the two dataframe together. You are encouraged to try out other functions in the _dplyr_ and _tidyr_ packages. 
+
+I'm interested in how the salary of a batter is being affected by the batting average (BA, the most common statistics to evaluate the performance of a batter) after controlled for which league the player is in. Or another way to ask basically the same question is that I would like to know if the salary differ from National League to American League after controlled for the effects of BA. 
+
+If these two are the only question you are interested in, simple linear regression might be just enough for the effects of BA and ANOVA might be just enough for league difference. However, what if the relationship between salary and BA differs from league to league? This is where you should consider ANCOVA
+
+Let's take a look on the data type of each variable.
+
+```{r, data type}
+str(dat)
+```
+
+So, the salary is integers (special case of numbers), BA is numbers and league ID is a categorical variable. This is what we need for executing ANCOVA.  
+
+Now let's visualize it.
+
+```{r, salary vs BA}
+ggplot(data=dat, mapping=aes(x=BA, y=salary, color=factor(lgID.x)))+
+  geom_point()
+```
+
+```{r}
+ggplot(data=dat, mapping=aes(x=BA)) + 
+  geom_histogram(aes(y = ..density..)) + geom_density(color="red")
+qqnorm(dat[,"BA"])
+qqline(dat[,"BA"], col="red")
+shapiro.test(dat[,"BA"])
+```
+
+The BA variable looks pretty normal, which is a bit suprising to me! We even pass the shapiro test. How about the salary?
+
+```{r}
+ggplot(data=dat, mapping=aes(x=salary)) + 
+  geom_histogram(aes(y = ..density..)) + geom_density(color="red")
+qqnorm(dat[,"salary"])
+qqline(dat[,"salary"], col="red")
+shapiro.test(dat[,"salary"])
+```
+
+This is so right skewed...This look likes an [exponential distribution](https://en.wikipedia.org/wiki/Exponential_distribution). One possible way to deal with this right skewed data is to log transform it. 
+
+```{r}
+dat = dat %>%
+  mutate(sal.log=log(salary))
+ggplot(data=dat, mapping=aes(x=sal.log)) + 
+  geom_histogram(aes(y = ..density..)) + geom_density(color="red")
+qqnorm(dat[,"sal.log"])
+qqline(dat[,"sal.log"], col="red")
+shapiro.test(dat[,"sal.log"])
+```
+
+Apparently, log-transformation does not help a lot...For the purpose of this class, we'll just remove those whose salary is too low (say `r round(exp(13.5))`, sorry to those players...). In reality, this is the case you'll have to do generalized linear model, which will be covered later. Stay tuned!
+
+```{r}
+dat = dat %>%
+  filter(sal.log>13.5) 
+ggplot(data=dat, mapping=aes(x=sal.log)) + 
+  geom_histogram(aes(y = ..density..)) + geom_density(color="red")
+qqnorm(dat[,"sal.log"])
+qqline(dat[,"sal.log"], col="red")
+shapiro.test(dat[,"sal.log"])
+```
+
+Still not perfect, but better.
+
+Let's see how the salary related to the Batting Average in each league. First, the American league. 
+
+```{r, AL}
+dat %>%
+  filter(lgID.x=="AL") %>%
+  ggplot()+
+    geom_point(aes(x=BA, y=sal.log), color="red")+
+    labs(x="Batting Average", y="Log(salary)", title="American League")+
+    geom_smooth(aes(x=BA, y=sal.log), method="lm", color="black", se=FALSE)
+
+dat.AL = dat %>%
+  filter(lgID.x=="AL")
+summary(lm(sal.log~ BA, data=dat.AL))
+```
+
+We see that there is a significant positive relationship between salary and BA in the American league.  
+
+How about the National League?
+
+```{r, NL}
+dat %>%
+  filter(lgID.x=="NL") %>%
+  ggplot(aes(x=BA, y=sal.log))+
+    geom_point(color="blue")+
+    labs(x="Batting Average", y="Log(salary)", title="National League")+
+    geom_smooth(aes(x=BA, y=sal.log), method="lm", color="black", se=FALSE)
+
+dat.NL = dat %>%
+  filter(lgID.x=="NL")
+summary(lm(sal.log~ BA, data=dat.NL))
+```
+
+Graphically and statistically, the relationship between salary and BA differs from league to league. We can do ANCOVA to statistically examine if the relationship does significantly differ from league to league. 
+
+## Execute ANCOVA
+
+We can use `lm()` function to do ancova. You can also use `aov()` function. The only difference is just the final summary table. 
+
+```{r, ancova demo}
+mod = lm(sal.log~ BA*lgID.x, data=dat)
+aov = aov(sal.log~ BA*lgID.x, data=dat)
+```
+
+The "BA" is a continuous variable and the "lgID.x" is a categorical variable. The "*" means we specify a interaction term between the two variables in the model. 
+
+```{r, ancova results}
+summary(mod)
+anova(mod)
+summary(aov)
+```
+
+Here the intercept is the salary of players in American league (due to alphabetical reason) when BA is 0. The estimate of BA means the effects of BA on players in AL. The estimate of lgID is the average salary difference between AL and NL. The interaction term means whether the effect of BA differ from AL to NL. 
+
+From the output, we see that the interaction term is NOT significant. This means that the effect (the coefficient) of one variable does NOT depends on the other one. In the case, we can say the relationship between salary and BA is not significantly different from league to league.  
+
+## Interaction plot
+
+We can use a package called `interplot` that allows us to visualize 
+
+```{r, interplot1, message=FALSE, warning=FALSE}
+library(interplot)
+interplot(m=mod, var1="BA", var2="lgID.x")+
+  labs(x="League ID", y="Estimated coefficient for BA", title="Estimated Coefficient of BA on League ID")
+```
+
+This plot means the effect (regression coefficient) of BA on salary is higher in NL than in the AL, but the difference is NOT significant.
+
+Or, we can have another aspect of the interaction plot. 
+
+```{r, interplot2}
+interplot(m=mod, var1="lgID.x", var2="BA")+
+  labs(x="BA", y="Estimated coefficient for League ID", title="Estimated Coefficient of League ID on BA")
+```
+
+This means the salary in NL is first lower than in AL (negative intecept of this figure), but this difference gradually decrease with the increase of BA. Finally, when BA is high enough (over 0.3), the salary in NL is higher than in AL. However, this change of salary difference is BOT significant.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 1__(5 pt)
+
+Try to use the following data set to execute ANCOVA and make interaction plots
+This data set contains the fruit weight (Fruit) of different plants with different root depth (root) and different treatment (Grazing).
+
+```{r}
+gz = read.table(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_ANCOVA_n_Interaction/ipomopsis.txt"), sep="", header=T,comment.char="#")
+head(gz)
+```
+
+```{r, ancova in gz, include=FALSE}
+mod.gz=lm(Fruit~Root*Grazing, data=gz)
+summary(mod.gz)
+```
+
+```{r, interplot in gz, include=FALSE}
+interplot(m=mod.gz, var1="Root", var2="Grazing")+
+  labs(x="Grazing", y="Estimated coefficient for Root", title="Estimated Coefficient of Root on Grazing")
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+# Interaction terms
+
+Keep in mind that anova, ancova and linear regression are all linear models with following formula.
+
+$$Y_i = \beta_0 + \beta_{i1} X_{i1} + \beta_{i2} X_{i2} + ... + \beta_{ip} X_{ip} + \varepsilon_i$$
+
+, where $Y_i$ is the dependent variable (response variable) $i$, $X_{ip}$ are the independent variable, and $\varepsilon_i$ is the error. 
+
+The difference between ANOVA/ANCOVA and linear regression is just the difference between $X_{ip}$. In ANOVA, $X_{ip}$ are categorical variable and in regression, $X_{ip}$ are continuous variable. In ANCOVA, it is the combination of the two. 
+
+In this sense, we can also include interaction term in the linear regression model we had before. We used the [air quality data in New York](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html) before to demonstrate the regression analysis. Let's make it more complicated. 
+
+```{r, airquality data}
+data("airquality")
+head(airquality, 15)
+```
+
+```{r, lm and plot}
+mod = lm(Temp~Wind, data=airquality)
+summary(mod)
+plot(Temp~Wind, data=airquality)
+abline(lm(Temp~Wind, data=airquality), col="red")
+```
+
+This is the linear model we have seen before. We can have a interaction terms in the model but we first need to have two independent variables. 
+
+```{r, two params lm}
+mod1 = lm(Temp~Wind + Ozone, data=airquality)
+summary(mod1)
+```
+
+In the above model, there is not interaction terms. We can include it by changing "+" to "*". 
+
+```{r, interaction lm}
+mod2 = lm(Temp~Wind * Ozone, data=airquality)
+summary(mod2)
+```
+
+From the above model output, we see that there is a significant interaction between Wind and Ozone. This means that the coefficient of one variable depends on the other one. For example, we can use interaction plot to visualize how the coefficient of Ozone depends on Wind.
+
+```{r, interactino plot in air}
+interplot(mod2, var1="Wind", var2="Ozone")+
+  labs(x="Wind", y="coefficient for Ozone")
+```
+
+```{r}
+interplot(mod2, var1="Ozone", var2="Wind")+
+  labs(x="Ozone", y="coefficient for Wind")
+```
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 2__[Bonus 5 pt
+
+1. Use `F-test` to compare _mod.1_ and _mod.2_. Explain why you chose one over another to explain the data.
+
+```{r, include=FALSE}
+anova(mod1, mod2)
+```
+
+
+2. Plot two interaction plots with `interplot()` for the model with wind and solar radiation as the independent variables. Interprete the two interaction plots. 
+
+```{r, interactino plot in air wind~ozone, include=FALSE}
+mod3 = lm(Temp~ Solar.R*Wind, data=airquality)
+summary(mod3)
+interplot(mod3, var1="Solar.R", var2="Wind")+
+  labs(x="Solar.R", y="coefficient for Wind")
+interplot(mod3, var1="Wind", var2="Solar.R")+
+  labs(x="Wind", y="coefficient for Solar.R")
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+Note that as we include the interaction term in the model, the coefficient for Ozone becomes non-significant. This is because Ozone and Wind are highly correlated. 
+
+```{r, cor between ozone and wind }
+cor(airquality[,"Ozone"], airquality[,"Wind"], use="na.or.complete")
+```
+
+If encountering this case we should remove the main effect of Ozone, since the interaction between Wind and Ozone is significant but the main effect for Ozone is non-significant. 
+
+```{r, model comparison}
+mod3 = lm(Temp~Wind + Wind:Ozone, data=airquality)
+summary(mod3)
+anova(mod2, mod3)
+```
+
+From the above results, we see that the two models are not significantly different from each other in terms of the amount of variance of response variable being explained. This is based on `F-test` we have learned from the multiple regression session. This can only be executed if the two models are [nested](https://en.wikipedia.org/wiki/Statistical_model#Nested_models). 

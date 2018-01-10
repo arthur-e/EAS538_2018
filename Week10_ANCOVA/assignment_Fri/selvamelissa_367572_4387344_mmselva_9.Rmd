@@ -1,0 +1,59 @@
+---
+title: "mmselva_9"
+output: html_document
+---
+
+EXERCISE 1:
+
+```{r}
+gz=read.table((text = "https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_ANCOVA_n_Interaction/ipomopsis.txt"),sep="", header=T,comment.char="#")
+head(gz)
+mod1 = lm(Fruit~Root*Grazing, data=gz)
+summary(mod1)
+```
+
+As we can see from the output of this ANCOVA, the effect of root length (continuous independent variable) on fruit weight (dependent variable) is significant because the p-value is very, very small. The effect of Grazing on fruit weight does not seem to be significant, and the interaction between root length and grazing isn't significant either, meaning that the effect of root length on fruit weight doesn't differ significantly between grazed and ungrazed plants.
+
+```{r}
+library(interplot)
+interplot(m=mod1, var1="Root", var2="Grazing")+
+  labs(x="Grazing vs. Non-Grazing", y="Estimated coefficient for Root Length", title="Estimated Coefficient of Root Length on Grazing")
+
+interplot(m=mod1, var1="Grazing", var2="Root")+
+  labs(x="Root Length", y="Estimated coefficient for Grazing", title="Estimated Coefficient of Grazing on Root Length")
+
+```
+
+In the first plot, we can see that the effect of root length on fruit weight is slightly higher in ungrazed plants compared with grazed plants, but the difference is not statistically significant because the bars for each grazing treatment overlap. The second plot tells us that as root length gets larger, the coefficient (effect on the dependent variable) of grazing treatment gets slightly larger, but the slope of the line is so slight that it can't be considered significant.
+
+END Exercise 1
+
+Exercise 2
+
+```{r}
+data("airquality")
+
+mod1 = lm(Temp~Wind + Ozone, data=airquality)
+mod2 = lm(Temp~Wind * Ozone, data=airquality)
+summary(mod2)
+
+anova(mod1, mod2)
+```
+
+If I were only using the F-test to choose which model to use, I would choose model 2. As we can see from the output of this ANOVA comparing mod1 and mod2, the F-statistic is very large at 17.085. The p-value is also quite small at 6.927e-05, meaning that the chance that model 1 explains as much variation as model 2 is 6.927e-05. Based on this info, I would choose model 2, which includes the interaction between Wind and Ozone.
+
+```{r}
+mod3=lm(Temp~Wind*Solar.R, data=airquality)
+interplot(mod3, var1="Wind", var2="Solar.R")+
+  labs(x="Wind", y="coefficient for Solar.R")
+interplot(mod3, var1="Solar.R", var2="Wind")+
+  labs(x="Solar.R", y="coefficient for Wind")
+```
+
+In both of these plots, we can see that the slope of the line is different from zero. That is, as Wind and Solar Radiation increase, the coefficient of the opposite variable (i.e. the effect of that variable on the dependent variable, Temperature) decreases. We don't want this; this is clear proof that Wind and Solar Radiation are correlated and affecting one another's effect on the dependent variable at different times.
+
+> No, the interaction term does not mean that the two variables are correlatd. It only means the effects of one variable depends on the other one. 
+
+
+
+END Exercise 2

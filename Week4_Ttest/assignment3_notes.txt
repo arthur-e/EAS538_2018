@@ -1,0 +1,11 @@
+asssignment 3
+- p=2
+- Your answer to problem 2 is almost correct. We are constructing the distribution of differences by resampling method and calculate the CI. The resampling method must base on the original data. What you have done is creating another data, because you did "A = rnorm(30, mean=muWAS, sd=sdWAS)
+B = rnorm(30, mean=muMIN, sd=sdMIN)". Then you did resampling from A and B, which is not correct. => 8+3
+
+- Actually, it is better to resample the same amount of values as your sample size.
+
+- In the one sample one tail t-test, your t.test() syntax is not testing the null hypothesis you stated. If the null hypothesis is "greater" than XX, you should specify the alternative argument as "less".
+
+- no problem 2 => 7+5 
+

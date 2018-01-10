@@ -1,0 +1,54 @@
+#Assignment_8 Setup
+```{r}
+library(Lahman)
+library(interplot)
+library(RCurl)
+```
+
+# Exercise 1
+```{r}
+gz = read.table(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_ANCOVA_n_Interaction/ipomopsis.txt"), sep="", header=T,comment.char="#")
+head(gz)
+
+shapiro.test(gz$Root)
+shapiro.test(gz$Fruit)
+
+mod2 = lm(Fruit ~ Root * Grazing, data=gz)
+summary(mod2)
+
+interplot(m=mod2, var1="Root", var2="Grazing")+
+  labs(x="Grazing", y="Estimated coefficient for Root Depth", title="Estimated Coefficient of Root Depth on Grazing")
+
+interplot(m=mod2, var1="Grazing", var2="Root")+
+  labs(x="Root Depth", y="Estimated coefficient for Grazing", title="Estimated Coefficient of Grazing on Root Depth")
+```
+#Setup for E2
+```{r}
+data("airquality")
+
+mod1 = lm(Temp~Wind + Ozone, data=airquality)
+summary(mod1)
+
+mod2 = lm(Temp~Wind * Ozone, data=airquality)
+summary(mod2)
+```
+
+# Exercise 2
+```{r}
+##E2.1
+anova(mod1, mod2)
+### mod2 is the model that i would use since the RSS is significantly lower than the RSS of mod1
+
+##E2.2
+modE2 = lm(Temp~Wind * Solar.R, data=airquality)
+summary(modE2)
+
+interplot(modE2, var1="Wind", var2="Solar.R")+
+  labs(x="Wind", y="Coefficient for Solar Radiation")
+### This shows how solar radiation affects the coefficient of wind speed.
+
+interplot(modE2, var1="Solar.R", var2="Wind")+
+  labs(x="Solar Radiation", y="Coefficient for Wind")
+### This shows how wind speed affects the coefficient of solar radiation.
+### Wind and Solar.R are not very correlated.
+```

@@ -1,0 +1,48 @@
+---
+title: "juliaent_5"
+output: html_document
+---
+
+##Exercise 1
+Try to plot and calculate the correlation coefficients between the waiting time between eruptions and the duration of the eruption for the Old Faithful geyser in Yellowstone National Park. The dataset is built in R named faithful.
+```{r}
+cor(faithful$waiting, faithful$eruptions)
+cor(faithful[, c("waiting", "eruptions")], use="na.or.complete")
+pairs(faithful[, c("waiting", "eruptions")])
+plot(faithful$waiting, faithful$eruptions)
+```
+#There appears to be a linear relationship between waiting time and eruption duration
+
+
+##Exercise 2
+Build another linear model with another independent variable, Ozone, and plot it with estimated regression line.
+
+Build a linear model to explain if you see longer eruption time if you wait for longer in the faithful dataset.
+```{r}
+mod = lm(Temp~Ozone, data = airquality)
+summary(mod)
+plot(Temp~Ozone, data=airquality)
+abline(lm(Temp~Ozone, data=airquality), col="red")
+
+mod1 = lm(waiting~eruptions, data = faithful)
+summary(mod1)
+plot(waiting~eruptions, data=faithful)
+abline(lm(waiting~eruptions, data=faithful), col="red")
+```
+# At the intercept Ozone will equal 69.41072, the slope is .20081
+# As Temp inceases by 1, Ozone increases by .20081
+# At the intercept Eruptions will equal 33.4744, the slope is 10.7296
+# As waiting time increases by 1, eruption duration increases by 10.7296
+
+
+##Exercise 3
+Calculate the residual standard error (RSE) and mean square error (MSE) manually for the model you built last time (Ozone as the independent variable).
+```{r}
+mod = lm(Temp~Ozone, data = airquality)
+res = residuals(mod)
+RSS = sum(res^2)
+RSE = sqrt(RSS/summary(mod)$df[2])
+print(RSE)
+MSE = RSS/summary(mod)$df[2]
+print(MSE)
+```

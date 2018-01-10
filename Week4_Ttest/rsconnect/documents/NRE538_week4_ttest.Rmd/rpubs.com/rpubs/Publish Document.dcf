@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/236714/7e6d5bba0248435f95a897ee711ac9ae
+bundleId: https://api.rpubs.com/api/v1/document/236714/7e6d5bba0248435f95a897ee711ac9ae
+url: http://rpubs.com/oscarhsnurene/236714
+when: 1485731154.67436

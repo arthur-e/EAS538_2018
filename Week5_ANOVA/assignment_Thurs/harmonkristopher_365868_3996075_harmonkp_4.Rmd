@@ -1,0 +1,42 @@
+data(CO2)
+
+CO2.aov=aov(uptake~Treatment+Type, CO2)
+summary(CO2.aov)
+
+
+?model.tables
+model.tables(CO2.aov, "effects", se=T)
+
+
+###1 str
+model.tables(CO2.aov, "effects", se=T)
+
+#Double checked with:
+CO2.lm1=lm(uptake~Treatment-1, CO2)
+summary(CO2.lm1)
+print(mean(CO2$uptake))
+chilledes=(mean(CO2$uptake))-23.783
+print(chilledes)
+nonchilledes=(mean(CO2$uptake))-30.643
+print(nonchilledes)
+model.tables(CO2.aov, "effects", se=T)
+
+> You do not have code chunk here so thay are all plain text. 
+
+#For treatment, nonchilled is 3.43 greater than the mean, and chilled is 3.43 lower than the mean
+#For type, Quebec is 6.33 above mean, and Mississippi is 6.33 below
+
+###ex2
+
+```{r}
+e2=lm(uptake~Treatment*Type, data=CO2)
+summary(e2)
+```
+
+> I added code chunk for you so these lines are being treated as "code" and will produce output. 
+
+#There is significant difference between treatments of chilled and nonchilled in both Mississippi and Quebec
+
+> Are you sure that the uptake between nonchilled and chilled in Quebec plants are different?
+
+> You will have to use [code chunk](http://rmarkdown.rstudio.com/authoring_rcodechunks.html) in rmarkdown, otherwise it will be all plain text. 

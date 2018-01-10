@@ -1,0 +1,383 @@
+---
+title: "NRE538_Linear regression"
+author: "Oscar Feng-Hsun Chang"
+date: "Week7 and 8"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+\newcommand\expect[1]{\mathbb{E}\left[{#1}\right]}
+\newcommand\var[1]{\mathrm{Var}\left[{#1}\right]}
+
+```{r, set global theme, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=10)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(rmarkdown)
+library(knitr) # Run R Code Chunks
+library(ggplot2) # For plotting
+library(DT) # Interactive HTML tables
+library(RCurl)
+library(dplyr)
+library(tidyr)
+library(scales)
+```
+
+Let use [air quality data in New York](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html) to demonstrate today's topics.
+
+```{r, airquality data}
+data("airquality")
+head(airquality, 15)
+```
+
+# Correlation
+
+Correlation is invariant to which variable is X and which varaible is Y. It describes how the two variables vary together in a linear fashion. 
+
+## correlation plots
+
+We can first use `pairs()` to create a series of correlation plots for a any two variables.
+
+```{r, cor}
+pairs(airquality[, c("Ozone", "Solar.R", "Wind", "Temp")])
+```
+
+## Pearson correlatin coefficient
+
+We can calculate the correlation coefficient all at once by using `cor()`. 
+
+```{r, correlation coefficient}
+cor(airquality[, c("Ozone", "Solar.R", "Wind", "Temp")], use="na.or.complete")
+```
+
+Note that the Pearson correlation coefficient (r) will not be affected by rescaling of the data. Can you explain why? Think about how do you caalculate correlation coefficient.  
+
+## Linear association ONLY
+
+Correlation is only used to investigatet the <span style="color:red">_linear association_</span> between two variables. There it could be misleading if you don't plot the two variables to see if the two variables are really correlated with each other.  
+
+Let's do a small experiment. Run the following chunk of code and you should have 2 vectors (y1 and y2) each containing 1200 numbers
+
+```{r, generate Ys}
+set.seed(15165)
+f = function(x){
+ y=-(x+3)^2 + runif(length(x), min=-2, max=2)
+ #print(y)
+}
+f1 = function(x){
+  y=runif(length(x), min=min(x), max=max(x))
+}
+
+x=seq(from=-6, to=0, by =0.005)
+y1=f(x)
+y2=f1(x)
+```
+
+Showing the first 20 numbers (`head(variable, 20)`) you should be able to see the following numbers in x, y1, and y2. 
+
+```{r, show y1 and y2, echo=FALSE}
+head(x, 20)
+head(y1, 20)
+head(y2, 20)
+```
+
+Calculate the correlation coefficient between y1 and x as well as y2 and x by using `cor(variable1, variable2)`. You should see following two pretty small correlation coefficients. 
+
+```{r, cor coef, echo=FALSE}
+cor(y1, x)
+cor(y2, x)
+```
+
+Now plot the y1 vs x and y2 vs x to see the relationship between them.
+
+```{r, plot ys vs x, echo=FALSE}
+plot(y1~x)
+abline(lm(y1~x))
+plot(y2~x)
+abline(lm(y2~x))
+```
+
+Now you see that although y1 and y2 all have near 0 correlation coefficient with x, but actually y1 and x are related in a _nonlinear_ way. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 1__
+
+Try to plot and calculate the correlation coefficients between the waiting time between eruptions and the duration of the eruption for the Old Faithful geyser in Yellowstone National Park. The dataset is built in R named [faithful](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html). 
+
+```{r, faithful cor, echo=FALSE, eval=FALSE}
+duration = faithful$eruptions   # eruption durations 
+waiting = faithful$waiting      # the waiting period 
+cor(duration, waiting)
+plot(duration~waiting)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+## Correlation $\neq$ Causality
+
+# Regression
+
+In smiple linear regression (the simplest case of regression), the goal is to be able to predict an expected value of Y variable with any given X value. The regression line to basically connecting these expected values to form a straight line. These expected Y value should be as close to each observed Y value as possible. The method we used to calculate the distance between observed Y values and the expected Y value is called [_Residual Sum of Square_ (RSS)](https://en.wikipedia.org/wiki/Residual_sum_of_squares).   
+
+$$RSS = \sum_{i=1}^n (y_i - \expect{y}\ )^2 = \sum_{i=1}^n (y_i - f(x_i))^2 = \sum_{i=1}^n (y_i - (\alpha + \beta x_i))^2$$
+
+The method to find $\alpha$ and $\beta$ to minimize $SSE$ is so called the [Ordinary Least Squares (OLS)](https://en.wikipedia.org/wiki/Ordinary_least_squares) method. The OLS method is actually a Maximum Likelihood Estimate (MLE) if the response variable (or dependent variable; Y) follows normal distribution. The mathematical deduction is [here](https://github.com/OscarFHC/NRE538_GSRA/blob/master/Labs/NRE538_lm/MLE_OLS.pdf), if you are interested in... 
+
+## Linear model
+
+Let's use the airquality data to perform linear regression in __R__ by using `lm()`. 
+
+```{r, lm}
+mod = lm(Temp~Wind, data=airquality)
+summary(mod)
+```
+
+* What does this summary table tell you?
+
+We can plot the temperature against wind and the estimated regression line (red line).
+
+```{r, regression plot}
+plot(Temp~Wind, data=airquality)
+abline(lm(Temp~Wind, data=airquality), col="red")
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 2__
+
+1. Build another linear model with another independent variable, Ozone, and plot it with estimated regression line. 
+
+```{r, include=FALSE}
+mod.oz = lm(Temp~Ozone, data=airquality)
+summary(mod.oz)
+plot(Temp~Ozone, data=airquality)
+abline(lm(Temp~Ozone, data=airquality), col="red")
+```
+
+
+2. Build a linear model to explain if you see longer eruption time if you wait for longer. 
+
+```{r}
+mod.faith = lm(eruptions~waiting, data=faithful)
+summary(mod.faith)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+## Errors
+
+How can we find the error that is being mininized then?  
+It's the square of the _Residual standrd error (RSE)_ in the summary table. This value is calculated by the following:
+
+$$\sqrt{\frac{\sum_i\!\hat{\varepsilon_i}^2} {df}}$$, where $\hat{\varepsilon_i}$ is the residual and the $df$ is the degree of freedom of residuals. 
+ 
+We can also calculate it manually.  
+First, we need each _residual (res)_.  
+The sum of squared residuals is _Residual Sum of Square (RSS)_.  
+Square root of `RSS` divied by the degree of freedom of residuals is the _Residual standrd error (RSE)_.
+
+```{r, res se}
+res = residuals(mod)
+RSS = sum(res^2)
+RSE = sqrt(RSS/summary(mod)$df[2])
+```
+
+Note that the RSS calculated here can also be used to calculate the RMSE (root mean square error) you read in the text book and the mean square error (MSE).
+
+```{r, RMSE}
+RMSE = RSS/153
+RMSE
+MSE = RSS/summary(mod)$df[2]
+MSE
+```
+
+We can also use anova table to confirm the MSE we manually calculated is correct. 
+
+```{r, anova table of lm}
+anova(mod)
+```
+
+* What are these "errors" mean?  
+
+You should notice that residual standard error (RSE) is the square root of MSE. Yes, your speculation is correct. This relationship is resemble to that between standard deviation and variance. MSE is the variance of all the residuals and residual standard error is the standard deviation of residuals. Both are the [unbiased estimators](https://en.wikipedia.org/wiki/Bias_of_an_estimator) of residuals, because they are divided by the degree of freedom of residuals. However, the RMSE is the biased estimation of residual variance. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 3__
+
+Calculat the residual standard error (RSE) and mean square error (MSE) *manually* for the model you built last time (Ozone as the independent variable).
+
+```{r, include=FALSE}
+res.oz = residuals(mod.oz)
+RSS.oz = sum(res.oz^2)
+RSE.oz = sqrt(RSS.oz/summary(mod.oz)$df[2])
+
+MSE.oz = RSS.oz/summary(mod.oz)$df[2]
+
+anova(mod.oz)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+## Goodness of fit
+
+After fitting a line to the data, our next question would be "how good this linear model is".   
+
+### $R^2$
+
+The first thing we can do is to see how much of the variance is being explained by the indpendent variables we put in the model, so the $R^2$. $R^2$ is calculated as follow.  
+
+$$R^2=1-\frac{\var{\hat{\varepsilon}}}{\var{y}}=1-\frac{\sum_i\!\hat{\varepsilon_i}^2/(n-1)}{\sum_i\!(y_i-\bar{y})^2/(n-1)}$$  
+Here $\var{\hat{\varepsilon}}$ is the variance of residuals and the $\var{y}$ is the variance of the dependent variable. 
+
+```{r, R2}
+SSY = deviance(lm(airquality$Temp~1))
+SSY1 = var(airquality$Temp)*152
+R2 = 1 - RSS/SSY
+SSY
+SSY1
+R2
+```
+
+$R^2$ gives us an idea how much variance is being explained by the independent variable (x). We also need to know if this amount of variance is significantly different from 0. This is the significance of the model, or the significance of the independent variable if there is only one independent variable.  
+
+In addition, in the summary table there is another slightly different adjusted $R^2$. This is $R^2$ adjusted by the number of parameter estimated (independent variable plus intercept term in the model). The formula is as follow.
+
+$$\bar{R}^2 = 1-\frac{\sum_i\!\hat{\varepsilon_i}^2/(n-k)}{\sum_i\!(y_i-\bar{y})^2/(n-1)}$$  
+Here, $\bar{y}$ is the mean of the data, $n$ is the number of data, and $k$ is the number of parameters estimated.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 4__
+
+Calculate the adjust $R^2$ manually.
+
+```{r, adj R2, include=FALSE}
+n = nrow(airquality)
+SSY = deviance(lm(airquality$Temp~1))
+SSE.adj = 
+adjR2 = 1 - ((RSS/(n-2))/(SSY/(n-1)))
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+These errors are also being used in testing whether the model is significant. This is done by calculating the _F_-value. Recall from the ANOVA session, _F_-distribution describes the distribution of ratio of treatment variance (total variance - residual variance) and residual variance (i.e. MSE we calculated above). We also need the degree of freedom (df) for this _F_-distribution. They are the degree of freedom of treatmentand the degree of freedom of residual.  
+- Df of treatment is 1 here because we have only one independent variable.  
+- Df of residual is `r summary(mod)$df[2]` because the total df is 152 (there are 153 values in total) minus df of treatment (1). 
+```{r, pval}
+F = ((SSY-RSS)/1)/MSE
+1-pf(F, df1=1, df2=summary(mod)$df[2])
+```
+* try `?pf()` to understand what I did here. 
+
+### Model checking
+
+#### Independent of residuals each other, which implies lack of correlation
+
+Test for autocorrelation among residuals are especially important in time series data. The data we are now dealing with is a time series data! Since we did not do any manipulation to the data, residuals are highly possible to fail the autocorrelation test.  
+
+```{r, resid against X}
+plot(residuals(mod))
+```
+
+There exists a clear pattern, which indicates that the residuals are indeed autocorrelated.  
+We can use the [Durbin-Watson statistic](https://en.wikipedia.org/wiki/Durbin%E2%80%93Watson_statistic) to detect the existence of autocorrelation. This test is basically regress error in time (t) on error in time (t-1). 
+
+```{r, dwtest-independent resid, message=FALSE}
+#install.packages(lmtest)
+library(lmtest)
+dwtest(mod, alternative=c("two.sided"))
+```
+
+Not supprisingly, the residuals show a clear temporal autocorrelation. This means we should manipulate the data (e.g. detrend or remove seasonality) before doing the linear regression. 
+
+#### Constant variance of residuals
+
+We next inspect the distribution of the variance of residuals to see if there is any structured pattern in the variance of residuals.  
+Let's plot the residuals against the fitted values. 
+
+```{r, resid dist}
+plot(residuals(mod)~fitted(mod))
+abline(lm(residuals(mod)~fitted(mod)), col="red")
+```
+
+* This can also be done by `plot(mod, which=c(1))`. Try it. 
+
+This plot can give us an idea of whether the residuals have constant variance (i.e. [homoscedasticity](https://en.wikipedia.org/wiki/Homoscedasticity)). If yes, the varaince should distributed evenly in the plot. In general, we do not want to see the residuals increase or decrease with the increase of fitted value. 
+
+There is also a test to examine homoscedasticity (or heteroscedasticity in the opposit sense).
+
+```{r, bptest, message=FALSE}
+#install.packages(lmtest)
+library(lmtest)
+bptest(mod)
+```
+
+The results show that the residuals are homoscedastic, which is good. 
+
+#### Normal distributed residuals
+
+Remember the QQ plot and the shapiro-wilk test we used before to check for normality? We need them to examine if the residuals follow normal distribution here. 
+
+```{r, resid qqplot}
+qqnorm(residuals(mod))
+qqline(residuals(mod), col="red")
+```
+
+* Try `plot(mod, which=c(2))` to produce the same plot. 
+
+```{r, shapiro.test}
+shapiro.test(residuals(mod))
+```
+
+From the QQ plot and the shapiro-wilk test, we can say that the residuals are normally distributed. That's nice. 
+
+The above three inspections tell us that this linear model performs fairly well if temporal autocorrelation issue had been taken care of.
+
+> Always check!  
+> 1. <span style="color:red"> residual independency (possibly with the `dwtest`) </span>  
+> 2. <span style="color:red"> residual homoscedasticity (possibly with the `bptest`) </span>  
+> 3. <span style="color:red"> residual normality (possibly with the `shapiro.test`)</span>  
+  
+#### Other plots to investigate the linear model
+
+We can "plot the model" to see other plots that allows us to check the model
+
+```{r, plot mod}
+plot(mod)
+```
+
+Note that the first two are the ones we have seen before. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 5__
+
+Check residual independency, homoscedasticity, and normality for the model with ozone as the independent variable and interpret the results briefly.
+
+```{r, include=FALSE}
+plot(residuals(mod.oz))
+dwtest(mod.oz, alternative=c("two.sided"))
+
+plot(residuals(mod.oz)~fitted(mod.oz))
+abline(lm(residuals(mod.oz)~fitted(mod.oz)), col="red")
+bptest(mod.oz)
+
+qqnorm(residuals(mod.oz))
+qqline(residuals(mod.oz), col="red")
+shapiro.test(residuals(mod.oz))
+```
+
+---------------------------------------------------------------------------------------------------------------------------------

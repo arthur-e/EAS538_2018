@@ -1,0 +1,59 @@
+---
+title: "akinzer_05"
+author: "Andrew Kinzer"
+date: "February 20, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercise 1
+The code below loads the "Faithful" dataset into R. Then, the cor() fuction calculates the correlation coefficients between the waiting time between eruptions and the duration of the eription of Old Faithful. 
+
+```{r faithful}
+cor(faithful[, c("eruptions", "waiting")], use="na.or.complete")
+```
+
+The coeeficients above indicate that for every one (1) unit of time spent waiting, the length of the eruption time increases by 0.9 units of time.
+
+Additionally, by looking at the plot below we could tentatively draw a conclusion that the two variables are positively correlated. 
+
+```{r echo=FALSE}
+
+plot(faithful$eruptions,faithful$waiting, xlab="Time in Between Eruptions", ylab="Lenght of Eruption", main="Old Faithful Eruptions")
+```
+
+#Exercise 2
+
+Below is a second linear model, testing the relationship between Ozone and Temperature
+
+```{r}
+mod2=lm(Temp~Ozone, data=airquality)
+summary(mod2)
+```
+The summary table above is telling us that for every one (1) increase in unit of Ozone, our Temperature will increase 0.2 units. The p-value of 2e-16 indicates that they are statistically significantly correlated. The adjusted r-squared value of 0.483 indicates that 48% of our temperature increase can be explained by an increase in ozone.
+
+
+This relationship is further demonstrated by the plot below.
+
+```{r echo=FALSE}
+plot(Temp~Ozone, data=airquality, main="Relationship Between Ozone and Temperature")
+abline(lm(Temp~Ozone, data=airquality), col="red")
+```
+
+Below is a linear model examining whether we see a longer eruption time if you wait longer between eruptions.
+```{r}
+mod3=lm(eruptions~waiting, data=faithful)
+summary(mod3)
+```
+
+This summary is telling us that the y-intercept is -1.87, and that the significant p-value is simply showin that the intercept is significantly different than 0. The estimate of 0.076 for the "waiting" variable indicates that for every increase in one unit ofWaiting time, the eruption timte increases by 0.076 units, which we cna see by the p-value of 2.2e-16, is a significant relationship. The adjusted r-squared value of 0.81 tells us that 81% of the change eruption time is related to the time spent waiting between eruptions. 
+
+The relationship is further shown through the points, plotted below.
+
+```{r echo=FALSE}
+plot(eruptions~waiting, data=faithful, xlab="Time in Between Eruptions", ylab="Lenght of Eruption", main="Old Faithful Eruptions")
+abline(lm(eruptions~waiting, data=faithful), col="red")
+```

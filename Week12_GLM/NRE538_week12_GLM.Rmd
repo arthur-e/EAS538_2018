@@ -1,0 +1,390 @@
+---
+title: "NRE538_Generalized Linear Model"
+author: "Oscar Feng-Hsun Chang"
+date: "Week12"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+bibliography: D:/Courses/UM/2016_WN/NRE538_GSRA/Labs/NRE538_GLM/GLM_ref.bib
+---
+
+\newcommand\expect[1]{\mathbb{E}\left[{#1}\right]}
+\newcommand\var[1]{\mathrm{Var}\left[{#1}\right]}
+
+```{r, set global theme, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=8)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(rmarkdown)
+library(knitr) # Run R Code Chunks
+library(ggplot2) # For plotting
+library(DT) # Interactive HTML tables
+library(RCurl)
+library(dplyr)
+library(plyr)
+library(reshape2)
+library(scales)
+library(MASS)
+library(manipulate)
+library(rio) # this is useful to convert file format, e.g. dta to csv
+```
+
+# Rationale
+
+We talked about linear models when dealing with data following normal distribution. However, mother nature is not always that nice to us... Luckily, we have lots of brilliant mathematicians and statisticians who developed __generalized linear model (GLM)__ that can be used when encountering non-normally distributed data.
+
+The idea of GLM is to use a link function to "link" (or your can think it's being transformed) the distribution mean $\mu$, that the dependent variable (Y) follows to the outcome of linear predictors (independent variables, or X). The model can be written in the following form:
+
+$$Y_i\ \stackrel{\text{i.i.d.}}{\sim}\ f(\mu,\ \dots)$$
+
+$$ g(\mu)\ = \ X\,\beta_i$$
+
+- The $f$ is the Error distribution, BUT! it is actually the distribution of your dependent variable (i.e. the **data distribution**)... Theoretically, this can be ANY distribution.
+- The $g$ is the **link function**. 
+
+To determine what data distribution to use requires you to understand how your data is being generated. For example, it would be logical to use [binomial distribution](https://en.wikipedia.org/wiki/Binomial_distribution) as the data distribution if you are dealing with a yes-no data set. To determine what link function to use requires **knowledge of the data**, **theoretical consideration**, and especially the **empirical fit** to the data. Most of the time, there is a special link function that goes together with the data distribution, which is also called canonical link function. However, always keep in mind that __chosing data distribution and link function is just two pieces of the model__. It is just like figuring out what independent variables to include in your model.  
+The following two posts are pretty clear in explaining link function and some conceptual theory of GLM. I encourage you to read them.  
+[GLM](http://stats.stackexchange.com/questions/40876/difference-between-link-function-and-canonical-link-function-for-glm)  
+[link function](http://stats.stackexchange.com/questions/20523/difference-between-logit-and-probit-models#30909)  
+
+In the generalized linear model, the dependent variable does not need to follow the normal distribution (i.e. $f$ does not need to be a normal distribution). However, if $f$ is a [exponential family](https://en.wikipedia.org/wiki/Exponential_family), then the fitting is more effective and can be achieved easily by the `glm` function in __R__. 
+
+We will not get into the detailed mathematical theory of the generalized linear function, but just the application of this `glm` function in this class. 
+
+# GLM Application
+
+## Binomial data (logistic regression)
+
+We will use the data set about whether a household moved to a safe well after being noticed about the unsafty of their wells. Other background information about the house hold are also included. The data set is from @gelman2006 (http://www.stat.columbia.edu/~gelman/arm/).
+
+- `switch`: Whether the household with unsafe wells moved after being encouraged to switch to nearby private or community
+wells or to new wells of their own construction.  
+- `arsenic`: Natural arsenic concentration in well water in ppm.  
+- `dist`: The distance for a certain house hold to the closest known safe well in 100 meter    
+- `assoc`: Whether any members of the household are active in community organizations.  
+- `educ`: The education level of the head of household.  
+
+Again, let's first do some exploratory analysis. 
+
+```{r}
+well=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_GLM/wells.csv"), sep=",", header=T,comment.char="#")
+well = well %>%
+  mutate(dist100 = dist/100)
+```
+
+```{r, cor plot functions, echo=FALSE}
+panel.lm = function(x,y,...){
+    points(x,y,...)
+    abline(a = lm(y ~ x)$coefficients[1] , b = lm(y ~ x)$coefficients[2] , ...)
+}
+
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor){
+    usr <- par("usr"); on.exit(par(usr)) 
+    par(usr = c(0, 1, 0, 1)) 
+    r <- cor(x, y)
+    txt <- format(c(r, 0.123456789), digits=digits)[1] 
+    txt <- paste(prefix, txt, sep="") 
+    if(missing(cex.cor)) cex <- 0.8/strwidth(txt) 
+ 
+    test <- cor.test(x,y) 
+    # borrowed from printCoefmat
+    Signif <- symnum(test$p.value, corr = FALSE, na = FALSE, 
+                     cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                     symbols = c("***", "**", "*", ".", " ")) 
+ 
+    text(0.5, 0.5, txt, cex=3) 
+    text(0.8, 0.8, Signif, cex=3, col=2) 
+}
+```
+
+```{r, cor plot}
+cor(well)
+pairs(well, lower.panel=panel.lm, upper.panel=panel.cor)
+```
+
+It seems whether a household would move or not are correlated with these variables. Let's build a logistic model with `glm` function to explain how arsenic concentration affect whether a household move or not. 
+
+Since the dependent variable is a binary choice (move or not), so it should follow a binomial distribution. This mean the $f$ function in this case is a binomial distribution. The link function that is most commonly used (the canonical link function) with binomial distribution is the [`logit` function](https://en.wikipedia.org/wiki/Logit). The logit function and its inverse function are shown for your interest.
+
+```{r}
+op <- par(mfrow=c(1,2))
+curve(plogis(x),from=-5,to=5, main=expression(paste("inverse of logit function (expit function; ", italic(g^{-1}), ")", sep="")))
+curve(qlogis(x),from=0,to=1, main=expression(paste("logit function (", italic(g), ")", sep="")))
+par(op)
+```
+
+For those who are curious, if we assign the house hold that moved to 1 and those don't move to 0, the model formula can be written as the following.
+
+$$ \text{Prob}(Y_i=1) = p_i$$  
+
+$$ \text{logit}(p_i) = log\ (\frac{P_i}{1-P_1})= X_i \ \beta$$  
+
+
+Here the $X_i$ are the linear predictors. In the current example, it is the arsenic concentration and a intercept. 
+
+We can use the following code to fit a GLM to the data. 
+
+```{r}
+mod1 = glm(switch~arsenic, data=well, family=binomial(link="logit"))
+summary(mod1)
+```
+
+### Model interpretation
+
+To interpret the results from logistic regression (or other GLM) is like interpreting other linear models. The only difference is that the linear predictors now determines **the parameters describing the data distribution ($f$)**, not the dependent variable  _per se_. 
+
+To interpret this model, the probability for a house hold to move ($p_i$) after transformation (by the inverse of link function) is now being significantly influenced by the arsenic concentration. Also, even when the arsenic concentration is 0, there is still a probability for a house hold to move (significant intercept). 
+
+```{r, echo=FALSE}
+int = summary(mod1)$coefficients[1,1]
+coef.ar = summary(mod1)$coefficients[2,1]
+```
+
+From this model, the predicted probability for a house hold to move when experiencing 0 arsenic concentration is `r round(plogis(int+coef.ar*0), 4)`. The probability for a house hold to move when experiencing average arsenic concentration is `r round(plogis(int+coef.ar*mean(well[,"arsenic"])), 4)`. 
+
+Since we are dealing with binomial data, it is natural to talk about odds ratio (i.e. $\frac{p_i}{1-P_i}$). In fact, it is the $e$ to the outcome of linear predictors after transformed by the link function. The odds ratio for a house hold to move when experiencing 0 arsenic concentration is `r round(exp(int+coef.ar*0), 4)` and for a house hold to move when experiencing average arsenic concentration is `r round(exp(int+coef.ar*mean(well[,"arsenic"])), 4)`. 
+
+We can also plot the predicted probability of moving onto the data. 
+
+```{r}
+plot(switch~arsenic, data=well, ylim=c(0,1), ylab="probability of move")
+curve (plogis(int + coef.ar*x), from=min(well[,"arsenic"]), to=max(well[,"arsenic"]), add=TRUE, col="red")
+```
+
+### Model checking
+
+How do we know if the model does a good job capturing the patterns in the data then?
+
+There are a few ways to check the model and each with different purposes.
+
+- Simulation  
+- Inspection plots  
+- model comparison  
+
+One useful way is to to simulation based on the estimated parameters and see if the simulated data agree with the actual data. 
+
+```{r}
+pi = predict(mod1, type="response")
+
+s = t(replicate(200, rbinom(n=length(pi), size = nrow(well), prob=pi)))
+
+well = well %>%
+  mutate(ind=seq(nrow(well)))
+
+sim = s %>%
+  melt(varnames=c("sim", "ind")) %>%
+  join(well, type="left", by="ind")
+
+simsum = sim %>%
+  ddply(~ind,summarize,
+        med=quantile(value,0.5),
+        lo=quantile(value,0.05),
+        hi=quantile(value,0.95)) %>%
+  join(well, type="left", by="ind")
+simsum[,"med"] = simsum[,"med"]/nrow(well)
+simsum[,"lo"] = simsum[,"lo"]/nrow(well)
+simsum[,"hi"] = simsum[,"hi"]/nrow(well)
+
+ggplot(mapping=aes(x=arsenic))+
+  geom_point(data=simsum, aes(y=switch),size=3,color='black')+
+  geom_errorbar(data=simsum, aes(ymin=lo,ymax=hi), col="red")
+```
+
+Because the estimated coefficients are pretty precise (small SE), so that the error bar is rather narrow. This plot looks almost identical to the one we overlay predicted probability onto the data. 
+
+Another way is to use the built-in function to plot the inspection plots.
+
+```{r}
+plot(mod1, which=1)
+```
+```{r}
+plot(residuals(mod1)~ arsenic, data=well)
+abline(h=0, col="red")
+```
+
+As you can imaging, the data is either 1 or 0, so the residual plots might not be too useful to inform us how good the model fitting is. 
+
+Finally ewe can compare the model with arsenic as the explanatory variable with the one without it by using `anova` or `AIC`. The two are similar to each other but not the same.
+
+When using `anova`, we are comparing the [__deviance__](https://en.wikipedia.org/wiki/Deviance_(statistics)) of the two model, which is similar to comparing residual variance in simple linear. ANOVA is using likelihood ratio test to compare the deviance of the two models as the difference of the deviance follows _chi-square_ distribution. On the other hand, [AIC](https://en.wikipedia.org/wiki/Akaike_information_criterion) is to compare the likelihood of the two models with consideration of the number of parameters, but it does NOT! base on any hypothesis testing. 
+
+```{r}
+mod0 = glm(switch~1, data=well, family=binomial(link=logit))
+summary(mod0)
+anova(mod0, mod1, test="Chi")
+AIC(mod0, mod1)
+```
+
+From the two test, we see that including arsenic concentration as an independent variable (_mod1_) could increase the likelihood of the model and this increase is significant. This is because the probability for _mod1_ to produce the same deviance as _mod0_ is  `r anova(mod0, mod1, test="Chi")[2,5]`. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 1__
+
+Include "dist100" independent variable to the model and compare this model to _mod1_ with `anova` and `AIC`. 
+
+```{r, echo=FALSE, eval=FALSE}
+mod2 = glm(switch~arsenic, dist100, data=well, family=binomial(link=logit))
+summary(mod2)
+anova(mod1, mod2, test="Chi")
+AIC(mod1, mod2)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+## Count data (Poisson distribution)
+
+The second example is to model count data with [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution). 
+
+The data come from @johnson1973species in the [**faraway** package](http://people.bath.ac.uk/jjf23/ELM/), which describes the variables as follows:
+
+- `species` the number of plant species found on the island
+- `endemics` the number of endemic species
+- `area` the area of the island (km$^2$)
+- `elevation` the highest elevation of the island (m)
+- `nearest` the distance from the nearest island (km)
+- `scruz` the distance from Santa Cruz island (km)
+- `adjacent` the area of the adjacent island (km$^2$)
+
+Again, we first do a simple correlation plot for each pair of variables.
+
+```{r}
+library(faraway)
+data(gala)
+head(gala)
+pairs(gala, lower.panel=panel.lm, upper.panel=panel.cor)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 2__
+
+Try using simple linear model `lm` to build a model with Species as dependent variable and all other variables except endemic as independent variables. Inspect the plot of residuals versus fitted value model and describe what do you see. 
+
+```{r, include=FALSE}
+library(faraway)
+mod0.g = lm(Species ~ Area+Elevation+Nearest+Scruz+Adjacent, data=gala)
+summary(mod0.g)
+plot(mod0.g, which=1)
+plot(mod0.g, which=2)
+plot(residuals(mod0.g, "pearson")~predict(mod0.g))
+
+qqnorm(residuals(mod0.g))
+qqline(residuals(mod0.g), col="red")
+shapiro.test(residuals(mod0.g))
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+The results should not look good, right? Because the distribution of Species variable clearly does not follow normal distribution. It is right skewed.
+
+```{r}
+hist(gala$Species, breaks=10)
+```
+
+We can build a glm with Poisson distribution to fix this issue.
+
+```{r}
+mod1.g = glm(Species ~ Area+Elevation+Nearest+Scruz+Adjacent, data=gala, family=poisson(link="log"))
+summary(mod1.g)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 3__
+
+Use `anova` to compare the model with Area, Nearest, Scruz, Adjacent as independent variables (mod2.g) and the model with Elevation, Nearest, Scruz, Adjacent as independent variables (mod3.g) to the full model (mod1.g).
+
+```{r, include=FALSE}
+mod2.g = glm(Species ~ Area+Nearest+Scruz+Adjacent, data=gala, family=poisson(link="log"))
+mod3.g = glm(Species ~ Elevation+Nearest+Scruz+Adjacent, data=gala, family=poisson(link="log"))
+summary(mod2.g)
+summary(mod3.g)
+anova(mod2.g, mod1.g, test="Chi")
+anova(mod3.g, mod1.g, test="Chi")
+```
+
+* Can you use `anova` to compare mod2.g and mod3.g? Why?
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+### Model interpretation
+
+Since we used log as the link function, we can write the model as following.
+
+$$ Y_i\ \stackrel{\text{i.i.d.}}{\sim}\ Poisson(\mu)$$
+
+$$\mu\ =\ exp(`r round(summary(mod1.g)$coefficients[1,1],3)` `r round(summary(mod1.g)$coefficients[2,1],3)` \times \text{Area} + `r round(summary(mod1.g)$coefficients[3,1],3)` \times \text{Elevation} + `r round(summary(mod1.g)$coefficients[4,1],3)` \times \text{Nearest} `r round(summary(mod1.g)$coefficients[5,1],3)`\times \text{Scruz} `r round(summary(mod1.g)$coefficients[6,1],3)` \times \text{Adjacent})$$
+
+### Model checking
+
+```{r}
+plot(mod1.g, which=1)
+```
+
+```{r, include=FALSE}
+plot(mod1.g, which=2)
+plot(residuals(mod1.g, "pearson")~predict(mod1.g, type="link"))
+```
+
+Compare this residual plot with the one you generated. The $R^2$ improved from `r round(summary(mod0.g)$adj.r.squared, 3)` to about `r round(1-(summary(mod1.g)$deviance/summary(mod1.g)$null.deviance),3)`. And the residuals look more homogeneous.
+
+We can also inspect the fitting of this model by doing simulations.
+
+```{r}
+mu = predict(mod1.g, type="response")
+
+s = t(replicate(1000, rpois(n=length(mu), lambda=mu)))
+
+gala =  gala %>%
+  mutate(ild=seq(nrow(gala)))
+
+sim = s %>%
+  melt(varnames=c("sim", "ild")) %>%
+  join(gala, type="left", by="ild")
+
+simsum = sim %>%
+  ddply(~ild,summarize,
+        med=quantile(value,0.5),
+        lo=quantile(value,0.05),
+        hi=quantile(value,0.95)) %>%
+  join(gala, type="left", by="ild")
+
+ggplot(mapping=aes(x=log(Area)))+
+  geom_point(data=simsum, aes(y=Species), size=3, color="red")+
+  geom_errorbar(data=simsum, aes(ymin=lo,ymax=hi), col="black")
+
+ggplot(mapping=aes(x=log(Elevation)))+
+  geom_point(data=simsum, aes(y=Species), size=3, color="red")+
+  geom_errorbar(data=simsum, aes(ymin=lo,ymax=hi), col="black")
+```
+
+* Note that I took a log on the Area variable so that it is more clear to see the spread of Area variable.
+
+We see that this model does a ok job capturing the variance of Species number, but there are still some points that are not covered by the 95% CI. How can we improve the model then?
+
+We can also compare the model with other ones that have different set of parameter combinations (model selection).
+
+We can also plot the residuals against the predicted values.
+
+```{r}
+plot(mod1.g, which=1)
+```
+
+When looking at the residual plots, we should look for two things in the residuals.  
+1. Is there any nonlinear relationship between the residuals and the predicted values (independency and normality)? If yes, that suggests a nonlinear term should be included in the model.  
+2. Is the variance of the residuals constant (homoscedasticity)? If no, we might have to change the model. For example, having a parameter that determines the over-dispersion sometimes helps improving a model with Poisson distribution. 
+
+> In Poisson distribution, there is only one parameter (i.e. mean=variance=$\theta$) determining the probability density function. This means when the mean is greater, the associated varaince would be greater too. Therefore, there is only so much we can do to build a model to fit the data. In this data, it is highly right skewed (i.e. there is a long tail on the right). If we can have another parameter to take this overdispersion into account, we might be able to better capture the variance of specie number. We unfortunatly do not cover this part in the class, but you are welcome to talk to me if you are interested in this topic. 
+
+References:

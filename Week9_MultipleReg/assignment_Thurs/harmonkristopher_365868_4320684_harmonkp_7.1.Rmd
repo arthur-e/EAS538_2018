@@ -1,0 +1,52 @@
+
+#Assignment7_setup
+```{r}
+data("airquality")
+library(dplyr)
+airquality = airquality %>%
+  subset(is.na(Solar.R)==FALSE & is.na(Ozone)==FALSE)
+```
+
+#Exercise 1 
+```{r}
+Y = seq(from=0, to=20, by=0.1)
+Z1 = (Y-2)/3 + runif(length(Y), min=0.5, max=100)
+Z2 = (Y+3)/2 + runif(length(Y), min=0.5, max=100)
+df = as.data.frame(cbind(Y, Z1, Z2))
+summary(lm(Y~Z1, data=df))
+summary(lm(Y~Z2, data=df))
+summary(lm(Y~Z1+Z2, data=df))
+plot(Z1~Z2)
+cor(Z1, Z2)
+##By increasing the noise in X1 and X2 the two variables are no longer correlated.
+##Correlation drops from 0.964 to 0.023.
+##P values and adjusted r-squared are all lower.
+```
+
+#Exercise 2-3 setup
+```{r}
+mod1 = lm(Temp~Wind, data=airquality)
+summary(mod1)
+
+mod2 = lm(Temp~Wind+Solar.R, data=airquality)
+summary(mod2)
+
+mod3 = lm(Temp~Wind+Solar.R+Ozone, data=airquality)
+summary(mod3)
+```
+
+# Exercise 2
+```{r}
+mod3 = lm(Temp~Wind+Solar.R+Ozone, data=airquality)
+summary(mod3)
+anova(mod1, mod2, mod3)
+##Reduction in RSS shows that there is more explanatory power with mod2 over mod1, and mod3 over all
+```
+
+# Exercise 3
+```{r}
+AIC(mod1)
+AIC(mod2)
+AIC(mod3)
+## Model 1 and 2 have differences less than 10, which is not significant. Model 3 has the lowest AIC value, which further supports the idea that model 3 is the best of the three.
+```

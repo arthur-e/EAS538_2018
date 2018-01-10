@@ -1,0 +1,63 @@
+### Exercise 1
+data(faithful)
+head(faithful)
+cor(faithful[c("eruptions", "waiting")])
+plot(faithful)
+
+
+### Exercise 2
+#2.1
+data(airquality)
+lm(Temp~Ozone, data=airquality)
+summary(lm(Temp~Ozone, data=airquality))
+plot(Temp~Ozone, data=airquality)
+abline(lm(Temp~Ozone, data=airquality), col="red")
+
+#2.2
+data(faithful)
+lm(eruptions~waiting, data=faithful)
+summary(lm(eruptions~waiting, data=faithful))
+plot(eruptions~waiting, data=faithful)
+abline(lm(eruptions~waiting, data=faithful), col="red")
+
+
+### Exercise 3
+data(airquality)
+mod3 = lm(Temp~Ozone, data=airquality)
+summary(mod3)
+res3 = residuals(mod3)
+RSS3 = sum(res3^2)
+RSE3 = sqrt(RSS3/114)
+RSE3
+RMSE3=RSS3/153
+MSE3 = RSS3/114
+MSE3
+anova(mod3)
+summary(anova(mod3))
+
+#RSE = 6.8     MSE = 46.5
+
+
+### Exercise 4
+RSS3    #5300.725
+SSY = deviance(lm(airquality$Temp~airquality$Ozone))
+SSY #Oscar: i'm not getting the answer i'm looking for here with SSY! What am i doing wrong?!
+SSY1 = var(airquality$Temp)*mod3$df.residual
+SSY1
+R2 = 1 - RSS3/SSY1
+R2 #.4810035
+
+
+### Exercise 5
+dwtest(mod3, alternative=c("two.sided"))
+# The p-value (7.276e-06) tells us to eject the null hypothesis that there is no autocorrelation.
+
+plot(residuals(mod3)~fitted(mod3))
+abline(lm(residuals(mod3)~fitted(mod3)), col="red")
+bptest(mod3)
+# The p-value (0.0721) tells us not to reject the null hypothesis that the variance is homoscedastic.
+
+qqnorm(residuals(mod3))
+qqline(residuals(mod3), col="red")
+shapiro.test(residuals(mod3))
+# the p-value (0.000226) tells us to reject the null hypothesis that the residuals have normal distribution.
