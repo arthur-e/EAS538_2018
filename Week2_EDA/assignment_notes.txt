@@ -1,0 +1,5 @@
+setwd()
+
+comments
+
+shapiro.test() does not need unique()

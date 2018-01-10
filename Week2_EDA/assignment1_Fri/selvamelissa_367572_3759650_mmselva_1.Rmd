@@ -1,0 +1,155 @@
+---
+title: "mmselva_1"
+output: html_document
+---
+
+```{r}
+setwd("D:/Course/UM/2016_WN/NRE538_GSRA/Labs/NRE538_Lab1")
+Rays_SP = read.table("Rays_starter_1998_2015.csv",header=T,fill=T,sep=",") 
+head(Rays_SP)
+```
+
+```{r}
+class(Rays_SP)
+str(Rays_SP)
+```
+
+EXERCISE 1:
+```{r}
+Rays_SP$Season
+Rays_SP$W
+```
+
+```{r}
+ans = list("MS", "TH", "KG", 3, 7, 11)
+ans
+```
+
+```{r}
+matrix(data=c(1:15),nrow=3, ncol=5, byrow=TRUE)
+```
+
+END EXERCISE 1
+
+```{r}
+SP.ord = Rays_SP[order(Rays_SP$Season),]
+SP.ord.rev = Rays_SP[order(Rays_SP$Season, decreasing=TRUE),]
+head(SP.ord)
+```
+
+```{r}
+head(SP.ord.rev)
+```
+
+```{r}
+SP.sub = subset(Rays_SP, ERA<2.5)
+print(SP.sub)
+```
+
+```{r}
+SP.sub.1 = subset(Rays_SP, ERA<2.5, select=c(Season, Name, W, L, ERA))
+print(SP.sub.1)
+```
+
+```{r}
+SP.sub.2 = subset(Rays_SP, ERA<3)
+SP.sub.3 = subset(Rays_SP, ERA>=3 & ERA<4)
+rbind(SP.sub.2, SP.sub.3)
+```
+
+```{r}
+SP.sub.4 = subset(Rays_SP, ERA<3, select=c(Season, Name, W, L))
+SP.sub.5 = subset(Rays_SP, ERA<3, select=c(G, GS, IP))
+cbind(SP.sub.4, SP.sub.5)
+```
+
+```{r}
+merge(SP.sub.2, SP.sub.3, by.x="Season", by.y="Season")
+```
+
+```{r}
+mean(Rays_SP$G)
+var(Rays_SP$G)
+```
+
+```{r}
+hist(Rays_SP$GB)
+hist(Rays_SP$GB, probability=TRUE)
+lines(density(Rays_SP$GB, na.rm=TRUE), col="red")
+```
+
+```{r}
+shapiro.test(Rays_SP$GB)
+
+GB.mean=mean(Rays_SP$GB, na.rm=TRUE)
+GB.sd=sd(Rays_SP$GB, na.rm=TRUE)
+ks.test(Rays_SP$GB, "qnorm", GB.mean, GB.sd)
+```
+
+```{r}
+qqnorm(Rays_SP$GB); qqline(Rays_SP$GB, col="Red")
+```
+
+```{r}
+library(car)
+qqPlot(Rays_SP$GB)
+```
+
+EXERCISE 2: 
+```{r}
+hist(Rays_SP$ERA)
+shapiro.test(Rays_SP$ERA)
+```
+
+```{r}
+qqnorm(Rays_SP$ERA); qqline(Rays_SP$GB, col="Red")
+qqPlot(Rays_SP$ERA)
+```
+
+END EXERCISE 2
+
+```{r}
+data(iris)
+head(iris)
+```
+
+```{r}
+plot(iris$Sepal.Length~iris$Sepal.Width)
+cor(iris$Sepal.Length,iris$Sepal.Width)
+```
+
+```{r}
+pairs(iris)
+cor(iris[,1:4])
+```
+
+EXERCISE 3: 
+```{r}
+mean(iris$Sepal.Length)
+var(iris$Sepal.Length)
+hist(iris$Sepal.Length, probability=TRUE)
+lines(density(iris$Sepal.Length, na.rm=TRUE), col="red")
+```
+
+```{r}
+mean(iris$Sepal.Width)
+var(iris$Sepal.Width)
+hist(iris$Sepal.Width, probability=TRUE)
+lines(density(iris$Sepal.Width, na.rm=TRUE), col="red")
+```
+
+```{r}
+mean(iris$Petal.Length)
+var(iris$Petal.Length)
+hist(iris$Petal.Length, probability=TRUE)
+lines(density(iris$Petal.Length, na.rm=TRUE), col="red")
+```
+
+```{r}
+mean(iris$Petal.Width)
+var(iris$Petal.Width)
+hist(iris$Petal.Width, probability=TRUE)
+lines(density(iris$Petal.Width, na.rm=TRUE), col="red")
+```
+
+END EXERCISE 3

@@ -1,0 +1,12 @@
+1. Students are not calculating vif correctly if they do not use built-in function (vif())
+
+2. Linear regression assumptions and model checking.
+Assumptions should be the normality of dependent variable, no colinearity among independent variables, and linear dependency.
+Model checking should include R2, residual independency, normality and homoskedasticity 
+
+3. Mean vs effect model (with or without the intercept term)
+The mean model, which means all estimates are the mean of each group. In this case, the hypothesis testing in the output table (p-value) tells you whether each group has mean different from 0. For example, the mean of east is not significantly different from 0. This also means that the hypothesis testing in the bottom line (p-value=0.0004748) tells you whether there is at least one group that is significantly different from 0. 
+
+The effect model (without "-1" in the model). To testing if there is at least one group that is significantly different from the other groups. This test is then consistant with the TukeyHSD test you have below.
+
+4. Sample size problem. It should be that the "TOTAL" sample size greater than 30 if it is an unpaired test. 

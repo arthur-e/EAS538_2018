@@ -1,0 +1,357 @@
+---
+title: "akinzer Take Home Quiz"
+author: "Andrew Kinzer"
+date: "March 24, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+edata = read.table(file="https://raw.githubusercontent.com/OscarFHC/NRE538_2017Fall/master/TakeHomeQuiz/energy_data.csv", 
+                   sep=",", fill=TRUE, header=TRUE)
+library(dplyr)
+library(lmtest)
+library(dunn.test)
+library(car)
+```
+
+```{r}
+edata=mutate(edata,percapEn=TotalEnergy/Population)
+edata=mutate(edata,percapCoal=TotalCoal/Population)
+edata=mutate(edata,percapGDP=TotalGDP/Population)
+edataT=mutate(edata, logpercapEn=log(percapEn))
+```
+
+
+
+#Energy Dataset
+
+##Question 1
+H~0~: There is no significant difference between per capita energy consumption for states that are on the coast and states that are not on the coast.
+
+H~a~: There is a significant difference between per capita energy consumption for states that are on the coast and states that are not  on the coast. 
+
+Boxplot as a visual plot to answer the hypothesis.
+
+```{r}
+boxplot(percapEn~Coast, data=edata)
+```
+
+Looking at this plot, it seems that the mean per capita energy use is slightly higher in non-coastal states (0), than in coastal states (1). Because the solid line representing the mean for both categories falls well within the confidence intervals of each other, there is not likely to be a significant difference. 
+
+But we can further check this using a two-sample t-test.
+Before we run the test, we need to check that our data meets the assumptions.
+
+```{r}
+percapEN.coast=subset(edata, Coast==as.factor(1))
+percapEN.in=subset(edata, Coast==as.factor(0))
+```
+
+We can run Shapiro-Wilke test to check to see if our data is normally distributed.
+
+```{r}
+shapiro.test(as.numeric(percapEN.coast[,"percapEn"]))
+```
+
+```{r}
+shapiro.test(as.numeric(percapEN.in[,"percapEn"]))
+```
+Our data didn't pass the Shapiro-Wilk normality test. Both coastal and non-coastal states failed the Shapiro-wilk normality test, with very small p-values. 
+
+
+```{r}
+var.test(percapEN.coast[,"percapEn"], percapEN.in[,"percapEn"])
+```
+It passes the equal variances with a fairly small F-statistic and a fairly large p-value.
+
+I ran a t-test to see if there is a difference between per capita energy consumption in coastal and non-coastal states. 
+
+```{r}
+t.test(percapEN.coast$percapEn, percapEN.in$percapEn)
+```
+
+
+We cannot reject the null hypothesis that there is no significant difference between the per capita energy consumption in coastal and non-coastal states (p-value=.2245). However, our data did violate the normallity assumption.
+
+I tried to log transform the data, but it still couldn't pass the normality test....the result of the t-test was the same as the non-transformed data.
+
+```{r}
+edataT=mutate(edata, logpercapEn=log(percapEn))
+percapEN.coastT=subset(edataT, Coast==as.factor(1))
+percapEN.inT=subset(edataT, Coast==as.factor(0))
+```
+
+```{r}
+qqnorm(edataT$logpercapEn)
+qqline(edataT$logpercapEn, col="Red")
+```
+
+```{r}
+var.test(percapEN.coastT[,"logpercapEn"], percapEN.inT[,"logpercapEn"])
+```
+
+It satisfies the equal variance assumption with a very small F-statistic and a very large p-value.
+
+
+```{r}
+t.test(percapEN.coastT$logpercapEn,percapEN.inT$logpercapEn)
+```
+We still can reject the null that there is no statistical difference between the per capita energy consumption in coastal and non-coastal states (p-value=0.06). But I still wasn't able to get the data to satisfy the normality assumption.
+
+> It's okay here since you have fairly large data set. 
+
+
+
+##Question 2
+
+Does per capita coal consumption differ depending on whether or not you live on the coast? 
+
+H~o~: There is no statistically significant difference in per capita coal consumption between states that are on a coast and states that are not on a coast.
+
+H~a~: There is a statistically significant difference in per capita coal consumption between states that are on a coast and states that are not on a coast.
+
+
+
+```{r}
+percapCoal.coast=subset(edata, Coast==as.factor(1))
+percapCoal.in=subset(edata, Coast==as.factor(0))
+```
+
+
+To visualize if we think there may be a difference, we can do a boxplot
+
+```{r}
+boxplot(percapCoal~Coast, data=edata)
+
+```
+
+This boxplot shows us that our dataset may show a significant difference, as the mean values for the coastal and non-coastal groups are either very close to falling outside the confidence intervals, or are falling outside the confidence intervals.
+
+Test for nomrality by running the Shapiro-Wilke Test
+
+```{r}
+shapiro.test(percapCoal.coast[,"percapCoal"])
+```
+This variable passes the test
+
+```{r}
+shapiro.test(percapCoal.in[,"percapCoal"])
+```
+This variable does not pass the test
+
+
+```{r}
+qqnorm(edata$percapCoal)
+qqline(edata$percapCoal, col="Red")
+```
+
+Our qqnorm plot shows us that our data does not pass the assumption of normality.
+
+```{r}
+var.test(percapCoal.coast[,"percapEn"], percapCoal.in[,"percapEn"])
+```
+
+Passes the variance assumption with a fairly small F-statistic and a large p-value.
+
+
+Similar to question 1, the data does not pass the normality test, but does pass the other tests. I tried to log transform the data, but it didn't work because I had some values of 0. So I square-root transformed the data, but it still didn't pass the normality test.
+
+```{r}
+edataT=mutate(edataT, sqrtpercapC=sqrt(percapCoal))
+qqnorm(edataT$sqrtpercapC)
+qqline(edataT$sqrtpercapC, col="Red")
+```
+
+Since I couldn't get the transform to work, I still ran the t-test, knowing I was violating the normality assumption.
+
+
+```{r}
+t.test(percapCoal.coast$percapCoal, percapCoal.in$percapCoal, paired=FALSE)
+```
+
+We reject the null that there is no statistically significant difference between per capita coal between states on the coast and states not on the coast. We can say that per capita coal use is different depending on if you state is a coastal state or a non-coastal state.
+
+
+##Question 3
+
+Does per capita coal consumption differ depending on the region in which a state is found?
+
+H~o~: There is no statistical difference in per capita coal consumption given a state's region.
+
+H~a~: There is a statistical difference in per capita coal consumption given a states's region.
+
+
+We can use a boxplot to visualize the data.
+
+```{r}
+boxplot(percapCoal~Region, data=edata)
+```
+
+Assumptions to check against
+
+1. Populations are normally distributed
+
+```{r}
+qqnorm(edata$percapCoal)
+qqline(edata$percapCoal, col="Red")
+```
+
+The data does not appear to be normally distributed. There are quite a few points that do not fall along our best fit line.
+
+2. Populations have the same variance
+
+```{r}
+leveneTest(percapCoal~Region, data=edata)
+```
+
+We cannot reject the null that our variances are homogenous. It passes this assumption.
+
+
+```{r}
+aov=aov(percapCoal~Region, data=edata)
+summary(aov)
+```
+
+```{r}
+percapCoallm=lm(percapCoal~Region, data=edata)
+summary(percapCoallm)
+```
+If we run the anova, even though we know the data is not normally distributed, we can see that there is no significant difference between per capita coal consumption and the region of the US a state is located in. However, with a p-value=0.06 the midwest is approaching significance.
+
+> This p-value is the comparison between Midwest to East, not the p-value for the ANOVA model. The p-value for the ANOVA model is actually 0.262.
+
+But, because our data is not normal, we can run a Kruskal-Wallis Test.
+
+```{r}
+kruskal.test(percapCoal~Region, data=edata)
+```
+With a p-value=0.0004, it is safe to say we reject the null that there is no difference in per capita coal consumption by region. 
+
+
+##Question 4
+
+What is the correlation between per capita coal use and per capita GDP? Does this seem like a strong correlation to you, why or why not.
+
+
+```{r}
+cor(edata$percapCoal,edata$percapGDP)
+```
+
+```{r}
+plot(edata$percapCoal,edata$percapGDP)
+```
+
+
+Based on both the correlation coefficient of 0.036 and the scatterplot of the data, it does not seem like the two values are very strongly correlated. 
+
+##Question 5
+
+```{r echo=FALSE}
+hdata = read.table(file="https://raw.githubusercontent.com/OscarFHC/NRE538_2017Fall/master/TakeHomeQuiz/housingdata.csv", 
+                   sep=",", fill=TRUE, header=TRUE)
+```
+
+```{r}
+hdatasub=subset(hdata, medv < 50, select=c("medv","crim","rm","ptratio"))
+head(hdatasub)
+```
+
+> Why are you subset medv<50?
+
+I am checking to see if the per capita crime rate per town (crim), the average number of rooms per dwelling (rm), and the pupil-teacher ratio by town(ptratio) have a significant effect on the median value of owner-occupied homes (medv).
+
+```{r}
+cor(hdata[,c("crim","rm","ptratio")])
+```
+
+Because there are no high correlation values (which I am setting as greater than 0.5), the variables I have chosen for the linear model should be okay.
+
+In addition to the correlation coefficients, I checked for multi-collinearity using the variance inflation factor.
+
+```{r}
+vif(lm(medv~crim+rm+ptratio, data=hdata))
+```
+
+With values around 1, which is very low, this model does not contain highly correlated variables, and will not run into issues of mulit-collinearity.
+
+
+##Question 6
+
+```{r}
+plot(hdata$medv~hdata$crim, xlab="Crime Rate", ylab="Median House Value ($1000)")
+```
+
+It seems that there is a negative relationship between the crime rate and the house value. As crime goes up, house values go down.
+
+```{r}
+plot(hdata$medv~hdata$rm, xlab="Average Number of Rooms", ylab="Median House value ($1000)")
+```
+
+There is a positive relationship between the average number of rooms and the median house value.
+
+```{r}
+plot(hdata$medv~hdata$ptratio, xlab="Parent-Student Ratio", ylab="Median House Value ($1000)")
+```
+
+There appears to be a negative relationship between the parent student ratio. As the ratio gets larger, the median house value falls.
+
+##Question 7
+
+```{r}
+housemod=lm(medv~crim+rm+ptratio, data=hdata)
+summary(housemod)
+```
+
+
+We can test for residual independency with the dwtest
+
+```{r}
+dwtest(housemod)
+```
+With a p-value that is so small, our data does not pass residual independency test. It seems some of our variables are correlated.
+
+We can test for homoscedasticity by using the Breushc-Pagan Test
+
+```{r}
+bptest(housemod)
+```
+
+Our data does not pass our homoscedasticity test.
+
+Our data is also not normal which we can see from the qqplot that is below.
+```{r}
+plot(housemod)
+```
+
+
+Essentially, all our assumptions were violated for this model.
+
+
+##Question 8
+
+```{r}
+summary(housemod)
+```
+
+Estimate of the Intercept: the Y intercept is at -15.74
+crim estimate: for each increase in one incident of crime, the median house value falls by 0.45 units. This effect is significant
+rm estimate: for each one increase in the average number of rooms, the median house value increases by 8.65 units. This effect is significant
+ptratio estimate: as the student teacher ratio increases by one unit, the median house value decreases by 0.8 units. This effect is significant
+
+
+###Bonus
+
+```{r}
+housemod2=lm(medv~crim+b+crim*b, data=hdata)
+summary(housemod2)
+```
+
+The intercept estimate: The y intercept is at 10.40
+crim estimate: for each increase in one incident of crime, the median household value increases 0.333 units. This effect is not significant
+b estimate: For each increase in proportion of black people in the town, the house values increase 0.03 units, this effect is significant.
+crim:b estimate: The interaction between the proportion of black people in the town, and the per capita crime rate does not have a significant effect on the median value of homes.
+
+##Question 9
+
+The model fits the data fairly well. With an adjusted R^2^=0.61, our model explains 61% of the variance of our data, which I am happy with.
+

@@ -1,0 +1,365 @@
+---
+title: "danjtan_TakeHome_Quiz"
+author: Daniel Tanner (umich ID = danjtan)
+umich ID: danjtan
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+   toc: True
+   toc_depth: 3
+   toc_float: True
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, fig.align='center', message = FALSE, warning = FALSE)
+```
+
+```{r, include=FALSE}
+library(car)
+library(ggplot2)
+library(lmtest)
+```
+
+_If you run any ANOVAs, you can use the Levene test for equality of variances (leveneTest). If your data violate an assumption about normality, please decide if this is really a problem. In many cases you can still run your parametric test with non-normal data assuming other conditions are met (see lecture notes). If you choose to run a parametric test any way despite the data not being normally distributed, state why you are able to do this. HINT: there is only one analysis in the entire exam (which is clearly marked) where you should run into real problems with normality. For this one analysis, you can get bonus points for transforming your data. If you are unable to transform your data, run the statistical test any way as if your data were normally distributed but make it clear that you violated this assumption in your answer (you won’t lose any points for violating this assumption). I’ve also updated Lecture15.R due to one mistake in the code._
+
+_For Questions 1 – 4, please use the energy dataset `energy_data.csv.` It is a dataset that includes the amount of energy consumed (TotalEnergy), the amount of coal consumed (TotalCoal), the GDP (TotalGDP), and the population (Population) of each state in the US in 2014. The states also are categorized by whether they are in the South, West, Midwest, or East of the country (Region) or on the coast (Coast, 0 = no; 1 = yes). Depending on the questions below, you may need to construct your own variable that is a combination of the variables included in the dataset (e.g. when per capita is used). (14 points)._
+```{r}
+# Energy data for question 1-4
+edata = read.table(file="https://raw.githubusercontent.com/OscarFHC/NRE538_2017Fall/master/TakeHomeQuiz/energy_data.csv", 
+                   sep=",", fill=TRUE, header=TRUE)
+```
+
+#Question 1
+_Does per capita energy consumption differ depending on whether a state is found on the coast or not?_
+
+##1a
+_Please write the null and alternate hypothesis (1 point)._
+
+$H_0$:The per capita energy consumption average for coastal states and for land-locked states are not significantly different from eachother.
+
+$H_1$: There is a significant difference between the average per capita energy consumption of coastal states and land-locked states.
+
+##1b
+_Please create a visual plot to answer this question (1 point)._
+
+First I have to create a column for per capita energy use:
+```{r}
+PCEnergy <- edata$TotalEnergy / edata$Population
+edata <- cbind(edata, PCEnergy)
+```
+```{r}
+ggplot(edata, aes(x=as.factor(Coast), y=PCEnergy, fill=as.factor(Coast))) + geom_boxplot() + labs(y="Per Capita Energy Consumption",x="States", title = "Per Capita Energy Consumption for Coastal and Land-locked States") + guides(fill=FALSE) + scale_x_discrete(breaks=c(0,1),labels=c("Land-locked", "Coastal"))
+```
+
+It appears that coastal states may use slightly less energy per capita.
+
+##1c
+_Please decide what statistical test to use and check whether your data meet the assumptions to run this test (1 point)._
+
+I am going to perform a __two-sample, two-tail t-test__.
+
+###Independence
+I am assuming that the data provided represent accurate and complete population counts from the census and energy use calculated from complete energy industry figures, so I do not have to worry about random sampling or independent observations.
+
+###Normality
+Normality of land-locked states:
+```{r}
+PCE.landLocked <- edata$PCEnergy[edata$Coast ==0]
+shapiro.test(PCE.landLocked)
+```
+Normality of coastal states:
+```{r}
+PCE.coastal <- edata$PCEnergy[edata$Coast ==1]
+shapiro.test(PCE.coastal)
+```
+I see that neither of my samples have normally distributed `PCEnergy` values, but the t-test is still appropriate if our sample size is large enough. Here we have a sample size of 51, which is above the threshold of 30 to 40 that our textbook suggests. Thus it is appropriate to use a t-test.
+
+###Equal Variance
+```{r}
+var.test(PCE.landLocked, PCE.coastal)
+```
+We fail to reject the null hypothesis that the variances are equal. Thus we can use a regular t-test for equal variance.
+
+##1d
+_Please run the statistical test and interpret the result (1 point)._
+
+```{r}
+t.test(PCE.coastal, PCE.landLocked, paired = FALSE)
+```
+With a p-value of 0.2245 we fail to reject the null hypothesis that the difference in means is zero. Thus we determine that there is no significant difference between per capita energy use in coastal and land-locked states.
+
+
+#Question 2
+_Does per capita coal consumption differ depending on whether a state is found on the coast or not?_
+
+##2a
+_Please write the null and alternate hypothesis (1 point)._
+
+$H_0$:The per capita coal consumption average for coastal states and for land-locked states are not significantly different from eachother.
+
+$H_1$: There is a significant difference between the average per capita coal consumption of coastal states and land-locked states.
+
+##2b
+_Please create a visual plot to answer this question (1 point)._
+
+```{r}
+PCCoal <- edata$TotalCoal / edata$Population
+edata <- cbind(edata, PCCoal)
+```
+```{r}
+ggplot(edata, aes(x=as.factor(Coast), y=PCCoal, fill=as.factor(Coast))) + geom_boxplot() + labs(y="Per Capita Coal Consumption",x="States", title = "Per Capita Coal Consumption for Coastal and Land-locked States") + guides(fill=FALSE) + scale_x_discrete(breaks=c(0,1),labels=c("Land-locked", "Coastal"))
+```
+
+
+##2c
+_Please decide what statistical test to use and check whether your data meet the assumptions to run this test (1 point)._
+
+I am going to perform a __Welch two-sample t-test__.
+
+###Independence
+I am assuming that the data provided represent accurate and complete population counts from the census and coal use calculated from complete energy industry figures, so I do not have to worry about random sampling or independent observations.
+
+###Normality
+Normality of land-locked states:
+```{r}
+PCC.landLocked <- edata$PCCoal[edata$Coast ==0]
+shapiro.test(PCC.landLocked)
+```
+Normality of coastal states:
+```{r}
+PCC.coastal <- edata$PCCoal[edata$Coast ==1]
+shapiro.test(PCC.coastal)
+```
+I see that neither of my samples have normally distributed `PCCoal` values, but the t-test is still appropriate if our sample size is large enough. Here we have a sample size of 51, which is above the threshold of 30 to 40 that our textbook suggests. Thus it is appropriate to use a t-test.
+
+###Equal Variance
+```{r}
+var.test(PCC.landLocked, PCC.coastal)
+```
+I reject the null hypothesis that the ratio of variances is equal to one, so I will use a Welch t-test for unequal variance.
+
+##2d
+_Please run the statistical test and interpret the result (1 point)._
+
+```{r}
+t.test(PCC.coastal, PCC.landLocked, paired = FALSE, var.equal = FALSE)
+```
+We can reject the null hypothesis (p = 0.001936) that the difference in means is equal to zero, meaning that the average coastal state per capita coal consumption and the average land-locked state per capita coal consumption are significantly different.
+
+#Question 3
+_Does per capita coal consumption differ depending on the region in which a state is found?_
+
+##3a
+_Please write the null and alternate hypothesis (1 point)._
+
+$H_0$: Per capita coal consumption of states does not differ between regions.
+
+$H_1$: There is a significant difference between the per capita coal consumption of states in different regions.
+
+##3b
+_Please create a visual plot to answer this question (1 point)._
+
+```{r}
+ggplot(edata, aes(x=as.factor(Region), y=PCCoal, fill=as.factor(Region))) + geom_boxplot() + labs(y="Per Capita Coal Consumption",x="State by US Region", title = "Regional Per Capita Coal Consumption") + guides(fill=FALSE)
+```
+
+From this plot I expect the East to have significantly different per capita coal consumption from two or possible all three of the other regions, but those other regions to not be significantly different from each other.
+
+##3c
+_Please decide what statistical test to use and check whether your data meet the assumptions to run this test (1 point)._
+
+I am going to run a _one-way ANOVA_ test.
+
+###Independence
+Same reasoning as above (Question 2C) for per-capita coal consumption.
+
+###Normality
+```{r}
+hist(edata$PCCoal)
+```
+Our data don't look normal. Let's check:
+```{r}
+shapiro.test(edata$PCCoal)
+```
+I reject the null hypothesis that my model residuals are normally distributed. Thus our data fail the normality assumption for the ANOVA test.
+
+###Equality of variances
+We check usng a Levene's test:
+```{r}
+leveneTest(edata$PCCoal,edata$Region)
+```
+With a p-value of 0.5202 we fail to reject the null hypothesis that there is a significant difference in residuals between groups. Thus our data meet the variance assumption of the ANOVA test.
+
+##3d
+_Please run the statistical test and interpret the result (1 point)._
+
+```{r}
+mod.PCC.regional <- aov(PCCoal~Region, data = edata)
+summary(mod.PCC.regional)
+```
+If we had passed all of our ANOVA assumptions we would have a p-value of 0.262, and we would not be able to condclude that there is a significant difference in per capital coal consumption between regions.
+
+```{r}
+TukeyHSD(mod.PCC.regional)
+```
+Out of curiosity I checked pairwise differences using TukeyHSD. There is the highest probability that the East and Midwest have different mean per capita coal consumption, but it fails to reach the 95% confidence significance threshold. 
+
+#Question 4
+_What is the correlation between per capita coal use and per capita GDP? Does this seem like a strong correlation to you? Why or why not? (2 points)_
+
+```{r, include=FALSE}
+##Define panel functions for correlation analysis
+"panel.lm" <- 
+function (x, y,  pch = par("pch"), 
+    col.lm = "red",  ...) 
+{   ymin <- min(y)
+    ymax <- max(y)
+    xmin <- min(x)
+    xmax <- max(x)
+    ylim <- c(min(ymin,xmin),max(ymax,xmax))
+    xlim <- ylim
+    points(x, y, pch = pch,ylim = ylim, xlim= xlim,...)
+    ok <- is.finite(x) & is.finite(y)
+    if (any(ok)) 
+        abline(lm(y[ok]~ x[ok]), 
+            col = col.lm, ...)
+}
+
+"panel.cor" <-
+function(x, y, digits=2, prefix="", cex.cor,...)
+     {
+         usr <- par("usr"); on.exit(par(usr))
+         par(usr = c(0, 1, 0, 1))
+         r  <- cor(x, y,use="pairwise")
+         txt <- format(c(round(r,digits), 0.123456789), digits=digits)[1]
+         txt <- paste(prefix, txt, sep="")
+         if(missing(cex.cor)) {cex <- 0.8/strwidth(txt)} else {cex <- cex.cor}
+         text(0.5, 0.5, txt,cex=cex)
+     }
+```
+
+
+```{r}
+pairs(edata[,c(8,9)], lower.panel=panel.lm, upper.panel=panel.cor)
+#see .Rmd file for definitions of panel.lm and panel.cor
+```
+With a correlation coefficient of 0.64, per capita energy use and per capita coal use seem fairly strongly correlated. However, the plot suggests that the data may be heteroscedastic, so I'm not confident that the correlation is a strong one.
+
+
+_For questions 5-9, please use the ‘housedata.csv’ dataset that shows housing information for the Boston area. Information on what each of the variables are can be found here: http://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.names. In this exercise, the goal is to create a multiple linear regression model to predict housing value prices (`medv`). Please do not use an interaction term (unless stated in the question) since they can be challenging to interpret! 14 points + 2 bonus points._
+
+```{r}
+# Housing data for question 5-9
+hdata = read.table(file="https://raw.githubusercontent.com/OscarFHC/NRE538_2017Fall/master/TakeHomeQuiz/housingdata.csv", 
+                   sep=",", fill=TRUE, header=TRUE)
+```
+
+#Question 5
+_Please select three covariates that you will include in your model as independent variables. Please check if these variables are highly correlated with one another to make sure you do not run into problems of multi-collinearity. Check if this model has issues with multi-collinearity using the variance inflation factor. Report correlation values and VIF values in your answer (3 points)._
+
+`crim` = per capita crime rate by town
+
+`rm` = average number of rooms per dwelling
+
+`age` = proportion of owner-occupied units built prior to 1940
+
+```{r}
+pairs(hdata[,c(1,6,7)], lower.panel=panel.lm, upper.panel=panel.cor)
+```
+
+The largest correlation value is 0.45, which is between crime rate and age of houses. None of the correlation values are above 0.50 which we discussed in class as the threshold to start being concerned about multicolinearity. We can also check our VIF values:
+
+```{r}
+vif.crim = 1/(1 - summary(lm(crim~rm+age, data=hdata))$r.squared)
+vif.crim
+```
+```{r}
+vif.rm = 1/(1 - summary(lm(rm~crim+age, data=hdata))$r.squared)
+vif.rm
+```
+```{r}
+vif.age = 1/(1 - summary(lm(age~rm+crim, data=hdata))$r.squared)
+vif.age
+```
+
+We see that our VIF values are all close to 1, far from the range of concern of around 5-10 or more.
+
+
+#Question 6
+_Plot the relationship between each of your three independent variables and the dependent variable (medv). Include each plot in this answer and state whether and how you think each variable is related to median housing prices (medv; 3 points)._
+
+```{r}
+ggplot(data=hdata, mapping=aes(x=crim, y=medv)) + geom_point() + labs(title="crime rate vs. median home value")
+```
+
+It looks like increased crime rate may be associated with a slight decrease in home values, but it's hard to determine if this is significant.
+
+```{r}
+ggplot(data=hdata, mapping=aes(x=rm, y=medv)) + geom_point() + labs(title="rooms per dwelling vs. median home value")
+```
+
+There appears to be a clear correlation between number of rooms per dwelling and home value. As the number of rooms increases, the value of the home increases. It looks like this wil be a significant effect.
+
+```{r}
+ggplot(data=hdata, mapping=aes(x=age, y=medv)) + geom_point() + labs(title="proportion of owner-occupied units built prior to 1940 vs. median home value")
+```
+
+There is quite a bit of variance in the data, but it looks like there may be a slight negative correlation between age of home and home price, meaning that as the proportion of homes built after 1940 increases, the median home value decreases.
+
+#Question 7
+_Run your multiple linear regression model. Check whether any assumptions are violated. Please state which assumptions you checked, whether they were violated, and how you know whether or not they were violated. If any assumptions are violated (e.g. normality), we will give you bonus points if you are able to identify a way to overcome this problem (3 points, plus additional 1 point bonus)._
+
+```{r}
+mod.house <- lm(medv~crim+rm+age, data = hdata)
+```
+
+We test our assumptions:
+
+###Linear Relationship
+Based on our plots in question 6, there does appear to be a linear relationship between each of the independant variables and the dependant variable.
+
+###Homoscedasticity
+```{r}
+bptest(mod.house)
+```
+With such a small p-value, I'm very confident that our data are heteroscedastic. Thus we fail to meet this assumption.
+
+###Independence of Errors
+```{r}
+dwtest(mod.house)
+```
+
+The Durbin-Watson test shows that there is significant autocorrelation in the data. Thus we fail to meet this assumption.
+
+###Normality of Residuals
+```{r}
+shapiro.test(residuals(mod.house))
+```
+We reject the null hypothesis that the residuals are normally distributed. Thus our residuals _are not_ normal and we fail to meet this assumption.
+
+
+#Question 8
+_Interpret the results of the linear regression model. State what the coefficient and its significance means for the intercept and each of your three independent variables. Please explain what each regression coefficient means and do not just state that the coefficient is significant or not significant. For 1 bonus point, add in an interaction term, rerun the model, and interpret the result (3 points plus additional 1 point bonus)._
+
+I am interpreting the following results as if my model had met all of the assumptions, which it didn't. Thus the p values are likely to be inaccurate.
+
+```{r}
+summary(mod.house)
+```
+
+The "intercept" estimate is the fitted value for median household value `crim`, `rm`, and `age` are all set to zero, and suggests a value of -\$32,071. It is significantly different than zero, but there are obviously no data actually near this intercept since the minimum average room count in our data is 3.51, and houses don't have negative value. The `crim` coefficient tells us that for every increase in crime rate by one point, we expect median home price to drop by \$490. The `rm` coefficient tells us that for if our average number of rooms increases by one room, we expect the median home value to increase by \$9,253. The `age` coefficient tells us that for every one point increase in percentage of homes older than 1940, we expect the median home price to decrease by \$33. All of these effects were found to be significant, based upon their p-values.
+
+##Bonus - Interaction Term
+```{r}
+mod.house.inter <- lm(medv ~ crim + rm*age, data = hdata)
+summary(mod.house.inter)
+```
+
+Again, our "intercept" estimate is the fitted value for median household value `crim`, `rm`, and `age` are all set to zero, and suggests a value of -\$54,375. We can see that this number is quite different than our previous model, but again, it is non-sensical and outside the range of our data. Crime rate in our model is not part of the interaction term that we included, so the previous interpretation stands: for every point increase in crime rate, the model expects the median home value to drop by \$499.
+
+If `age` = 0 then our model predicts that every increase in average number of rooms (`rm`) increases the expected median home value by \$12,719.54. If `rm` = 0 then every one point increase in `age` is expected to increase median home value by \$283.29. However, all of our data have room averages over 3, and with each one room increase in `rm`, our model predicts that the effect of an increase in `age` on value decreases by \$49.53.
+
+
+#Question 9
+_Discuss the fit of your model and whether you think it is a good or bad fit. Why (2 points)?_
+
+Our $R^2$ value was 0.59, which tells us that our model can only explain 59% of the variability in the data. This is not a great fit - there are likely other factors that could be included that would help explain median home price much more completely.

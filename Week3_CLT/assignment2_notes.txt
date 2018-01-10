@@ -1,0 +1,26 @@
+1. Thank you for your feedback
+	-general issuess are (1) too fast, (2) examples
+	Please do interrupt me if you are confused!
+
+2. assignment2
+
+encourage R markdown 2/42
+
+I gave you "good work" if you are using for-loop 9/42
+
+If you can assign a name to the output of meansVector function, you don't have to type meansVector(...) again. 
+Also, your current code actually create two meansVector.
+
+Please do not include your class notes.
+
+3. class material clarification
+
+4. lab
+	- how to do t-test in R and interprete the output correctly
+	  understand the meanign of p-value
+	  break the assumptions of t-test
+
+	 
+
+
+

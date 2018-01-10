@@ -1,0 +1,115 @@
+---
+title: "Week 3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+install.packages
+library(Lahman)
+data("Salaries")
+money15=subset(Salaries, yearID==2015)
+```
+
+```{r}
+meansVector = function(times, size, dat, varb){
+  a = as.numeric(times)
+  b = as.numeric(size)
+  v = c()
+  for(i in 1:a){
+    y = sample(dat[,varb],b,replace=TRUE)
+    m = mean(y)
+    v = c(v,m)
+  }
+  v
+}
+
+meansVector(10,5,money15, "salary")
+```
+
+Exercise 1
+For this exercise, we are making historgrams using the means vector
+```{r}
+hist(meansVector(10,5,money15, "salary"))
+
+hist(meansVector(50, 10, money15, "salary"))
+
+hist(meansVector(100, 50, money15, "salary"))
+
+hist(meansVector(1000, 200,money15, "salary"))
+
+hist(meansVector(1000,500, money15, "salary"))
+```
+
+Excercise 2
+A series of histograms with gradually increasing numbers of subsamples but fixed values taken in each subsample
+```{r}
+data("mtcars")
+meansVector(7, 5, mtcars, "mpg")
+hist(meansVector(7,5,mtcars, "mpg"))
+hist(meansVector(10,5,mtcars, "mpg"))
+hist(meansVector(15,5,mtcars,"mpg"))
+hist(meansVector(25,5,mtcars,"mpg"))
+hist(meansVector(40,5, mtcars,"mpg"))
+
+hist(meansVector(40,5,mtcars,"mpg"), main = "distribution of mpg", breaks=10)
+  avg=mean(meansVector(40,5,mtcars,"mpg"))
+  SD=sd(meansVector(40,5,mtcars,"mpg"))
+  abline(v=avg, col="blue")
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+```
+
+A series of histograms with fixed numbers of subsamples but gradually increasing values taken in each subsample
+```{r}
+hist(meansVector(150, 30, mtcars, "mpg"))
+hist(meansVector(150, 50, mtcars, "mpg"))
+hist(meansVector(150, 80, mtcars, "mpg"))
+hist(meansVector(150, 100, mtcars, "mpg"))
+hist(meansVector(150, 120, mtcars, "mpg"))
+```
+
+> It would be nice if you know how to use for loop.
+
+> I'm bit confused by the follwoing scripts. They are just your notes, correct?
+
+```{r}
+set.seed(61)
+avg.m=c()
+for (i in 1:10000){
+  avg.m[i]=mean(sample(bat15$avg), length(bat15$avg),replace=TRUE)
+}
+
+mean.resamp=mean(avg.m)
+mean.SE.resamp=sd(avg.m)
+mean.CI.resamp=c(sort(avg.m)[10000*0.025], sort(avg.m)[10000*0.975])
+print(paste0("standard error calculated by resampling= ", round(mean.SE.resamp, 5)))
+print(paste0("95%con"))
+```
+
+
+
+Confidence Interval
+```{r}
+library(Lahman)
+data(Batting)
+bat15 = subset(Batting, yearID==2015 & AB>200)
+bat15$avg = bat15$H/bat15$AB
+hist(bat15$avg, breaks=30, freq=FALSE)
+lines(density(bat15$avg), col="red")
+
+shapiro.test(bat15$avg)
+
+sd = sd(bat15$avg)
+se=sd/sqrt(length(bat15$avg))
+CI.lo=se*abs(qnorm(0.025)) - se*abs(qnorm(0.025))
+CI.lo=mean(bat15$avg) - se*abs(qnorm(0.025))
+CI.hi=mean(bat15$avg) + se*abs(qnorm(0.025))
+```
+
+```{r}
+set.seed(61)
+avg.m=c()
+for (i in 1:10000){
+  avg.m[i]=mean(sample(bat15$avg, length(bat15$avg),replace=TRUE))
+}
+```
+

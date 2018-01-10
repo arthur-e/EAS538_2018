@@ -1,0 +1,335 @@
+---
+title: "NRE538_Basic R commands and data visualization"
+author: "Oscar Feng-Hsun Chang"
+date: 2018 Jan. 11, 12 Week2"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+# Set working directory
+
+First things first, always set the working directory before you start a new project, so that your projects are not inferring each other. Let's set the working directory for this lab by using `setwd("desired directory")`.  
+For example, When I was writing this document, my working directory was "D:/Courses/UM/2016_WN/NRE538_stats/NRE538_GSRA/Labs/NRE538_Lab1". Make sure you use forward slash "/". 
+
+Be sure to set the directory where you save the file. 
+
+```{r, set wd}
+setwd("D:/Courses/UM/2016_WN/NRE538_GSRA/Labs/NRE538_Lab1")
+```
+
+# Read in data
+
+Once you set the working directory, you can start to read in the data you want to work on. Let's try to read in the data with `read.table("file name")` and name it as "Rays_SP".  
+This data is the baseball statistics of all the starting pitchers in MLB team Tampa Bay Rays from 1998 to 2015. We can take a glimpse of what "Rays_SP" is by using `head()`. 
+
+```{r, read in data, out.width=12}
+setwd("D:/Courses/UM/2016_WN/NRE538_GSRA/Labs/NRE538_Lab1")
+Rays_SP = read.table("Rays_starter_1998_2015.csv",header=T,fill=T,sep=",")
+head(Rays_SP)
+```
+
+# Data type / Varaible type
+
+Let's take a look what type of data we just read in.  
+1.Now use `class()` to see what is the data type of "Rays_SP".  
+
+```{r, class()}
+class(Rays_SP)
+```
+* What does "data.frame" mean?  
+
+2.Now use `str()` to see what are the data type of variables in "Rays_SP".  
+
+```{r, str}
+str(Rays_SP)
+```
+* Now we have "factor", "integer", "numeric"...etc. What does the output of each variable mean?  
+
+The basic data types in __R__ are _integer_, _numeric_ (real numbers), _logical_ (TRUE or FALSE), _character_ (alphanumeric strings). __R__ organizes these data into _vectors_ of one of these types. Take the ERA variable in the "Rays_SP" data for example, it is a _vector_ of _numeric_ variables.  
+
+In addition, there is a _factor_ data type. _Factors_ are __R__'s way to deal with categorical variables. It is structured as a set of levels (integers) along with a set of labels associated with each level. For example, Name variable in the "Rays_SP" data is a _vector_ of _factor_ variable with 82 levels and each level is associated with a pitcher's name.  
+
+So, a _data frama_ in __R__ is a structure of data that combines _vectors_ (columns) of different types of data (e.g. _integer_, _factor_, _numeric_...etc.). _Data frame_ is therefore a hybrid of _list_ and _matrix_. A _list_ is structure of data that stores more than one type of data in a single dimension, and a _matrix_ is a two dimensional data structure with single data type. When dealing with _data frame_, we can pick an arbitrary column by using `$`. You will see lots of `$` in the following scripts. 
+
+--------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 1__
+
+1. Pick any variable you like in the "Rays_SP" data by using `$`. 
+
+2. Create a list containing multiple types of data with `list()` and create a matrix with `matrix()`.  
+When you don't know how to use `c()` or `matrix()`, try `?c` and `?matrix`.
+
+--------------------------------------------------------------------------------------------------------------------------
+
+> Check this [R Tutorial book](http://www.r-tutor.com/r-introduction/basic-data-types) to familiar yourself with basic data types in R.  
+
+# Basic data cleaning/reorganizing
+
+## `Order()`
+
+Order the data with `order()`
+
+```{r, order}
+SP.ord = Rays_SP[order(Rays_SP$Season),]
+SP.ord.rev = Rays_SP[order(Rays_SP$Season, decreasing=TRUE),]
+head(SP.ord)
+head(SP.ord.rev)
+```
+
+##`subset()`
+
+Subset (rows)/select(columns) with `subset()`
+```{r, subset}
+SP.sub = subset(Rays_SP, ERA<2.5)
+print(SP.sub)
+
+SP.sub.1 = subset(Rays_SP, ERA<2.5, select=c(Season, Name, W, L))
+print(SP.sub.1)
+```
+
+##`r/cbind()`
+
+Join data (rbind, cbind) with `rbind` or `cbind`
+```{r, rbind/cbind}
+SP.sub.2 = subset(Rays_SP, ERA<3)
+SP.sub.3 = subset(Rays_SP, ERA>=3 & ERA<4)
+rbind(SP.sub.2, SP.sub.3)
+
+SP.sub.4 = subset(Rays_SP, ERA<3, select=c(Season, Name, W, L))
+SP.sub.5 = subset(Rays_SP, ERA<3, select=c(G, GS, IP))
+cbind(SP.sub.4, SP.sub.5)
+```
+
+##`merge()`
+
+Merge data with `merge`
+```{r, merge}
+merge(SP.sub.2, SP.sub.3, by.x="Season", by.y="Season")
+```
+* It's pretty busy...Can you understand what does merge do to the data?  
+
+All I introduced you here are basic functions built in the _base_ package of __R__ (which means you don't have to install anything). However, there are several packages that allows you to clean/reorganize/munge the data in a more elegant and efficient fashion. They are __reshape2__, __plyr__, __dplyr__, or __tidyr__ packages. There even exist chest sheet for [__dplyr__ and __tidyr__](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) packages
+
+# Exploratory Data Analysis
+
+Now, say you have cleaned the data and ready to proceed. The next step is always to check what the data looks like and what are the relationships among variables (a.k.a. exploratory data analysis).  
+
+## Very basic statistics
+
+Remember what mean and variation (standard deviation) are?  
+It's very easy to calculate the mean and variance (standard deviation) in __R__ by using `mean()` and `var()`(`sd()`). Let's calculate the mean and variance of the G (Game started) variable. 
+
+```{r, mean, sd}
+mean(Rays_SP$G)
+var(Rays_SP$G)
+```
+
+## Distribution of one variable
+
+Let's plot the histogram of GB (Ground Ball percentage) variable to see what the distribution looks like by `hist()`. 
+
+```{r, histogram}
+hist(Rays_SP$GB)
+
+hist(Rays_SP$GB, probability=TRUE)
+lines(density(Rays_SP$GB, na.rm=TRUE), col="red")
+```
+
+* What is the differences between the two histogram?
+* What does `na.rm=` do?
+
+Let's now see if GB is a normal distribution by using `shapiro.test()`
+
+```{r, Shapiro-Wilk test}
+shapiro.test(Rays_SP$GB)
+```
+
+* What does this results tell you. Maybe you want to read the [help page](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/shapiro.test.html) (remember how to do it in __R__?) or [wiki page](https://en.wikipedia.org/wiki/Shapiro%E2%80%93Wilk_test) of Shapiro¡VWilk test. 
+
+Alternatively, you can try [Kolmogorov¡VSmirnov test](https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test) by using `ks.test()`. Kolmogorov¡VSmirnov test is basically examining if two probability distributions are the same. 
+
+```{r, ks.test, warning=FALSE}
+GB.mean=mean(Rays_SP$GB, na.rm=TRUE)
+GB.sd=sd(Rays_SP$GB, na.rm=TRUE)
+ks.test(Rays_SP$GB, "qnorm", GB.mean, GB.sd)
+```
+
+```{r, include=FALSE}
+GB.log=log(Rays_SP$GB)[!is.na(log(Rays_SP$GB))]
+GB.log.mean=mean(GB.log)
+GB.log.sd=sd(GB.log)
+new=rnorm(length(GB.log), mean=mean(GB.log), sd=sd(GB.log))
+ks.test(GB.log, new)
+```
+
+Or, you can do [QQ plot](https://en.wikipedia.org/wiki/Q%E2%80%93Q_plot) by using `qqnorm()` plus `qqline()` to see if the sample distribution deviate too much from the theoretical normal distribution. 
+
+```{r, qqplot and ks.test}
+qqnorm(Rays_SP$GB); qqline(Rays_SP$GB, col="Red")
+```
+
+```{r, include=FALSE}
+qqnorm(log(Rays_SP$GB)); qqline(log(Rays_SP$GB), col="Red")
+```
+
+Another way to do QQ plot is to use `qqPlot()` in the __car__ package. The benefit of using `qqPlot()` is that it overlay the confidence interval onto the original QQ plot. It is therefore useful to detect outliers from the QQ plot.  
+Let's try to install the package by using `install.packages(package name)`. 
+
+```{r, car package, eval=FALSE}
+install.packages("car")
+```
+
+After you successfully installed the __car__ package, make sure you `library()` it, so that __R__ knows where to look for the function you are using. 
+
+```{r, car pacakge}
+library(car)
+qqPlot(Rays_SP$GB)
+```
+
+```{r, include=FALSE}
+qqPlot(log(Rays_SP$GB))
+```
+
+We can see that. if you do not log transform it, there are many points located out side of the 95% confidence interval of the QQ plot. Eyeballing from the QQ plot is the easiest way to detect outliers, although there are several other methods to detect outliers. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 2__
+
+Plot the histogram of another variable plus density function and test the normality of it.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+
+## Relationship between two variables
+
+In case you are tired of baseball data, we now switch to another data set, [_Iris_ flower data set](https://en.wikipedia.org/wiki/Iris_flower_data_set). This data set is already installed in the _base_ package, so you can just use `data(iris)` to fetch it.  
+
+```{r, iris}
+data(iris)
+head(iris)
+```
+
+Here I want to show you another important part of exploratory data analysis, plotting the relationship between two variables.  
+By plotting one variable against another, we can easily investigate the relationship between the two. For example, if we want to see the relationship between sepal length and sepal width, we just plot one against the other.  
+```{r, 2 variable relationship}
+plot(iris$Sepal.Length~iris$Sepal.Width)
+```
+
+And if we want to see the correlation coefficient between the two, we can use `cor()`.  
+```{r, cor()}
+cor(iris$Sepal.Length,iris$Sepal.Width)
+```
+
+* Remember what the correlation coefficient is?
+
+What if we want to investigate the correlation among multiple pairs of variables at the same time?  
+__R__ has a very handy function called `pairs()`. Try it.
+
+```{r, pairs()}
+pairs(iris)
+```
+
+* What happen to the "Species" variable? 
+
+Also, we can calculate the correlation coefficients among these variables simultaneously as well. Let's try `cor()` again but with different specification. 
+
+```{r, cor matrix}
+cor(iris[,1:4])
+```
+
+* Look up the help page of `cor()` to familiar yourself with this function. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 3__
+
+Plot four histograms for each of the four variables in the _Iris_ flower data set (with density functions) and check the normality of them.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+
+```{r, echo=FALSE, eval=FALSE}
+##### The following scripts are for figures done by ggplot2 with data munging by dplyr and tidyr.
+
+### load the data
+data(iris)
+
+### resape the data
+iris.new = iris %>%
+           gather(key = flower_att, value = measurement, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
+  
+### first glimpse of the data distribution 
+p.all = ggplot(data=iris.new, 
+                mapping = aes(x=measurement, col=Species, fill=Species), 
+                group = interaction(Species, flower_att))+ 
+         geom_histogram(aes(y=..density..), 
+                        binwidth=0.02)+
+         geom_density(col="black")+
+         facet_grid(Species~flower_att)
+print(p.all)
+### Check normality. Take Sepal.Width of species setosa and virginica for example
+  # normally distributed
+iris.SW.setosa = iris.new %>% filter(flower_att=="Sepal.Width" & Species=="setosa")
+p.SW.setosa = ggplot(data=iris.SW.setosa,
+                     mapping=aes(x=measurement))+
+              geom_histogram(aes(y=..density..),
+                             binwidth = density(iris.SW.setosa$measurement)$bw)+
+              geom_density(col="red")
+print(p.SW.setosa)
+shapiro.test(iris.SW.setosa$measurement)
+qqnorm(iris.SW.setosa$measurement); qqline(iris.SW.setosa$measurement, col = 2)
+
+
+iris.SW.virginica = iris.new %>% filter(flower_att=="Sepal.Width" & Species=="virginica")
+p.SW.virginica = ggplot(data=iris.SW.virginica,
+                        mapping=aes(measurement, ..count..))+
+  geom_histogram(aes(y=..count..),
+                 bins=10)
+print(p.SW.virginica)
+shapiro.test(iris.SW.virginica$measurement)
+qqnorm(iris.SW.virginica$measurement); qqline(iris.SW.virginica$measurement, col = 2)
+
+iris.SW.versicolor = iris.new %>% filter(flower_att=="Sepal.Width" & Species=="versicolor")
+p.SW.versicolor = ggplot(data=iris.SW.virginica,
+                         mapping=aes(measurement, ..count..))+
+  geom_histogram(aes(y=..count..),
+                 bins=10)
+print(p.SW.versicolor)
+shapiro.test(iris.SW.versicolor$measurement)
+qqnorm(iris.SW.versicolor$measurement); qqline(iris.SW.versicolor$measurement, col = 2)
+
+  # not normally distributed, even after log-transformation 
+iris.PW.seto = iris.new %>% filter(flower_att=="Petal.Width" & Species=="setosa")
+p.PW.seto = ggplot(data=iris.PW.seto,
+                   mapping=aes(measurement, ..count..))+
+            geom_histogram(aes(y=..count..),
+                           bins=10)
+print(p.PW.seto)
+shapiro.test(iris.PW.seto$measurement)
+shapiro.test(log(iris.PW.seto$measurement))
+qqnorm(iris.PW.seto$measurement); qqline(iris.PW.seto$measurement, col = 2)
+qqnorm(log(iris.PW.seto$measurement)); qqline(log(iris.PW.seto$measurement), col = 2)
+
+
+  # compare Sepal.Width among species setosa, virginica and versicolor
+
+aov.SW = aov(lm(data=iris, Sepal.Width~Species))
+summary(aov.SW)
+
+p.aov = ggplot(data = iris, mapping = aes(x=Species, y=Sepal.Width))+
+        geom_boxplot()+
+        geom_jitter()
+print(p.aov)
+```

@@ -1,0 +1,46 @@
+library(Lahman)
+meansVector = function(times, size, dat, varb){
+  a = as.numeric(times)
+  b = as.numeric(size)
+  v = c()
+  for(i in 1:a){
+    y = sample(dat[,varb],b,replace=TRUE)
+    m = mean(y)
+    v = c(v,m)
+  }
+  v
+}
+#Exercise 1 
+money15 <- subset(Salaries, Salaries$yearID == 2015)
+vect1 <- meansVector(100, 50, money15, "salary")
+vect2 <- meansVector(10, 50, money15, "salary")
+vect3 <- meansVector(10, 100, money15, "salary")
+vect4 <- meansVector(100, 100, money15, "salary")
+vect5 <- meansVector(1000, 1000, money15, "salary")
+hist(vect1)
+hist(vect2)
+hist(vect3)
+hist(vect4)
+hist(vect5)
+
+#Exercise 2
+vect1 <- meansVector(10,10,mtcars,"mpg")
+vect2 <- meansVector(10,100,mtcars,"mpg")
+vect3 <- meansVector(10,500,mtcars,"mpg")
+vect4 <- meansVector(10,1000,mtcars,"mpg")
+vect5 <- meansVector(10,10000,mtcars,"mpg")
+hist(vect1)
+hist(vect2)
+hist(vect3)
+hist(vect4)
+hist(vect5)
+vect1 <- meansVector(10,10,mtcars,"mpg")
+vect2 <- meansVector(100,10,mtcars,"mpg")
+vect3 <- meansVector(1000,10,mtcars,"mpg")
+vect4 <- meansVector(10000,10,mtcars,"mpg")
+vect5 <- meansVector(100000,10,mtcars,"mpg")
+hist(vect1)
+hist(vect2)
+hist(vect3)
+hist(vect4)
+hist(vect5)

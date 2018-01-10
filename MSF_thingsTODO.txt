@@ -1,0 +1,16 @@
+"How did last week go?" 
+"Anything questions on the lab assignments or things you want me to explain it again?"
+===
+
+Break the whole script into several chunks (# depends on the materials) and have students do the code by themselves for about 10 mins. Walk around to see if they have any questions individually. 
+- design one more advanced question or coding for more experienced students
+===
+
+Ask students if they want to have a short break (5 min) after about an hr
+===
+
+Share the assignment codes.
+===
+
+
+* Always keep the communication open to students so that the class can be continuously improved. 

@@ -1,0 +1,10 @@
+1. The rubic for question 10 is stated as follow.
+	Experiment: split plot design (or at least random plot) / literature or previous studies for power anaylysis / random (or all) plant individuals 
+	Observation: similar plots / mearsure potential variables according to literature or previous studies / random plants in a plot
+
+
+2. Interpretation of the ANCOVA (11; Regression 5) summary table. Only one student got it correct. 
+	The first question (11.5.1) is graded with mercy. The correct interpretation is that the test score would go up by 0.00098 point in "Female". Most of the students did not mention the female part.
+	For the third question (11.5.3), nearly all student were wrong. They were not able to interprete the interaction term.  
+
+

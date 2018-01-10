@@ -1,0 +1,9 @@
+1. open canvas site to show where to upload assignment
+
+2. piazza
+https://piazza.com/class/ixkkzskaogf10c
+
+3. open a Rmarkdown demo
+
+4. swirl
+http://swirlstats.com/students.html

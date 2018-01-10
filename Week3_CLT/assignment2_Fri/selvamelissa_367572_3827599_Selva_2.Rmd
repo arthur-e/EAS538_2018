@@ -1,0 +1,260 @@
+---
+title: "Selva_2"
+output: html_document
+---
+
+```{r}
+library(Lahman)
+data("Salaries")
+money15 = subset(Salaries, yearID==2015)
+head(money15)
+```
+
+```{r}
+hist(money15$salary, main = "distribution of salary")
+avg=mean(money15$salary)
+  SD=sd(money15$salary)
+  abline(v=avg, col="blue")
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+```
+
+Exercise 1:
+
+```{r}
+money14 = subset(Salaries, yearID==2014)
+head(money14)
+```
+
+```{r}
+meansVector = function(times, size, dat, varb){
+  a = as.numeric(times)
+  b = as.numeric(size)
+  v = c()
+  for(i in 1:a){
+    y = sample(dat[,varb],b,replace=TRUE)
+    m = mean(y)
+    v = c(v,m)
+  }
+  v
+}
+```
+
+Fixed number of values in each subsample, with increasing number of subsamples:
+```{r}
+means = meansVector(20, 100, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(40, 100, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(100, 100, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(500, 100, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(1000, 100, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 100, money14, "salary")
+hist(means)  
+```
+
+Fixed number of subsamples, with increasing number of values in each subsample:
+
+```{r}
+means = meansVector(2000, 10, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 20, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 50, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 100, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 500, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 1000, money14, "salary")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 2000, money14, "salary")
+hist(means)  
+```
+
+END EXERCISE 1
+
+
+Exercise 2:
+
+```{r}
+data(mtcars)
+```
+
+```{r}
+hist(mtcars$mpg, main = "distribution of mpg", breaks=10)
+  avg=mean(mtcars$mpg)
+  SD=sd(mtcars$mpg)
+  abline(v=avg, col="blue")
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+```
+
+```{r}
+meansVector = function(times, size, dat, varb){
+  a = as.numeric(times)
+  b = as.numeric(size)
+  v = c()
+  for(i in 1:a){
+    y = sample(dat[,varb],b,replace=TRUE)
+    m = mean(y)
+    v = c(v,m)
+  }
+  v
+}
+```
+
+Fixed number of values in each subsample, with increasing number of subsamples:
+```{r}
+means = meansVector(20, 100, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(40, 100, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(100, 100, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(200, 100, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(500, 100, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(1000, 100, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 100, mtcars, "mpg")
+hist(means)  
+```
+
+Fixed number of subsamples, with increasing number of values in each subsample:
+```{r}
+means = meansVector(2000, 10, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 20, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 50, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 100, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 200, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 500, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 1000, mtcars, "mpg")
+hist(means)  
+```
+
+```{r}
+means = meansVector(2000, 2000, mtcars, "mpg")
+hist(means)  
+```
+
+END EXERCISE 2
+
+```{r}
+library(Lahman)
+data(Batting)
+bat15 = subset(Batting, yearID==2015 & AB>200)
+bat15$avg = bat15$H/bat15$AB
+hist(bat15$avg, breaks=30, freq=FALSE)
+lines(density(bat15$avg), col="red")
+```
+
+```{r}
+shapiro.test(bat15$avg)
+qqnorm(bat15$avg); qqline(bat15$avg, col="Red")
+```
+
+```{r}
+avg.se = sd(bat15$avg)/sqrt(length(bat15$avg))
+avg.se
+ci.lo = mean(bat15$avg)-qnorm(0.95)*avg.se
+ci.lo
+ci.hi = mean(bat15$avg)+qnorm(0.95)*avg.se
+ci.hi
+```
+
+```{r}
+set.seed(61)
+avg.m=c()
+for (i in 1:10000){
+  avg.m[i]=mean(sample(bat15$avg, length(bat15$avg), replace=TRUE))
+}
+
+mean.resamp=mean(avg.m)
+mean.SE.resamp=sd(avg.m)
+mean.CI.resamp=c(sort(avg.m)[10000*0.025], sort(avg.m)[10000*0.975])
+print(paste0("standard error calculated by resampling = ", round(mean.SE.resamp,5)))
+```
+
+```{r}
+print(paste0("95% confidence interval by resampling : ", 
+             round(sort(avg.m)[10000*0.025],4), " - ", round(sort(avg.m)[10000*0.975],4)))
+```
+

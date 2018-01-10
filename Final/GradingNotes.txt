@@ -1,0 +1,10 @@
+Residual (error) homoskedasticity, independencey, and normality should be part of model checking. The only assumption is the normality of the dependent variable and co-linearity. 
+In other word, if the three checks are violated, the model is not good but you are still eligible to do linear regression (with OLS) and use the model. If the dependent variable is not normal, you can NOT do linear regression at the beginning.
+
+You have to standardize it first.
+
+You can not use AIC value or chi-squared test to compare the importance of independent variables. AIC is to compare model fitting. This question can be simply answered by first standardize independent variables and compare the regression coefficients.
+
+Actually, the sample size in unequal, so Kruskal-wallis test should be used, and TukeyHSD can't be used here...
+
+Good! But this can be simply answered by first standardize independent variables and compare the regression coefficients. (+1)
