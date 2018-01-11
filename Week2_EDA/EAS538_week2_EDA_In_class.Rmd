@@ -31,7 +31,7 @@ Once you set the working directory, you can start to read in the data you want t
 These data are average monthly rent prices for cities across the US for several months in 2016. We can take a glimpse of what "rent.US" is by using `head()`. 
 
 ```{r, read in data, out.width=12}
-setwd("/usr/local/dev/EAS538_2018/Week2_EDA/")
+setwd("/Users/mehajain/Desktop/stats_2018/Lab/Week2")
 rent.US = read.table("price.csv", header = T, fill = T, sep = ",")
 head(rent.US)
 ```
