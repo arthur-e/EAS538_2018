@@ -87,7 +87,7 @@ __Exercise 1__
 1. Pick any variable you like in the "rent.US" data by using `$`. 
 
 2. Create a list containing multiple types of data with `list()` and create a matrix with `matrix()`.  
-When you don't know how to use `c()` or `matrix()`, try `?c` and `?matrix`.
+When you don't know how to use `list()` or `matrix()`, try `?list` and `?matrix`.
 
 __Optional Challenges__
 
