@@ -174,7 +174,7 @@ var(rent.US$Sep.16)
 
 Let's plot the histogram of the Sep.16 variable to see what the distribution looks like using `hist()`. 
 
-```{r, histogram, fig.show"hide"}
+```{r, histogram, fig.show="hide"}
 hist(rent.US$Jan.16)
 ```
 
@@ -204,7 +204,7 @@ shapiro.test(rent.US$Sep.16)
 
 Or, you can use [QQ plot](https://en.wikipedia.org/wiki/Q%E2%80%93Q_plot) by using `qqnorm()` plus `qqline()` to see if the sample distribution deviates too much from the theoretical normal distribution. 
 
-```{r, qqplot and ks.test, fig.show"hide"}
+```{r, qqplot and ks.test, fig.show="hide"}
 qqnorm(rent.US$Sep.16)
 qqline(rent.US$Sep.16, col = "Red")
 ```
@@ -218,7 +218,7 @@ install.packages("car")
 
 After you successfully installed the __car__ package, make sure you `library()` it, so that __R__ knows where to look for the function you are using. 
 
-```{r, car pacakge, fig.show"hide"}
+```{r, car pacakge, fig.show="hide"}
 library(car)
 qqPlot(rent.US$Sep.16)
 ```
@@ -249,7 +249,7 @@ head(iris)
 Here I want to show you another important part of exploratory data analysis, plotting the relationship between two variables.  
 By plotting one variable against another, we can easily investigate the relationship between the two. For example, if we want to see the relationship between sepal length and sepal width, we just plot one against the other.  
 
-```{r, 2 variable relationship, fig.show"hide"}
+```{r, 2 variable relationship, fig.show="hide"}
 plot(iris$Sepal.Length ~ iris$Sepal.Width)
 ```
 
@@ -264,7 +264,7 @@ cor(iris$Sepal.Length, iris$Sepal.Width)
 What if we want to investigate the correlation among multiple pairs of variables at the same time?  
 __R__ has a very handy function called `pairs()`. Try it.
 
-```{r, pairs(), fig.show"hide"}
+```{r, pairs(), fig.show="hide"}
 pairs(iris)
 ```
 
