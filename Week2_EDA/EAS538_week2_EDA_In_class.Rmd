@@ -30,11 +30,18 @@ Be sure to set the working directory to where you saved the data file we will us
 Once you set the working directory, you can start to read in the data you want to work on. Let's try to read in the data with `read.table("file name")` and name the data "rent.US".  
 These data are average monthly rent prices for cities across the US for several months in 2016. We can take a glimpse of what "rent.US" is by using `head()`. 
 
-```{r, read in data, out.width=12}
+```{r, read in data, eval=FALSE}
 setwd("/Users/mehajain/Desktop/stats_2018/Lab/Week2")
 rent.US = read.table("price.csv", header = T, fill = T, sep = ",")
 head(rent.US)
 ```
+
+
+```{r, echo=FALSE, out.width=12}
+rent.US = read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price.csv", header = TRUE, fill = TRUE, sep = ",")
+head(rent.US)
+```
+
 
 ## About the data
 
@@ -53,7 +60,7 @@ Here's a brief description of the data frame's columns:
 
 Let's take a look at what type of data we just read in. Use `class()` to see what the data type is for "rent.US".  
 
-```{r, class()}
+```{r, class(), results="hide"}
 class(rent.US)
 ```
 
@@ -61,7 +68,7 @@ class(rent.US)
 
 Now use `str()` to see what the classes of variables are in `rent.US`.  
 
-```{r, str}
+```{r, str, results="hide"}
 str(rent.US)
 ```
 
@@ -97,7 +104,7 @@ __Optional Challenges__
 
 Order the data with `order()`
 
-```{r, order}
+```{r, order, results="hide"}
 rent.ord = rent.US[order(rent.US$Sep.16),]
 rent.ord.rev = rent.US[order(rent.US$Sep.16, decreasing=TRUE),]
 head(rent.ord)
@@ -107,7 +114,7 @@ head(rent.ord.rev)
 ## `subset()`
 
 Subset (rows)/select(columns) with `subset()`
-```{r, subset}
+```{r, subset, results="hide"}
 rent.MI = subset(rent.US, State == "MI")
 head(rent.MI)
 
@@ -158,7 +165,7 @@ Now, say you have cleaned the data and are ready to proceed. The next step is al
 Remember what mean and variation (standard deviation) are?  
 It's very easy to calculate the mean and variance (standard deviation) in __R__ by using `mean()` and `var()`(`sd()`). Let's calculate the mean and variance of the September 2016 rent (`Sep.16`) variable. 
 
-```{r, mean, sd}
+```{r, mean, sd, results="hide"}
 mean(rent.US$Sep.16)
 var(rent.US$Sep.16)
 ```
@@ -167,7 +174,7 @@ var(rent.US$Sep.16)
 
 Let's plot the histogram of the Sep.16 variable to see what the distribution looks like using `hist()`. 
 
-```{r, histogram}
+```{r, histogram, fig.show"hide"}
 hist(rent.US$Jan.16)
 ```
 
@@ -189,7 +196,7 @@ __Optional Challenges__
 
 Let's now see if September 2016 rent is normally distributed by using `shapiro.test()`
 
-```{r, Shapiro-Wilk test}
+```{r, Shapiro-Wilk test, results="hide"}
 shapiro.test(rent.US$Sep.16)
 ```
 
@@ -197,7 +204,7 @@ shapiro.test(rent.US$Sep.16)
 
 Or, you can use [QQ plot](https://en.wikipedia.org/wiki/Q%E2%80%93Q_plot) by using `qqnorm()` plus `qqline()` to see if the sample distribution deviates too much from the theoretical normal distribution. 
 
-```{r, qqplot and ks.test}
+```{r, qqplot and ks.test, fig.show"hide"}
 qqnorm(rent.US$Sep.16)
 qqline(rent.US$Sep.16, col = "Red")
 ```
@@ -211,7 +218,7 @@ install.packages("car")
 
 After you successfully installed the __car__ package, make sure you `library()` it, so that __R__ knows where to look for the function you are using. 
 
-```{r, car pacakge}
+```{r, car pacakge, fig.show"hide"}
 library(car)
 qqPlot(rent.US$Sep.16)
 ```
@@ -234,7 +241,7 @@ qqline(rent.US$Sep.16, col = "Red")
 
 In case you are tired of the rent data, we will now switch to another data set, the [_Iris_ flower data set](https://en.wikipedia.org/wiki/Iris_flower_data_set). This data set is already installed in the _base_ package, so you can just use `data(iris)` to fetch it.  
 
-```{r, iris}
+```{r, iris, results="hide"}
 data(iris)
 head(iris)
 ```
@@ -242,13 +249,13 @@ head(iris)
 Here I want to show you another important part of exploratory data analysis, plotting the relationship between two variables.  
 By plotting one variable against another, we can easily investigate the relationship between the two. For example, if we want to see the relationship between sepal length and sepal width, we just plot one against the other.  
 
-```{r, 2 variable relationship}
+```{r, 2 variable relationship, fig.show"hide"}
 plot(iris$Sepal.Length ~ iris$Sepal.Width)
 ```
 
 And if we want to see the correlation coefficient between the two, we can use `cor()`.  
 
-```{r, cor()}
+```{r, cor(), results="hide"}
 cor(iris$Sepal.Length, iris$Sepal.Width)
 ```
 
@@ -257,7 +264,7 @@ cor(iris$Sepal.Length, iris$Sepal.Width)
 What if we want to investigate the correlation among multiple pairs of variables at the same time?  
 __R__ has a very handy function called `pairs()`. Try it.
 
-```{r, pairs()}
+```{r, pairs(), fig.show"hide"}
 pairs(iris)
 ```
 
@@ -265,7 +272,7 @@ pairs(iris)
 
 Also, we can calculate the correlation coefficients among these variables simultaneously as well. Let's try `cor()` again but with a different specification. 
 
-```{r, cor matrix}
+```{r, cor matrix, results="hide"}
 cor(iris[,1:4])
 ```
 
