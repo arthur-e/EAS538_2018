@@ -1,3 +1,8 @@
 syntax: glob
 .Rhistory
+
+# Ignore cache files
 Week*/*_files
+
+# Ignore compiled HTML files; these should be compiled fred
+*.html
