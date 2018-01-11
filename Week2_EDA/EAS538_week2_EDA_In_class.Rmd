@@ -1,0 +1,290 @@
+---
+title: "EAS538_Basic R commands and data visualization"
+author: "Written by Oscar Feng-Hsun Chang & modified by Meha Jain & Arthur Endsley"
+date: "2018 Jan. 11, 12 Week 2"
+output:
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: no
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+      toc_depth: 4
+  pdf_document:
+    toc: yes
+---
+
+# Set working directory
+
+First things first, always set the working directory before you start a new project. Let's set the working directory for this lab by using `setwd("desired directory")`.  
+For example, when I was writing this document, my working directory was "/Users/mehajain/Desktop/stats_2018/Lab/Week2". Make sure you use a forward slash "/". 
+
+Be sure to set the working directory to where you saved the data file we will use in today's lab (price.csv). 
+
+# Read in data
+
+Once you set the working directory, you can start to read in the data you want to work on. Let's try to read in the data with `read.table("file name")` and name the data "rent.US".  
+These data are average monthly rent prices for cities across the US for several months in 2016. We can take a glimpse of what "rent.US" is by using `head()`. 
+
+```{r, read in data, out.width=12}
+setwd("/usr/local/dev/EAS538_2018/Week2_EDA/")
+rent.US = read.table("price.csv", header = T, fill = T, sep = ",")
+head(rent.US)
+```
+
+## About the data
+
+Here's a brief description of the data frame's columns:
+
+* `City` is the city for which the average monthly rent is provided;
+* `Metro` is the name of the metropolitan area in which the city is found;
+* `County` is the name of the county in which the city is found;
+* `State` is the name of the state in which the city is found;
+* `Population.Rank` is the rank of the city by total population compared to all other U.S. cities (e.g., New York, NY, rank 1, has the highest population of any U.S. city);
+* `Jan.16` is the average monthly rent measured on January 16, 2016;
+* `May.16` is the average monthly rent measured on May 16, 2016;
+* `Sep.16` is the average monthly rent measured on September 16, 2016;
+
+# Data type / Variable type
+
+Let's take a look at what type of data we just read in. Use `class()` to see what the data type is for "rent.US".  
+
+```{r, class()}
+class(rent.US)
+```
+
+* What does the output `"data.frame"` mean?  
+
+Now use `str()` to see what the classes of variables are in `rent.US`.  
+
+```{r, str}
+str(rent.US)
+```
+
+* Now we have "factor", "integer"...etc. What does the output of each variable mean?  
+
+The basic data types in __R__ are _integer_, _numeric_ (real numbers), _logical_ (TRUE or FALSE), _character_ (alphanumeric strings). __R__ organizes these data into _vectors_ of one of these types. Take the Population.Rank variable in the "rent.US" data for example, it is a _vector_ of _integer_ variables.  
+
+In addition, there is a _factor_ data type. _Factors_ are __R__'s way of dealing with categorical variables. It is structured as a set of levels (integers) along with a set of labels associated with each level. For example, the "State" variable in the "rent.US" data is a _vector_ of a _factor_ variable with 51 levels and each level is associated with a State name.  
+
+So, a _data frama_ in __R__ is a structure of data that combines _vectors_ (columns) of different types of data (e.g. _integer_, _factor_, _numeric_...etc.). _Data frame_ is therefore a hybrid of _list_ and _matrix_. A _list_ is a structure of data that stores more than one type of data in a single dimension, and a _matrix_ is a two dimensional data structure with single data type. When dealing with _data frame_, we can pick an arbitrary column by using `$`. You will see lots of `$` in the following scripts. 
+
+--------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 1__
+
+1. Pick any variable you like in the "rent.US" data by using `$`. 
+
+2. Create a list containing multiple types of data with `list()` and create a matrix with `matrix()`.  
+When you don't know how to use `c()` or `matrix()`, try `?c` and `?matrix`.
+
+__Optional Challenges__
+
+* After reviewing the help documentation for `colnames()`, create a copy of the `rent.US` data frame and try changing the column names.
+* Check out the help documentation: `help(factor)`. What is a factor and what type(s) of data (from lecture) is it used to represent? Which columns in the `rent.US` data frames are factors? Try calling the following functions on one of the factor columns: `unique()`, `levels()`, `nlevels()`.
+
+--------------------------------------------------------------------------------------------------------------------------
+
+> Check this [R Tutorial book](http://www.r-tutor.com/r-introduction/basic-data-types) to familiarize yourself with basic data types in R.  
+
+# Basic data cleaning/reorganizing
+
+## `Order()`
+
+Order the data with `order()`
+
+```{r, order}
+rent.ord = rent.US[order(rent.US$Sep.16),]
+rent.ord.rev = rent.US[order(rent.US$Sep.16, decreasing=TRUE),]
+head(rent.ord)
+head(rent.ord.rev)
+```
+
+## `subset()`
+
+Subset (rows)/select(columns) with `subset()`
+```{r, subset}
+rent.MI = subset(rent.US, State == "MI")
+head(rent.MI)
+
+rent.MI = subset(rent.US, State == "MI", select = c(City, Population.Rank, Sep.16))
+head(rent.MI)
+```
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 2__
+
+1. Use 'subset' and 'order' to identify the top 3 most expensive cities in Michigan (using September 2016 rent prices). What rank is Ann Arbor?
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+## `r/cbind()`
+
+Join data (rbind, cbind) with `rbind` or `cbind`:
+
+```{r, rbind/cbind}
+rent.CA = subset(rent.US, State == "CA")
+rent.HI = subset(rent.US, State == "HI")
+expensive=rbind(rent.CA, rent.HI)
+
+rent.CA = subset(rent.US, State == "CA", select = c(City, Population.Rank))
+rent.CA2 = subset(rent.US, State == "CA", select = c(City, Sep.16))
+rent.CA3 = cbind(rent.CA, rent.CA2)
+```
+
+## `merge()`
+
+Merge data with `merge`:
+
+```{r, merge}
+rent.CA3 = merge(rent.CA, rent.CA2, by.x = "City", by.y = "City")
+```
+
+* Can you explain what merge does to the data? How is this different from `cbind()` in the example above?  
+
+All I introduced you to here are basic functions built in the _base_ package of __R__ (which means you don't have to install anything). However, there are several packages that allow you to clean/reorganize/merge the data in a more elegant and efficient fashion. They are __reshape2__, __dplyr__, and __tidyr__. There is even a cheat sheet for [__dplyr__ and __tidyr__](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf).
+
+# Exploratory Data Analysis
+
+Now, say you have cleaned the data and are ready to proceed. The next step is always to check what the data look like and examine the relationships among variables (a.k.a. exploratory data analysis).  
+
+## Very basic statistics
+
+Remember what mean and variation (standard deviation) are?  
+It's very easy to calculate the mean and variance (standard deviation) in __R__ by using `mean()` and `var()`(`sd()`). Let's calculate the mean and variance of the September 2016 rent (`Sep.16`) variable. 
+
+```{r, mean, sd}
+mean(rent.US$Sep.16)
+var(rent.US$Sep.16)
+```
+
+## Distribution of one variable
+
+Let's plot the histogram of the Sep.16 variable to see what the distribution looks like using `hist()`. 
+
+```{r, histogram}
+hist(rent.US$Jan.16)
+```
+
+* Why do you think the histogram has such a long tail to the right?
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 3__
+
+1. What could we do if we wanted to only plot a histogram for only the most common rents (e.g., Rent < 4000 per month)? Try coding this in R. I'm here to help you if you get stuck! 
+
+__Optional Challenges__
+
+* How can you set the x-axis or y-axis table of a histogram? The title of the plot? Is there more than one way to do this? Read `help(hist)` but also try to find the answer using a search engine. Try customizing your histogram's title and labels so that it is easier to understand at a glance.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+## Diagnostics
+
+Let's now see if September 2016 rent is normally distributed by using `shapiro.test()`
+
+```{r, Shapiro-Wilk test}
+shapiro.test(rent.US$Sep.16)
+```
+
+* What does this result tell you? Maybe you want to read the [help page](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/shapiro.test.html) (remember how to do it in __R__?) or [wiki page](https://en.wikipedia.org/wiki/Shapiro%E2%80%93Wilk_test) of the Shapiro-Wilk test. 
+
+Or, you can use [QQ plot](https://en.wikipedia.org/wiki/Q%E2%80%93Q_plot) by using `qqnorm()` plus `qqline()` to see if the sample distribution deviates too much from the theoretical normal distribution. 
+
+```{r, qqplot and ks.test}
+qqnorm(rent.US$Sep.16)
+qqline(rent.US$Sep.16, col = "Red")
+```
+
+Another way to do QQ plot is to use `qqPlot()` in the __car__ package. The benefit of using `qqPlot()` is that it overlays the confidence interval onto the original QQ plot. It is therefore useful to detect outliers from the QQ plot.  
+Let's try to install the package by using `install.packages(package name)`. 
+
+```{r, car package, eval=FALSE}
+install.packages("car")
+```
+
+After you successfully installed the __car__ package, make sure you `library()` it, so that __R__ knows where to look for the function you are using. 
+
+```{r, car pacakge}
+library(car)
+qqPlot(rent.US$Sep.16)
+```
+
+We can see that there are many points located outside of the 95% confidence interval of the QQ plot and the points do not align with the straight red qq line. Eyeballing the QQ plot is the easiest way to detect outliers, although there are several other methods to detect outliers. This is an obvious case where our variable of interest is not normally distributed.
+
+__Optional Challenges__
+
+* What happens when you execute the following line of code on its own? Do you get an error? Interpret the error.
+```{r eval=FALSE}
+qqline(rent.US$Sep.16, col = "Red")
+```
+* Why do you not get the same error when you execute the following two lines (in order)?
+```{r eval=FALSE}
+qqnorm(rent.US$Sep.16)
+qqline(rent.US$Sep.16, col = "Red")
+```
+
+## Relationship between two variables
+
+In case you are tired of the rent data, we will now switch to another data set, the [_Iris_ flower data set](https://en.wikipedia.org/wiki/Iris_flower_data_set). This data set is already installed in the _base_ package, so you can just use `data(iris)` to fetch it.  
+
+```{r, iris}
+data(iris)
+head(iris)
+```
+
+Here I want to show you another important part of exploratory data analysis, plotting the relationship between two variables.  
+By plotting one variable against another, we can easily investigate the relationship between the two. For example, if we want to see the relationship between sepal length and sepal width, we just plot one against the other.  
+
+```{r, 2 variable relationship}
+plot(iris$Sepal.Length ~ iris$Sepal.Width)
+```
+
+And if we want to see the correlation coefficient between the two, we can use `cor()`.  
+
+```{r, cor()}
+cor(iris$Sepal.Length, iris$Sepal.Width)
+```
+
+* Remember what the correlation coefficient is?
+
+What if we want to investigate the correlation among multiple pairs of variables at the same time?  
+__R__ has a very handy function called `pairs()`. Try it.
+
+```{r, pairs()}
+pairs(iris)
+```
+
+* What happened to the "Species" variable? 
+
+Also, we can calculate the correlation coefficients among these variables simultaneously as well. Let's try `cor()` again but with a different specification. 
+
+```{r, cor matrix}
+cor(iris[,1:4])
+```
+
+* Look up the help page of `cor()` to familiarize yourself with this function. 
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 4__
+
+1. What is the pair of variables that has the strongest correlation? What is the pair of variables that has the weakest correlation?
+
+__Optional Challenges__
+
+* Suppose our data frame has columns with missing variables; the `airquality` dataset, below, is an example dataset with some missing variables. Examine what happens when we try to calculate column-wise correlation coefficients using this dataset.
+```{r eval=FALSE}
+data(airquality)
+cor(airquality)
+```
+* Now, examine the help documentation for `cor()`. What argument can we provide to this function so that it ignores missing values? Is there more than one argument we can use?
+
+---------------------------------------------------------------------------------------------------------------------------------
+
