@@ -18,30 +18,41 @@ output:
     toc: yes
 ---
 
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(results = 'hide')
+```
+
 # Set working directory
 
-First things first, always set the working directory before you start a new project. Let's set the working directory for this lab by using `setwd("desired directory")`.  
+First things first, always set the working directory before you start a new project.
+The **working directory** is the file folder on your file system that R can read and write files from.
+Let's set the working directory for this lab by using `setwd("desired directory")`.  
 For example, when I was writing this document, my working directory was "/Users/mehajain/Desktop/stats_2018/Lab/Week2". Make sure you use a forward slash "/". 
 
-Be sure to set the working directory to where you saved the data file we will use in today's lab (price.csv). 
+Be sure to set the working directory to where you saved the data file we will use in today's lab (`price.csv`). 
 
 # Read in data
 
-Once you set the working directory, you can start to read in the data you want to work on. Let's try to read in the data with `read.table("file name")` and name the data "rent.US".  
-These data are average monthly rent prices for cities across the US for several months in 2016. We can take a glimpse of what "rent.US" is by using `head()`. 
+Once you set the working directory, you can start to read in the data you want to work on. Let's try to read in the data with `read.table("price.csv")` and name the output data frame `rent.US`.  
+These data are average monthly rent prices for cities across the US for several months in 2016. 
 
-```{r, read in data, eval=FALSE}
+```{r eval=FALSE}
 setwd("/Users/mehajain/Desktop/stats_2018/Lab/Week2")
-rent.US = read.table("price.csv", header = T, fill = T, sep = ",")
-head(rent.US)
+rent.US = read.table("price.csv", header = T, fill = T, sep = ",", quote = "")
 ```
 
 
-```{r, echo=FALSE, out.width=12}
-rent.US = read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price.csv", header = TRUE, fill = TRUE, sep = ",")
-head(rent.US)
+```{r echo=FALSE, out.width=12}
+rent.US = read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price.csv", 
+  header = TRUE, fill = TRUE, sep = ",", quote = "")
 ```
 
+We can use the function `dim()` to determine the number of rows and columns in our new data frame. We can take a glimpse of what `rent.US` contains by using `head()`. 
+
+```{r}
+dim(rent.US)
+head(rent.US)
+```
 
 ## About the data
 
@@ -58,25 +69,25 @@ Here's a brief description of the data frame's columns:
 
 # Data type / Variable type
 
-Let's take a look at what type of data we just read in. Use `class()` to see what the data type is for "rent.US".  
+Let's take a look at what type of data we just read in. Use `class()` to see what the data type is for "rent.US". 
 
-```{r, class(), results="hide"}
+```{r}
 class(rent.US)
 ```
 
-* What does the output `"data.frame"` mean?  
+What does the output `"data.frame"` mean?  
 
 Now use `str()` to see what the classes of variables are in `rent.US`.  
 
-```{r, str, results="hide"}
+```{r}
 str(rent.US)
 ```
 
-* Now we have "factor", "integer"...etc. What does the output of each variable mean?  
+Now we have "factor", "integer"...etc. What does the output of each variable mean?  
 
 The basic data types in __R__ are _integer_, _numeric_ (real numbers), _logical_ (TRUE or FALSE), _character_ (alphanumeric strings). __R__ organizes these data into _vectors_ of one of these types. Take the Population.Rank variable in the "rent.US" data for example, it is a _vector_ of _integer_ variables.  
 
-In addition, there is a _factor_ data type. _Factors_ are __R__'s way of dealing with categorical variables. It is structured as a set of levels (integers) along with a set of labels associated with each level. For example, the "State" variable in the "rent.US" data is a _vector_ of a _factor_ variable with 51 levels and each level is associated with a State name.  
+In addition, there is a _factor_ data type. _Factors_ are __R__'s way of dealing with categorical variables. It is structured as a set of levels (integers) along with a set of labels associated with each level. For example, the `State` variable in the `rent.US` data is a _vector_ of a _factor_ variable with 51 levels and each level is associated with a State name.  
 
 So, a _data frama_ in __R__ is a structure of data that combines _vectors_ (columns) of different types of data (e.g. _integer_, _factor_, _numeric_...etc.). _Data frame_ is therefore a hybrid of _list_ and _matrix_. A _list_ is a structure of data that stores more than one type of data in a single dimension, and a _matrix_ is a two dimensional data structure with single data type. When dealing with _data frame_, we can pick an arbitrary column by using `$`. You will see lots of `$` in the following scripts. 
 
@@ -84,14 +95,14 @@ So, a _data frama_ in __R__ is a structure of data that combines _vectors_ (colu
 
 __Exercise 1__
 
-1. Pick any variable you like in the "rent.US" data by using `$`. 
+1. Pick any 2 or more variables in the `rent.US` data. (Recall that you can access a variable in a data frame by using the `$` symbol.) Create a list containing multiple types of data (vectors from `rent.US`) with `list()`.
+2. Pick another variable from `rent.US`. Create a matrix with `matrix()` to store that variable.
 
-2. Create a list containing multiple types of data with `list()` and create a matrix with `matrix()`.  
 When you don't know how to use `list()` or `matrix()`, try `?list` and `?matrix`.
 
 __Optional Challenges__
 
-* After reviewing the help documentation for `colnames()`, create a copy of the `rent.US` data frame and try changing the column names.
+* After reviewing the help documentation for `colnames()`, create a copy of the `rent.US` data frame (assign it to a new variable name) and try changing the column names.
 * Check out the help documentation: `help(factor)`. What is a factor and what type(s) of data (from lecture) is it used to represent? Which columns in the `rent.US` data frames are factors? Try calling the following functions on one of the factor columns: `unique()`, `levels()`, `nlevels()`.
 
 --------------------------------------------------------------------------------------------------------------------------
@@ -102,9 +113,9 @@ __Optional Challenges__
 
 ## `Order()`
 
-Order the data with `order()`
+The following examples show how you can order a data frame with the `order()` function. Remember to use `help(order)` if you're unsure of how this works.
 
-```{r, order, results="hide"}
+```{r}
 rent.ord = rent.US[order(rent.US$Sep.16),]
 rent.ord.rev = rent.US[order(rent.US$Sep.16, decreasing=TRUE),]
 head(rent.ord)
@@ -113,8 +124,9 @@ head(rent.ord.rev)
 
 ## `subset()`
 
-Subset (rows)/select(columns) with `subset()`
-```{r, subset, results="hide"}
+We can subset a data frame's (rows) and (optionally) *select* from among its columns with the `subset()` function.
+
+```{r}
 rent.MI = subset(rent.US, State == "MI")
 head(rent.MI)
 
@@ -126,33 +138,36 @@ head(rent.MI)
 
 __Exercise 2__
 
-1. Use 'subset' and 'order' to identify the top 3 most expensive cities in Michigan (using September 2016 rent prices). What rank is Ann Arbor?
+1. Use `subset()` and `order()` to identify the top 3 most expensive cities in Michigan (using September 2016 rent prices). What rank is Ann Arbor?
 
 ---------------------------------------------------------------------------------------------------------------------------------
 
 ## `r/cbind()`
 
-Join data (rbind, cbind) with `rbind` or `cbind`:
+We can join two data frames together by their rows (i.e., stacking them on top of each other) with the `rbind()` function.
+The complementary function `cbind()` joins two data frames together column-wise (i.e., stacking them side-by-side).
 
-```{r, rbind/cbind}
+```{r}
 rent.CA = subset(rent.US, State == "CA")
 rent.HI = subset(rent.US, State == "HI")
-expensive=rbind(rent.CA, rent.HI)
+expensive = rbind(rent.CA, rent.HI)
+expensive
 
 rent.CA = subset(rent.US, State == "CA", select = c(City, Population.Rank))
 rent.CA2 = subset(rent.US, State == "CA", select = c(City, Sep.16))
 rent.CA3 = cbind(rent.CA, rent.CA2)
+rent.CA3
 ```
 
 ## `merge()`
 
-Merge data with `merge`:
+Try merging two data frames with `merge()`:
 
-```{r, merge}
+```{r}
 rent.CA3 = merge(rent.CA, rent.CA2, by.x = "City", by.y = "City")
 ```
 
-* Can you explain what merge does to the data? How is this different from `cbind()` in the example above?  
+**Can you explain what merge does to the data?** How is this different from `cbind()` in the example above?  
 
 All I introduced you to here are basic functions built in the _base_ package of __R__ (which means you don't have to install anything). However, there are several packages that allow you to clean/reorganize/merge the data in a more elegant and efficient fashion. They are __reshape2__, __dplyr__, and __tidyr__. There is even a cheat sheet for [__dplyr__ and __tidyr__](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf).
 
@@ -165,7 +180,7 @@ Now, say you have cleaned the data and are ready to proceed. The next step is al
 Remember what mean and variation (standard deviation) are?  
 It's very easy to calculate the mean and variance (standard deviation) in __R__ by using `mean()` and `var()`(`sd()`). Let's calculate the mean and variance of the September 2016 rent (`Sep.16`) variable. 
 
-```{r, mean, sd, results="hide"}
+```{r}
 mean(rent.US$Sep.16)
 var(rent.US$Sep.16)
 ```
@@ -174,11 +189,11 @@ var(rent.US$Sep.16)
 
 Let's plot the histogram of the Sep.16 variable to see what the distribution looks like using `hist()`. 
 
-```{r, histogram, fig.show="hide"}
+```{r}
 hist(rent.US$Jan.16)
 ```
 
-* Why do you think the histogram has such a long tail to the right?
+Why do you think the histogram has such a long tail to the right?
 
 ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -194,31 +209,40 @@ __Optional Challenges__
 
 ## Diagnostics
 
-Let's now see if September 2016 rent is normally distributed by using `shapiro.test()`
+Let's now see if September 2016 rent is normally distributed by using `shapiro.test()`.
+The Shapiro-Wilk test, as implemented in R, can't work with a dataset larger than 5000 samples, so we'll first create a random sample of 3000 cities from our data.
+Note that what we're really doing here is creating a random sample of integers from 1 to 12,918 (the total number of rows in our dataset) and then using those *random* integers to pick out the corresponding rows from our full dataset.
 
-```{r, Shapiro-Wilk test, results="hide"}
-shapiro.test(rent.US$Sep.16)
+```{r}
+rent.US.sample <- rent.US[sample(1:12918, size = 3000),]
+shapiro.test(rent.US.sample$Sep.16)
 ```
 
-* What does this result tell you? Maybe you want to read the [help page](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/shapiro.test.html) (remember how to do it in __R__?) or [wiki page](https://en.wikipedia.org/wiki/Shapiro%E2%80%93Wilk_test) of the Shapiro-Wilk test. 
+What does this result tell you? Maybe you want to read the [help page](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/shapiro.test.html) (remember how to do it in __R__?) or [wiki page](https://en.wikipedia.org/wiki/Shapiro%E2%80%93Wilk_test) of the Shapiro-Wilk test. 
 
 Or, you can use [QQ plot](https://en.wikipedia.org/wiki/Q%E2%80%93Q_plot) by using `qqnorm()` plus `qqline()` to see if the sample distribution deviates too much from the theoretical normal distribution. 
 
-```{r, qqplot and ks.test, fig.show="hide"}
+```{r}
 qqnorm(rent.US$Sep.16)
 qqline(rent.US$Sep.16, col = "Red")
 ```
 
-Another way to do QQ plot is to use `qqPlot()` in the __car__ package. The benefit of using `qqPlot()` is that it overlays the confidence interval onto the original QQ plot. It is therefore useful to detect outliers from the QQ plot.  
+Another way to do QQ plot is to use `qqPlot()` in the `car` package. The benefit of using `qqPlot()` is that it overlays the confidence interval onto the original QQ plot. It is therefore useful to detect outliers from the QQ plot.  
 Let's try to install the package by using `install.packages(package name)`. 
 
-```{r, car package, eval=FALSE}
-install.packages("car")
+```{r eval=FALSE}
+install.packages('car')
+```
+
+If you get an error with `install.packages('car')`, then try explicitly telling R where to find the package:
+
+```{r eval=FALSE}
+install.packages('car', repos = 'https://cran.rstudio.com')
 ```
 
 After you successfully installed the __car__ package, make sure you `library()` it, so that __R__ knows where to look for the function you are using. 
 
-```{r, car pacakge, fig.show="hide"}
+```{r}
 library(car)
 qqPlot(rent.US$Sep.16)
 ```
@@ -241,7 +265,7 @@ qqline(rent.US$Sep.16, col = "Red")
 
 In case you are tired of the rent data, we will now switch to another data set, the [_Iris_ flower data set](https://en.wikipedia.org/wiki/Iris_flower_data_set). This data set is already installed in the _base_ package, so you can just use `data(iris)` to fetch it.  
 
-```{r, iris, results="hide"}
+```{r}
 data(iris)
 head(iris)
 ```
@@ -249,34 +273,34 @@ head(iris)
 Here I want to show you another important part of exploratory data analysis, plotting the relationship between two variables.  
 By plotting one variable against another, we can easily investigate the relationship between the two. For example, if we want to see the relationship between sepal length and sepal width, we just plot one against the other.  
 
-```{r, 2 variable relationship, fig.show="hide"}
+```{r}
 plot(iris$Sepal.Length ~ iris$Sepal.Width)
 ```
 
 And if we want to see the correlation coefficient between the two, we can use `cor()`.  
 
-```{r, cor(), results="hide"}
+```{r}
 cor(iris$Sepal.Length, iris$Sepal.Width)
 ```
 
-* Remember what the correlation coefficient is?
+Remember what the correlation coefficient is?
 
 What if we want to investigate the correlation among multiple pairs of variables at the same time?  
 __R__ has a very handy function called `pairs()`. Try it.
 
-```{r, pairs(), fig.show="hide"}
+```{r}
 pairs(iris)
 ```
 
-* What happened to the "Species" variable? 
+What happened to the "Species" variable? 
 
 Also, we can calculate the correlation coefficients among these variables simultaneously as well. Let's try `cor()` again but with a different specification. 
 
-```{r, cor matrix, results="hide"}
+```{r}
 cor(iris[,1:4])
 ```
 
-* Look up the help page of `cor()` to familiarize yourself with this function. 
+Look up the help page of `cor()` to familiarize yourself with this function.
 
 ---------------------------------------------------------------------------------------------------------------------------------
 
