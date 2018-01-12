@@ -203,7 +203,7 @@ __Exercise 3__
 
 __Optional Challenges__
 
-* How can you set the x-axis or y-axis table of a histogram? The title of the plot? Is there more than one way to do this? Read `help(hist)` but also try to find the answer using a search engine. Try customizing your histogram's title and labels so that it is easier to understand at a glance.
+* How can you set the x-axis or y-axis labels of a histogram? The title of the plot? Is there more than one way to do this? Read `help(hist)` but also try to find the answer using a search engine. Try customizing your histogram's title and labels so that it is easier to understand at a glance.
 
 ---------------------------------------------------------------------------------------------------------------------------------
 
