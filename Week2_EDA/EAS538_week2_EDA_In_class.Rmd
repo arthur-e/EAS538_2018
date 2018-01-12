@@ -29,7 +29,7 @@ The **working directory** is the file folder on your file system that R can read
 Let's set the working directory for this lab by using `setwd("desired directory")`.  
 For example, when I was writing this document, my working directory was "/Users/mehajain/Desktop/stats_2018/Lab/Week2". Make sure you use a forward slash "/". 
 
-Be sure to set the working directory to where you saved the data file we will use in today's lab (`price.csv`). 
+Be sure to set the working directory to where you saved the data file we will use in today's lab (`price2.csv`). 
 
 # Read in data
 
@@ -38,12 +38,12 @@ These data are average monthly rent prices for cities across the US for several 
 
 ```{r eval=FALSE}
 setwd("/Users/mehajain/Desktop/stats_2018/Lab/Week2")
-rent.US = read.table("price.csv", header = T, fill = T, sep = ",", quote = "")
+rent.US = read.table("price2.csv", header = T, fill = T, sep = ",", quote = "")
 ```
 
 
 ```{r echo=FALSE, out.width=12}
-rent.US = read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price.csv", 
+rent.US = read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price2.csv", 
   header = TRUE, fill = TRUE, sep = ",", quote = "")
 ```
 
