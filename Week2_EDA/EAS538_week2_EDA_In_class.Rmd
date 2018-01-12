@@ -38,12 +38,12 @@ These data are average monthly rent prices for cities across the US for several 
 
 ```{r eval=FALSE}
 setwd("/Users/mehajain/Desktop/stats_2018/Lab/Week2")
-rent.US = read.table("price2.csv", header = T, fill = T, sep = ",", quote = "")
+rent.US <- read.table("price2.csv", header = T, fill = T, sep = ",", quote = "")
 ```
 
 
 ```{r echo=FALSE, out.width=12}
-rent.US = read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price2.csv", 
+rent.US <- read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price2.csv", 
   header = TRUE, fill = TRUE, sep = ",", quote = "")
 ```
 
@@ -95,8 +95,15 @@ So, a _data frama_ in __R__ is a structure of data that combines _vectors_ (colu
 
 __Exercise 1__
 
-1. Pick any 2 or more variables in the `rent.US` data. (Recall that you can access a variable in a data frame by using the `$` symbol.) Create a list containing multiple types of data (vectors from `rent.US`) with `list()`.
-2. Pick another variable from `rent.US`. Create a matrix with `matrix()` to store that variable.
+First, slice the `rent.US` data frame so it only contains the first 10 rows.
+Because `rent.US` is already orderd by `Population.Rank`, this corresponds to the top 10 U.S. cities by population.
+
+```{r}
+rent.US.top10 <- rent.US[1:10,]
+```
+
+1. Now, **using the `rent.US.top10` data frame**, pick any 2 or more variables/ columns with different data types. (Recall that you can access a variable in a data frame by using the `$` symbol.) Create a list containing multiple types of data (vectors from `rent.US.top10`) with `list()`.
+2. Pick another variable from `rent.US.top10`. Create a matrix with `matrix()` to store that variable. The `nrow` and `ncol` arguments are optional, but what should they be set to if you want to create a 1-row, 10-column matrix (for all 10 values in your chosen variable)?
 
 When you don't know how to use `list()` or `matrix()`, try `?list` and `?matrix`.
 
@@ -116,8 +123,8 @@ __Optional Challenges__
 The following examples show how you can order a data frame with the `order()` function. Remember to use `help(order)` if you're unsure of how this works.
 
 ```{r}
-rent.ord = rent.US[order(rent.US$Sep.16),]
-rent.ord.rev = rent.US[order(rent.US$Sep.16, decreasing=TRUE),]
+rent.ord <- rent.US[order(rent.US$Sep.16),]
+rent.ord.rev <- rent.US[order(rent.US$Sep.16, decreasing=TRUE),]
 head(rent.ord)
 head(rent.ord.rev)
 ```
@@ -127,10 +134,10 @@ head(rent.ord.rev)
 We can subset a data frame's (rows) and (optionally) *select* from among its columns with the `subset()` function.
 
 ```{r}
-rent.MI = subset(rent.US, State == "MI")
+rent.MI <- subset(rent.US, State == "MI")
 head(rent.MI)
 
-rent.MI = subset(rent.US, State == "MI", select = c(City, Population.Rank, Sep.16))
+rent.MI <- subset(rent.US, State == "MI", select = c(City, Population.Rank, Sep.16))
 head(rent.MI)
 ```
 
@@ -140,6 +147,14 @@ __Exercise 2__
 
 1. Use `subset()` and `order()` to identify the top 3 most expensive cities in Michigan (using September 2016 rent prices). What rank is Ann Arbor?
 
+**Hint:** In the R Console, you can type `View(df)`, where `df` is the name of any data frame, to look at the contents of a data frame in a new tab.
+
+**Hint:** We can line up two vectors together with `cbind()` in order to, for example, assign numbered rankings to a list of cities:
+```{r}
+integers <- 1:nrow(rent.MI)
+cbind(integers, rent.MI$City)
+```
+
 ---------------------------------------------------------------------------------------------------------------------------------
 
 ## `r/cbind()`
@@ -148,14 +163,14 @@ We can join two data frames together by their rows (i.e., stacking them on top o
 The complementary function `cbind()` joins two data frames together column-wise (i.e., stacking them side-by-side).
 
 ```{r}
-rent.CA = subset(rent.US, State == "CA")
-rent.HI = subset(rent.US, State == "HI")
-expensive = rbind(rent.CA, rent.HI)
+rent.CA <- subset(rent.US, State == "CA")
+rent.HI <- subset(rent.US, State == "HI")
+expensive <- rbind(rent.CA, rent.HI)
 expensive
 
-rent.CA = subset(rent.US, State == "CA", select = c(City, Population.Rank))
-rent.CA2 = subset(rent.US, State == "CA", select = c(City, Sep.16))
-rent.CA3 = cbind(rent.CA, rent.CA2)
+rent.CA <- subset(rent.US, State == "CA", select = c(City, Population.Rank))
+rent.CA2 <- subset(rent.US, State == "CA", select = c(City, Sep.16))
+rent.CA3 <- cbind(rent.CA, rent.CA2)
 rent.CA3
 ```
 
@@ -164,7 +179,7 @@ rent.CA3
 Try merging two data frames with `merge()`:
 
 ```{r}
-rent.CA3 = merge(rent.CA, rent.CA2, by.x = "City", by.y = "City")
+rent.CA3 <- merge(rent.CA, rent.CA2, by.x = "City", by.y = "City")
 ```
 
 **Can you explain what merge does to the data?** How is this different from `cbind()` in the example above?  
@@ -201,9 +216,11 @@ __Exercise 3__
 
 1. What could we do if we wanted to only plot a histogram for only the most common rents (e.g., Rent < 4000 per month)? Try coding this in R. I'm here to help you if you get stuck! 
 
+**Hint:** Earlier, we saw an R function that lets you subset the rows of a data frame.
+
 __Optional Challenges__
 
-* How can you set the x-axis or y-axis table of a histogram? The title of the plot? Is there more than one way to do this? Read `help(hist)` but also try to find the answer using a search engine. Try customizing your histogram's title and labels so that it is easier to understand at a glance.
+* How can you set the x-axis or y-axis label of a histogram? The title of the plot? Is there more than one way to do this? Read `help(hist)` but also try to find the answer using a search engine. Try customizing your histogram's title and labels so that it is easier to understand at a glance.
 
 ---------------------------------------------------------------------------------------------------------------------------------
 
