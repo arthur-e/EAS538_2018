@@ -33,7 +33,7 @@ Be sure to set the working directory to where you saved the data file we will us
 
 # Read in data
 
-Once you set the working directory, you can start to read in the data you want to work on. Let's try to read in the data with `read.table("price.csv")` and name the output data frame `rent.US`.  
+Once you set the working directory, you can start to read in the data you want to work on. Let's try to read in the data with `read.table("price2.csv")` and name the output data frame `rent.US`.  
 These data are average monthly rent prices for cities across the US for several months in 2016. 
 
 ```{r eval=FALSE}
