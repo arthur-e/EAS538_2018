@@ -133,10 +133,7 @@ __Exercise 1__
 
 __Exercise 2__
 
-1. Now demonstrate the central limit theorem on your own with the `"mpg"` (miles-per-gallon) column in the [`mtcars` (Motor Trend Car Road Tests)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html) data set. `mtcars` is another built-in data set in the _base_ package of __R__. **You can use the `meansVector()` function I wrote for you to generate a vector of means.**
-```{r}
-data(mtcars) # Make the mtcars data frame available
-```
+1. Now demonstrate the central limit theorem on your own with the `"mpg"` (miles-per-gallon) column in the [`mtcars` (Motor Trend Car Road Tests)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html) data set. `mtcars` is another built-in data set in the _base_ package of __R__. Remember how we loaded in the `iris` built-in dataset last week? **You can use the `meansVector()` function I wrote for you to generate a vector of means.**
 
 **Hint:** Make sure that you are able to (1) read in (`mtcars`) data; (2) plot the histogram of the `"mpg"` column; (3) create a series of histograms where you gradually increase the number of subsamples you take, but keep the number of values in each subsample constant; (4) create a series of histograms where you keep the number of subsamples you take constant, but increase the number of values within each subsample.
 
