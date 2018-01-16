@@ -43,7 +43,7 @@ hist(apdata$concen, main = "distribution of pesticide concentration", xlab = '')
 avg <- round(mean(apdata$concen), 2)
 SD <- round(sd(apdata$concen), 2)
 abline(v = avg, col = "blue")
-legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
+#legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
 ```
 
 **What does the distribution of the data look like?** Is it normally distributed? 
@@ -143,7 +143,7 @@ __Exercise 2__
 
 Confidence intervals (CIs) help us understand the precision of the statistic we are calculating from our sample (e.g., the mean of the sample). We can use CIs to infer how well the sample statistic (e.g., mean of the sample) estimates the true population parameter (e.g, mean of the population). Remember, this is important because we will usually never know the true value of the population parameter.
 
-One thing to note that to calculate CIs for the sample mean, we need to make assumptions about the distribution of the sample mean. According to the CLT, a sample mean can be assumed to be normally distributed. We then cam safely use SE of the mean to calculate the CI of the mean.
+One thing to note is that to calculate CIs for the sample mean, we need to make assumptions about the distribution of the sample mean. According to the CLT, a sample mean can be assumed to be normally distributed. We then can safely use SE of the mean to calculate the CI of the mean.
 
 Let's consider an example where our sample data follow a normal distribution. Say we wanted to know the distribution of heights of all Taiwanese high school students, so we did a survey of 10,000 high school students across Taiwan and plotted the distribution of the data. For the purposes of illustration, let's create a fake dataset that we can use throughout the remainder of this lab. Please use `?rnorm` if you are unsure what this function is doing.
 
@@ -188,7 +188,7 @@ zcrit <- qnorm(.975)
 
 **Why do we use 0.975 and not 0.95 if we are interested in the 95% CIs?**
 
-So now we have values for means and zcrit, how do we calculate sem, which represents the standard error of the mean? If you think back to lecture, we can use the standard deviation and the sample size of our data as long as our sample size is 'sufficiently large.' Do you remember how we decide if a dataset is sufficiently large? In this case, our sample size is 10,000.
+So now we have values for `means` and `zcrit`, how do we calculate `sem`, which represents the standard error of the mean? If you think back to lecture, we can use the standard deviation and the sample size of our data as long as our sample size is 'sufficiently large.' Do you remember how we decide if a dataset is sufficiently large? In this case, our sample size is 10,000.
 
 ```{r, sem}
 sem <- (sd(heights) / sqrt(length(heights)))
@@ -211,6 +211,6 @@ __Exercise 3__
 heights <- rnorm(25, mean = 65, sd = 2)
 ```
 
-**Hint:** (1) You should not use z critical values in this example and instead you should use a critical value from the t distribution; (2) Instead of qnorm, you should use qt to calculate the critical value of interest. Please use `?qt` to understand what information you need to run this function.
+**Hint:** (1) You should not use z critical values in this example and instead you should use a critical value from the t distribution; (2) Instead of `qnorm`, you should use qt to calculate the critical value of interest. Please use `?qt` to understand what information you need to run this function.
 
 ---------------------------------------------------------------------------------------------------------------------------------
