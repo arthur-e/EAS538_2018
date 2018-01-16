@@ -6,7 +6,7 @@ output:
   html_document:
     code_folding: show
     highlight: textmate
-    keep_md: yes
+    keep_md: no
     number_sections: true
     theme: flatly
     toc: yes
@@ -16,92 +16,108 @@ output:
       toc_depth: 4
 ---
 
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(results = 'hide')
+```
+
 # Central limit theorem
 
 To demonstrate the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem), let's use a dataset on the amount of pesticide residue found in produce collected by the USDA (https://www.ams.usda.gov/datasets/pdp/pdpdata; *DISCLAIMER - I edited the data to make it more amenable to the lab*). 
 
+First, let's read in the data. Assign the data to the variable name `apdata`. Remember how to do this from last week's lab?
 
-First, let's read in the data. Assign the data to the variable name apdata. Remember how to do this from last week's lab?
-
-```{r, load data, echo=FALSE}
-apdata = read.csv('/Users/mehajain/Desktop/aps.csv')
+```{r, load data, eval=FALSE}
+apdata <- read.csv('/Users/mehajain/Desktop/aps.csv')
 ```
 
-Now let's plot the distribution of the pesticide data. Remember how to do this from the previous lab? If not, that's okay - try searching for how to plot a histogram on google. If you are having a hard time figuring this out after a few minutes, please ask me for help!
+Note that, rather than setting our working directory to the folder `'/Users/mehajain/Desktop/'` and reading in `'aps.csv'` in two steps (as we did in Assignment 1), here, we've specified the full path to the CSV file we want to read.
 
-```{r, apple pesticide concentration distribution,echo=FALSE,eval=FALSE}
-hist(apdata$concen, main = "distribution of pesticide concentration",xlab='')
-  avg=round(mean(apdata$concen),2)
-  SD=round(sd(apdata$concen),2)
-  abline(v=avg, col="blue")
-  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+```{r echo=FALSE, warning=FALSE}
+apdata <- read.csv('https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week3_CLT/aps.csv')
 ```
 
-What does the distribution of the data look like? Is it normally distributed? 
+**Now let's plot the distribution of the pesticide data.** Remember how to do this from the previous lab? If not, that's okay: try searching for how to plot a histogram online (try Google, Stack Overflow, etc.). If you are having a hard time figuring this out after a few minutes, please ask me for help!
+
+```{r, apple pesticide concentration distribution, echo=FALSE}
+hist(apdata$concen, main = "distribution of pesticide concentration", xlab = '')
+avg <- round(mean(apdata$concen), 2)
+SD <- round(sd(apdata$concen), 2)
+abline(v = avg, col = "blue")
+legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
+```
+
+**What does the distribution of the data look like?** Is it normally distributed? 
 
 No! The distribution of pesticides is highly right skewed, meaning that there are many low values and a few high values of pesticide concentrations. Let's see how the CLT applies to these data, even though they are not normally distributed.   
 
-To do this, let's take a lot of subsamples of the pesticide data and plot the sampling distribution of means from these subsamples (this is similar to what Meha did in lecture). To help us do this, I've written a small function that will return the means of each subsample and put them into a vector. The input of this function is (1) the dataset you are working with [data] (2) the number of times you want to subsample the data [times], (3) the size of each subsample [size], and (4) the variable you want to subsample from within your dataset [var].  
+To do this, let's take a lot of subsamples of the pesticide data and plot the sampling distribution of means from these subsamples (this is similar to what Meha did in lecture). To help us do this, I've written a small function that will return the means of each subsample and put them into a vector. The input arguments to this function, in order, are:
+
+1. The dataset you are working with [`data`];
+2. The number of times you want to subsample the data [`times`];
+3. The size of each subsample [`size`]; and
+4. The variable you want to subsample from within your dataset [`var`].
 
 ```{r, mean function}
-meansVector = function(data,times,size,var){
-  v = c()
-  for(i in 1:times){
-    y = sample(data[,var],size,replace=TRUE)
-    m = mean(y)
-    v[i] = m}
-  return(v)}
+meansVector <- function(data, times, size, var) {
+  v <- c()
+  for (i in 1:times) {
+    y <- sample(data[,var], size, replace=TRUE)
+    m <- mean(y)
+    v[i] <- m
+  }
+  return(v)
+}
 ```
 
-Let's take a look at how this function applies to the pesticide residue dataset. Use the function to create a sampling distribution of means that is made up of 10 subsamples [times] with 100 values [size] in each subsample. Remember, our dataset is apdata [data] and the variable of interest is "concen" [var]. Now plot a histogram of this sampling distribution. I've also added a few lines of code that plot the mean and standard deviation of your sampling distribution of means in a legend.
+Let's take a look at how this function applies to the pesticide residue dataset. Use the function to create a sampling distribution of means that is made up of 10 subsamples [`times`] with 100 values [`size`] in each subsample. Remember, our dataset is `apdata` [`data`] and the variable of interest is `"concen"` [`var`]. Now plot a histogram of this sampling distribution. I've also added a few lines of code that plot the mean and standard deviation of your sampling distribution of means in a legend.
 
-```{r, 10, 100,eval=FALSE}
-means=meansVector(apdata,10,100,"concen")
-avg=round(mean(means),2)
-SD=round(sd(means),2)
-hist(means, probability=TRUE,main = "10 subsamples with 100 values each")
-legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+```{r, 10, 100, fig.show = 'hide'}
+means <- meansVector(apdata, 10, 100, "concen")
+avg <- round(mean(means),2)
+SD <- round(sd(means),2)
+hist(means, probability = TRUE, main = "10 subsamples with 100 values each")
+legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
 ```
 
 Let's gradually increase the number of subsamples but fix the values in each subsample to 100 for now. We will do this using a for loop, which loops through each of the numbers of subsamples we want to take.
 
-```{r, 20-2560, 100,eval=FALSE}
-x=c(10,100,1000,10000) # number of subsamples
+```{r, 20-2560, 100, fig.show = 'hide'}
+x <- c(10, 100, 1000, 10000) # number of subsamples
 
-par(mfrow=c(2,2))
-for (i in c(1:length(x))){
-  means=meansVector(apdata,x[i],100,"concen")
-  avg=round(mean(means),2)
-  SD=round(sd(means),2)
-  hist(means, probability=TRUE, main = paste0(x[i], " subsamples with 100 values each"))
-  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+par(mfrow = c(2, 2))
+for (i in c(1:length(x))) {
+  means <- meansVector(apdata, x[i], 100, "concen")
+  avg <- round(mean(means), 2)
+  SD <- round(sd(means), 2)
+  hist(means, probability = TRUE, main = paste0(x[i], " subsamples with 100 values each"))
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
 }
 ```
 
-What do you observe from this series of histograms? What would happen if you instead fixed the number of subsamples you take but increased the number of apples [size] in your subsample? 
+What do you observe from this series of histograms? What would happen if you instead fixed the number of subsamples you take but increased the number of apples [`size`] in your subsample? 
 
 Let's start with 1000 subsamples with 10 apples in each subsample.
 
 ```{r, 100, 10,eval=FALSE}
-means=meansVector(apdata,1000, 10,"concen")
-avg=round(mean(means),2)
-SD=round(sd(means),2)
-hist(means, probability=TRUE, main = "1000 subsamples with 10 values each")
-legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+means <- meansVector(apdata, 1000, 10, "concen")
+avg <- round(mean(means), 2)
+SD <- round(sd(means), 2)
+hist(means, probability = TRUE, main = "1000 subsamples with 10 values each")
+legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
 ```
 
 Let's gradually increase the number of apples in each subsample. 
 
-```{r, eval=FALSE}
-y=c(10,100,1000,5000)
+```{r, fig.show = 'hide'}
+y = c(10, 100, 1000, 5000)
 
-par(mfrow=c(2,2))
-for (i in c(1:length(y))){
-  means=meansVector(apdata,1000,y[i],"concen")
-  avg=round(mean(means),2)
-  SD=round(sd(means),2)
-  hist(means, probability=TRUE,main = paste0("1000 subsamples with ",y[i]," values each"))
-  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)),text.col=c("blue", "dark green"))
+par(mfrow = c(2,2))
+for (i in c(1:length(y))) {
+  means <- meansVector(apdata,1000, y[i], "concen")
+  avg <- round(mean(means), 2)
+  SD <- round(sd(means), 2)
+  hist(means, probability = TRUE, main = paste0("1000 subsamples with ", y[i], " values each"))
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
 }
 ```
 
@@ -117,12 +133,11 @@ __Exercise 1__
 
 __Exercise 2__
 
-1. Now demonstrate the central limit theorem on your own with the "mpg (miles/gallon)" variable in the [mtcars (Motor Trend Car Road Tests)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html) data set. _mtcars_ is another built-in data set in the _base_ package of __R__. You can use the _meansVector_ function I wrote for you to generate a vector of means. 
+1. Now demonstrate the central limit theorem on your own with the `"mpg"` (miles-per-gallon) column in the [`mtcars` (Motor Trend Car Road Tests)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html) data set. `mtcars` is another built-in data set in the _base_ package of __R__. Remember how we loaded in the `iris` built-in dataset last week? **You can use the `meansVector()` function I wrote for you to generate a vector of means.**
 
-*hint:*
-Make sure that you are able to  
-(1) read in (`mtcars`) data; (2) plot the histogram of the "mpg" variable; (3) create a series of histograms where you gradually increase the number of subsamples you take, but keep the number of values in each subsample constant; (4) create a series of histograms where you keep the number of subsamples you take constant, but increase the number of values within each subsample.
+**Hint:** Make sure that you are able to (1) read in (`mtcars`) data; (2) plot the histogram of the `"mpg"` column; (3) create a series of histograms where you gradually increase the number of subsamples you take, but keep the number of values in each subsample constant; (4) create a series of histograms where you keep the number of subsamples you take constant, but increase the number of values within each subsample.
 
+---------------------------------------------------------------------------------------------------------------------------------
 
 # Confidence Interval (CI)
 
@@ -130,14 +145,15 @@ Confidence intervals (CIs) help us understand the precision of the statistic we 
 
 One thing to note is that to calculate CIs, we need to make assumptions about the distribution of the data. 
 
-Let's consider an example where our sample data follow a normal distribution. Say we wanted to know the distribution of heights of all Taiwanese high school students, so we did a survey of 10,000 high school students across Taiwan and plotted the distribution of the data. For the purposes of illustration, let's create a fake dataset that we can use throughout the remainder of this lab. Please use ?rnorm if you are unsure what this function is doing.
+Let's consider an example where our sample data follow a normal distribution. Say we wanted to know the distribution of heights of all Taiwanese high school students, so we did a survey of 10,000 high school students across Taiwan and plotted the distribution of the data. For the purposes of illustration, let's create a fake dataset that we can use throughout the remainder of this lab. Please use `?rnorm` if you are unsure what this function is doing.
+
 ```{r, data}
-heights=rnorm(10000,mean=65,sd=2)
+heights <- rnorm(10000, mean = 65, sd = 2)
 ```
 
-
 Let's now plot the distribution of the data. What does it look like? 
-```{r, hist,eval=FALSE}
+
+```{r, hist, fig.show = 'hide'}
 hist(heights)
 ```
 
@@ -145,51 +161,56 @@ We find that the survey data follow a normal distribution, so we make the assump
 
 Think back to the lecture from this week. What information do we now need to calculate the CIs around our sample mean?  
 
-We need (1) the mean of our sample [means], (2) the critical z score we are interested in [zcrit], and (3) the standard error of the mean [sem]. Below I write a function to calculate the upper and lower bounds of the CIs and store these two values in a vector.
+We need (1) the mean of our sample [`means`], (2) the critical z score we are interested in [`zcrit`], and (3) the standard error of the mean [`sem`]. Below, I write a function to calculate the upper and lower bounds of the CIs and store these two values in a vector.
 
 ```{r, ci levels}
-cifun = function(means,zcrit,sem){
-  cilower = means - zcrit*sem
-  ciupper = means + zcrit*sem
-  civals = c(cilower,ciupper)
-  return(civals)}
+cifun <- function(means, zcrit, sem) {
+  cilower <- means - zcrit*sem
+  ciupper <- means + zcrit*sem
+  civals <- c(cilower, ciupper)
+  return(civals)
+}
 ```
 
 But how do we parameterize all of the values in the model above?
 
-First, let's calculate the mean of our sample
+First, let's calculate the mean of our sample:
+
 ```{r, mean sample}
-means = mean(heights)
+means <- mean(heights)
 ```
 
 Next, let's calculate the critical z value. Remember, what value you use depends on how precise you want your estimate to be. For this example, let's construct 95% CIs. As we learned in lecture, we can identify the z critical value using a look up table, or we can use R.
 
 ```{r, zcrit}
-zcrit = qnorm(.975)
+zcrit <- qnorm(.975)
 ```
 
-Why do we use 0.975 and not 0.95 if we are interested in the 95% CIs?
+**Why do we use 0.975 and not 0.95 if we are interested in the 95% CIs?**
 
 So now we have values for means and zcrit, how do we calculate sem, which represents the standard error of the mean? If you think back to lecture, we can use the standard deviation and the sample size of our data as long as our sample size is 'sufficiently large.' Do you remember how we decide if a dataset is sufficiently large? In this case, our sample size is 10,000.
 
 ```{r, sem}
-sem = (sd(heights)/sqrt(length(heights)))
+sem <- (sd(heights) / sqrt(length(heights)))
 ```
 
 Let's now calculate CIs!
 
-```{r, cifun,eval=FALSE}
-cifun(means,zcrit,sem)
+```{r, cifun, fig.show = 'hide'}
+cifun(means, zcrit, sem)
 ```
+
+---------------------------------------------------------------------------------------------------------------------------------
 
 __Exercise 3__
 
 1. Please interpret the meaning of the CIs you just calculated. What can you say about the true population parameter (e.g., mean height of all Taiwanese high school students)?
-2. Please calculate the 90th% CIs. How do these differ from the 95th% CIs you first calculated?
-3. Let's take what we've learned and apply it to a problem where our sample size is small. How do we compute confidence intervals if our sample size is less than 30? Calculate the confidence interval for the following dataset:
-heights=rnorm(25,mean=65,sd=2)
+2. Please calculate the 90% CIs. How do these differ from the 95% CIs you first calculated?
+3. Let's take what we've learned and apply it to a problem where our sample size is small. How do we compute confidence intervals if our sample size is less than 30? Calculate the confidence interval for the dataset below:
+```{r}
+heights <- rnorm(25, mean = 65, sd = 2)
+```
 
-*hint:*
-(1) you should not use z critical values in this example and instead you should use a critical value from the t distribution; (2) instead of qnorm, you should use qt to calculate the critical value of interest. Please use ?qt to understand what information you need to run this function.
+**Hint:** (1) You should not use z critical values in this example and instead you should use a critical value from the t distribution; (2) Instead of qnorm, you should use qt to calculate the critical value of interest. Please use `?qt` to understand what information you need to run this function.
 
-
+---------------------------------------------------------------------------------------------------------------------------------
