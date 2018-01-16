@@ -26,7 +26,7 @@ To demonstrate the [central limit theorem](https://en.wikipedia.org/wiki/Central
 
 First, let's read in the data. Assign the data to the variable name `apdata`. Remember how to do this from last week's lab?
 
-```{r, load data, eval=FALSE}
+```{r, load data, eval=FALSE, echo=FALSE}
 apdata <- read.csv('/Users/mehajain/Desktop/aps.csv')
 ```
 
@@ -38,7 +38,7 @@ apdata <- read.csv('https://raw.githubusercontent.com/OscarFHC/EAS538_2018/maste
 
 **Now let's plot the distribution of the pesticide data.** Remember how to do this from the previous lab? If not, that's okay: try searching for how to plot a histogram online (try Google, Stack Overflow, etc.). If you are having a hard time figuring this out after a few minutes, please ask me for help!
 
-```{r, apple pesticide concentration distribution, echo=FALSE}
+```{r, apple pesticide concentration distribution, echo=FALSE, fig.show='hide'}
 hist(apdata$concen, main = "distribution of pesticide concentration", xlab = '')
 avg <- round(mean(apdata$concen), 2)
 SD <- round(sd(apdata$concen), 2)
@@ -143,7 +143,7 @@ __Exercise 2__
 
 Confidence intervals (CIs) help us understand the precision of the statistic we are calculating from our sample (e.g., the mean of the sample). We can use CIs to infer how well the sample statistic (e.g., mean of the sample) estimates the true population parameter (e.g, mean of the population). Remember, this is important because we will usually never know the true value of the population parameter.
 
-One thing to note is that to calculate CIs, we need to make assumptions about the distribution of the data. 
+One thing to note that to calculate CIs for the sample mean, we need to make assumptions about the distribution of the sample mean. According to the CLT, a sample mean can be assumed to be normally distributed. We then cam safely use SE of the mean to calculate the CI of the mean.
 
 Let's consider an example where our sample data follow a normal distribution. Say we wanted to know the distribution of heights of all Taiwanese high school students, so we did a survey of 10,000 high school students across Taiwan and plotted the distribution of the data. For the purposes of illustration, let's create a fake dataset that we can use throughout the remainder of this lab. Please use `?rnorm` if you are unsure what this function is doing.
 
