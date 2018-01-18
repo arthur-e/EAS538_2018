@@ -1,8 +1,0 @@
-name: Publish Document
-title:
-account: rpubs
-server: rpubs.com
-appId: https://api.rpubs.com/api/v1/document/243030/16943b2186c449698caa1032717d4cbd
-bundleId: https://api.rpubs.com/api/v1/document/243030/16943b2186c449698caa1032717d4cbd
-url: http://rpubs.com/oscarhsnurene/243030
-when: 1484944262.3485

@@ -159,7 +159,11 @@ heights <- rnorm(10000, mean = 65, sd = 2)
 
 Think back to the lecture from this week. What information do we need to calculate the CIs around our sample mean?  
 
-We need (1) the mean of our sample [`means`], (2) the critical z score we are interested in [`zcrit`], and (3) the standard error of the mean [`sem`]. Below, I write a function to calculate the upper and lower bounds of the CIs and store these two values in a vector.
+We need  
+1. the mean of our sample [`means`],  
+2. the critical z score we are interested in [`zcrit`], and  
+3. the standard error of the mean [`sem`].  
+Below, I write a function to calculate the upper and lower bounds of the CIs and store these two values in a vector.
 
 ```{r, ci levels}
 cifun <- function(means, zcrit, sem) {
