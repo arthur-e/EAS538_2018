@@ -22,7 +22,7 @@ knitr::opts_chunk$set(results = 'hide')
 
 # Central limit theorem
 
-To demonstrate the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem), let's use a dataset on the amount of pesticide residue found in produce collected by the USDA (https://www.ams.usda.gov/datasets/pdp/pdpdata; *DISCLAIMER - I edited the data to make it more amenable to the lab*). 
+To demonstrate the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem), let's use a dataset on the amount of pesticide residue found in produce collected by the USDA (https://www.ams.usda.gov/datasets/pdp/pdpdata; *DISCLAIMER - I edited the data to make it more amenable to the lab. Specifically I removed all apples that had 0 pesticide residue - so don't think that every apple you eat has some pesticides on it!*). 
 
 First, let's read in the data. Assign the data to the variable name `apdata`. Remember how to do this from last week's lab?
 
@@ -30,11 +30,17 @@ First, let's read in the data. Assign the data to the variable name `apdata`. Re
 apdata <- read.csv('/Users/mehajain/Desktop/aps.csv')
 ```
 
-Note that, rather than setting our working directory to the folder `'/Users/mehajain/Desktop/'` and reading in `'aps.csv'` in two steps (as we did in Assignment 1), here, we've specified the full path to the CSV file we want to read.
-
 ```{r echo=FALSE, warning=FALSE}
 apdata <- read.csv('https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week3_CLT/aps.csv')
 ```
+Let's look at what is in the dataset. Remember how to do this? You should see the following variables:
+
+```{r echo=FALSE}
+head(apdata)
+```
+`commod` = commodity. In this case we only have data for 'AP', which represents apples.  
+`concen` = the concentration of pesticide residue on each apple tested.  
+`lod` = the limit of detection for the given pesticide detected on each apple (i.e. the lowest level of pesticide that can be detected by the lab)
 
 **Now let's plot the distribution of the pesticide data.** Remember how to do this from the previous lab? If not, that's okay: try searching for how to plot a histogram online (try Google, Stack Overflow, etc.). If you are having a hard time figuring this out after a few minutes, please ask me for help!
 
@@ -143,23 +149,15 @@ __Exercise 2__
 
 Confidence intervals (CIs) help us understand the precision of the statistic we are calculating from our sample (e.g., the mean of the sample). We can use CIs to infer how well the sample statistic (e.g., mean of the sample) estimates the true population parameter (e.g, mean of the population). Remember, this is important because we will usually never know the true value of the population parameter.
 
-One thing to note is that to calculate CIs for the sample mean, we need to make assumptions about the distribution of the sample mean. According to the CLT, a sample mean can be assumed to be normally distributed. We then can safely use SE of the mean to calculate the CI of the mean.
+One thing to note is that to calculate CIs for the sample mean, we need to make assumptions about the shape of the sampling distribution. According to the CLT, the sampling distribution of means can be assumed to be normally distributed. We then can safely use the standard error (SE) of the mean to calculate the CI of our sample mean.
 
-Let's consider an example where our sample data follow a normal distribution. Say we wanted to know the distribution of heights of all Taiwanese high school students, so we did a survey of 10,000 high school students across Taiwan and plotted the distribution of the data. For the purposes of illustration, let's create a fake dataset that we can use throughout the remainder of this lab. Please use `?rnorm` if you are unsure what this function is doing.
+Let's consider an example where our sample data follow a normal distribution. Say we wanted to know the average height of all Taiwanese high school students, so we did a survey of 10,000 high school students across Taiwan and collected information on each person's height. For the purposes of illustration, let's create a fake dataset that we can use throughout the remainder of this lab. Please use `?rnorm` if you are unsure what this function is doing.
 
 ```{r, data}
 heights <- rnorm(10000, mean = 65, sd = 2)
 ```
 
-Let's now plot the distribution of the data. What does it look like? 
-
-```{r, hist, fig.show = 'hide'}
-hist(heights)
-```
-
-We find that the survey data follow a normal distribution, so we make the assumption that the heights of all Taiwanese high school students follow a normal distribution as well. 
-
-Think back to the lecture from this week. What information do we now need to calculate the CIs around our sample mean?  
+Think back to the lecture from this week. What information do we need to calculate the CIs around our sample mean?  
 
 We need (1) the mean of our sample [`means`], (2) the critical z score we are interested in [`zcrit`], and (3) the standard error of the mean [`sem`]. Below, I write a function to calculate the upper and lower bounds of the CIs and store these two values in a vector.
 
@@ -206,11 +204,12 @@ __Exercise 3__
 
 1. Please interpret the meaning of the CIs you just calculated. What can you say about the true population parameter (e.g., mean height of all Taiwanese high school students)?
 2. Please calculate the 90% CIs. How do these differ from the 95% CIs you first calculated?
-3. Let's take what we've learned and apply it to a problem where our sample size is small. How do we compute confidence intervals if our sample size is less than 30? Calculate the confidence interval for the dataset below:
+3. Say instead of sampling 10,000 students we only sampled 100. Calculate the 95% CIs of this new sample. How do they compare to the 95% CIs of the 10,000 sample data? **Hint:** you'll have to rerun the rnorm function at the start of this section.  
+4. Let's take what we've learned and apply it to a problem where our sample size is small. How do we compute confidence intervals if our sample size is less than 30? Calculate the confidence interval for the dataset below:
 ```{r}
 heights <- rnorm(25, mean = 65, sd = 2)
 ```
 
-**Hint:** (1) You should not use z critical values in this example and instead you should use a critical value from the t distribution; (2) Instead of `qnorm`, you should use qt to calculate the critical value of interest. Please use `?qt` to understand what information you need to run this function.
+**Hint:** (1) You should not use z critical values in this example and instead you should use a critical value from the t distribution; (2) Instead of `qnorm`, you should use `qt` to calculate the critical value of interest. Please use `?qt` to understand what information you need to run this function.
 
 ---------------------------------------------------------------------------------------------------------------------------------
