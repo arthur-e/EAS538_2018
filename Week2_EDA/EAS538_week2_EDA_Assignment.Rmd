@@ -1,0 +1,112 @@
+---
+title: "EAS 538_Assign1"
+author: "Feng-Hsun Chang"
+date: "2018 Jan. 17"
+output:
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+      toc_depth: 4
+  pdf_document:
+    toc: yes
+---
+__Exercise 1__
+
+1. Pick any 2 or more variables in the `rent.US` data. (Recall that you can access a variable in a data frame by using the `$` symbol.) Create a list containing multiple types of data (vectors from `rent.US`) with `list()`.
+
+```{r}
+rent.US = read.table("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week2_EDA/price2.csv", 
+  header = TRUE, fill = TRUE, sep = ",", quote = "")
+USrent_city <- rent.US$City
+```
+
+2. Pick another variable from `rent.US`. Create a matrix with `matrix()` to store that variable.
+
+```{r}
+MetroMatrix <- matrix(rent.US$Metro, nrow=2, ncol=length(rent.US$Metro)/2)
+```
+
+
+When you don't know how to use `list()` or `matrix()`, try `?list` and `?matrix`.
+
+__Optional Challenges__
+
+* After reviewing the help documentation for `colnames()`, create a copy of the `rent.US` data frame (assign it to a new variable name) and try changing the column names.
+* Check out the help documentation: `help(factor)`. What is a factor and what type(s) of data (from lecture) is it used to represent? Which columns in the `rent.US` data frames are factors? Try calling the following functions on one of the factor columns: `unique()`, `levels()`, `nlevels()`.
+
+```{r}
+colnames(rent.US)
+rent2 <- rent.US
+colnames(rent2) <- c("City2", "Metro2", "County2", "State2", "Pop", "Jan16Rent", "May16Rent", "Sep16Rent")
+colnames(rent2)
+```
+
+
+```{r}
+str(rent.US)
+unique(rent.US$State)
+levels(rent.US$State)
+nlevels(rent.US$State)
+```
+
+__Exercise 2__
+
+1. Use `subset()` and `order()` to identify the top 3 most expensive cities in Michigan (using September 2016 rent prices). What rank is Ann Arbor?
+
+```{r}
+rent.MI = subset(rent.US, State == "MI")
+rent.MI.ord = rent.MI[order(rent.MI$Sep.16, decreasing=TRUE),]
+head(rent.MI.ord)
+```
+
+```{r}
+which(rent.MI.ord$City=="Ann Arbor")
+```
+
+__Exercise 3__
+
+1. What could we do if we wanted to only plot a histogram for only the most common rents (e.g., Rent < 4000 per month)? Try coding this in R. I'm here to help you if you get stuck! 
+
+```{r}
+CommonRent <- subset(rent.US, Jan.16<4000)
+hist(CommonRent$Jan.16)
+```
+
+
+__Optional Challenges__
+
+* How can you set the x-axis or y-axis labels of a histogram? The title of the plot? Is there more than one way to do this? Read `help(hist)` but also try to find the answer using a search engine. Try customizing your histogram's title and labels so that it is easier to understand at a glance.
+
+```{r}
+hist(CommonRent$Jan.16, 
+     main = "Histigram Title",
+     xlab = "X label",
+     ylab = "Y label")
+```
+
+__Exercise 4__
+
+1. What is the pair of variables that has the strongest correlation? What is the pair of variables that has the weakest correlation?
+
+```{r}
+absCor <- abs(cor(iris[,1:4]))
+which(cor(iris[,1:4])==max(absCor[which(absCor<1)]), arr.ind=TRUE)
+which(cor(iris[,1:4])==min(absCor[which(absCor>0)]), arr.ind=TRUE)
+
+```
+
+__Optional Challenges__
+
+* Suppose our data frame has columns with missing variables; the `airquality` dataset, below, is an example dataset with some missing variables. Examine what happens when we try to calculate column-wise correlation coefficients using this dataset.
+```{r}
+data(airquality)
+cor(airquality, use="pairwise.complete.obs")
+```
+* Now, examine the help documentation for `cor()`. What argument can we provide to this function so that it ignores missing values? Is there more than one argument we can use?
