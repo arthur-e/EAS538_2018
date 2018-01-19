@@ -26,7 +26,7 @@ To demonstrate the [central limit theorem](https://en.wikipedia.org/wiki/Central
 
 First, let's read in the data. Assign the data to the variable name `apdata`. Remember how to do this from last week's lab?
 
-```{r, load data, eval=FALSE, echo=FALSE}
+```{r, load data, eval=FALSE}
 apdata <- read.csv('/Users/mehajain/Desktop/aps.csv')
 ```
 
@@ -79,10 +79,10 @@ Let's take a look at how this function applies to the pesticide residue dataset.
 
 ```{r, 10, 100, fig.show = 'hide'}
 means <- meansVector(apdata, 10, 100, "concen")
-avg <- round(mean(means),2)
-SD <- round(sd(means),2)
+avg <- round(mean(means), 2)
+SD <- round(sd(means), 2)
 hist(means, probability = TRUE, main = "10 subsamples with 100 values each")
-legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
+legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), bty = 'n', text.col = c("blue", "dark green"))
 ```
 
 Let's gradually increase the number of subsamples but fix the values in each subsample to 100 for now. We will do this using a for loop, which loops through each of the numbers of subsamples we want to take.
@@ -96,7 +96,7 @@ for (i in c(1:length(x))) {
   avg <- round(mean(means), 2)
   SD <- round(sd(means), 2)
   hist(means, probability = TRUE, main = paste0(x[i], " subsamples with 100 values each"))
-  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), bty = 'n', text.col = c("blue", "dark green"))
 }
 ```
 
@@ -109,7 +109,7 @@ means <- meansVector(apdata, 1000, 10, "concen")
 avg <- round(mean(means), 2)
 SD <- round(sd(means), 2)
 hist(means, probability = TRUE, main = "1000 subsamples with 10 values each")
-legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
+legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), bty = 'n', text.col = c("blue", "dark green"))
 ```
 
 Let's gradually increase the number of apples in each subsample. 
@@ -123,7 +123,7 @@ for (i in c(1:length(y))) {
   avg <- round(mean(means), 2)
   SD <- round(sd(means), 2)
   hist(means, probability = TRUE, main = paste0("1000 subsamples with ", y[i], " values each"))
-  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), text.col = c("blue", "dark green"))
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), bty = 'n', text.col = c("blue", "dark green"))
 }
 ```
 
