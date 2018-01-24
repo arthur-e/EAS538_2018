@@ -192,7 +192,7 @@ text(-2.5, 0.1, '4.6 %')
 
 ---------------------------------------------------------------------------------------------------------------------------
 
-__Exercise 3__     
+__Exercise 3__ (No R code or outputs required)  
 1. How would you use the above results to calculate the t-statistic, df, and p-value of a two-tailed, one-way t-test?   
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -228,7 +228,7 @@ t.test(Sepal.Length ~ Species, data = iris_sub)
 
 ---------------------------------------------------------------------------------------------------------------------------
 
-__Exercise 4 __  
+__Exercise 4 __ (Some R code, outputs required) 
 1. Please write out the null and alternate hypothesis for the t-test above. Are you able to reject the null hypothesis? What does your result mean in non technical terms?    
 2. Please repeat the above analysis for `Sepal.Width`, `Petal.Length`, and `Petal.Width` for the `iris_sub` dataset. Please interpret the results of these 3 t-tests in non-technical terms. 
 
