@@ -1,0 +1,205 @@
+---
+title: "EAS538 Central Limit Theorem (Answer Key)"
+author: "Written by Arthur Endsley and modified by Oscar Feng-Hsun Chang"
+date: "Week 3"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: false
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+```{r setup, echo=FALSE}
+apdata <- read.csv('https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week3_CLT/aps.csv')
+
+meansVector <- function(data, times, size, var) {
+  v <- c()
+  for (i in 1:times) {
+    y <- sample(data[,var], size, replace=TRUE)
+    m <- mean(y)
+    v[i] <- m
+  }
+  return(v)
+}
+
+cifun <- function(means, zcrit, sem) {
+  cilower <- means - zcrit*sem
+  ciupper <- means + zcrit*sem
+  civals <- c(cilower, ciupper)
+  return(civals)
+}
+```
+
+# Exercise 1
+
+## Part 1
+
+> Explain what happens to the sampling distribution as you increase the number of subsamples you take.
+
+```{r echo=FALSE}
+x <- c(10, 100, 1000, 10000) # number of subsamples
+
+par(mfrow = c(2, 2))
+for (i in c(1:length(x))) {
+  means <- meansVector(apdata, x[i], 100, "concen")
+  avg <- round(mean(means), 2)
+  SD <- round(sd(means), 2)
+  hist(means, probability = TRUE, main = paste0(x[i], " subsamples with 100 values each"))
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), 
+    bty = 'n', text.col = c("blue", "dark green"))
+}
+```
+
+As we increase the number of samples taken, the sampling distribution begins to appear more normal (i.e., more like a normal distribution). In particular, it becomes more symmetric and develops that familiar bell-curve shape. This is evidence of the Central Limit Theorem, which tells us that as the number of samples we take increases, the sampling distribution (distribution of the sample means) approaches a normal distribution. Also, the mean and standard deviation of the sampling distribution are essentially unchanged (0.14 and 0.03, respectively) regardless of how many samples we take.
+
+> Explain what happens to the sampling distribution as you increase the number of values within each subsample.
+
+```{r echo=FALSE}
+y = c(10, 100, 1000, 5000)
+
+par(mfrow = c(2,2))
+for (i in c(1:length(y))) {
+  means <- meansVector(apdata,1000, y[i], "concen")
+  avg <- round(mean(means), 2)
+  SD <- round(sd(means), 2)
+  hist(means, probability = TRUE, main = paste0("1000 subsamples with ", y[i], " values each"))
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), bty = 'n', text.col = c("blue", "dark green"))
+}
+```
+
+Even with a large number of samples, we notice that we still need to take a certain number of values in each sample (here, more than 10) in order to get a sampling distribution that appears normal. After about 100 values in each sample, we have sufficiently large samples such that taking 1000 or 5000 values in each sample doesn't make the distribution appear any more normal. Also, we not that the standard deviation consistently decreases as we increase the size of each sample.
+
+> How are the processes you described in questions 1 and 2 similar? How are they different?
+
+In the first question, we increased the number of samples taken while holding the size of each sample fixed (at 100 values in each sample). In the second question, we increased the size of each sample while keeping the number of samples fixed (at 1000 samples).
+
+By increasing the number of samples taken, we directly demonstrate the Central Limit Theorem. With too few samples (fewer than 100 samples), we calculate too few means (fewer than 100 means), and we don't obtain a sampling distribution that appears normal. Also, when the sample size is the same (fixed at 100 values per sample), the standard deviation of the sample means (also known as the standard error) that we calculate does not change appreciably.
+
+By increasing the size of each sample taken, we get a better estimate of the mean in each sample, but it doesn't require a very large to obtain a good estimate. What does get better as we increase the size of each sample is our standard error (the standard deviation of the sampling distribution); it is smaller in larger samples because more of the values are closer to the mean (i.e., there is less spread in the values). **Why does it get better?** Recall what Radziwill wrote on page 241 of your book:
+
+> "It's referred to as the 'standard error of the mean', because the bigger our random sample n is, the better we can use our sample mean to approximate the real population mean."
+
+# Exercise 2
+
+> Now demonstrate the central limit theorem on your own with the `"mpg"` (miles-per-gallon) column in the [`mtcars` (Motor Trend Car Road Tests)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html) data set. `mtcars` is another built-in data set in the _base_ package of __R__. Remember how we loaded in the `iris` built-in dataset last week? **You can use the `meansVector()` function I wrote for you to generate a vector of means.**
+
+This is just like what we did in order to think critically about Part 2 of Exercise 1.
+All that is required is to adapt the code we used before:
+
+- The first argument to the `meansVector()` function is the data frame; this time, we're using the `mtcars` data frame instead of the `apdata` data frame.
+- The fourth argument to the `meansVector()` function is the name of the column (as a text string) that we want to plot a histogram for; this time, it should be the `"mpg"` column. 
+
+```{r echo=FALSE}
+data(mtcars)
+y = c(10, 100, 1000, 5000)
+
+par(mfrow = c(2, 2))
+for (i in c(1:length(y))) {
+  means <- meansVector(mtcars, 1000, y[i], "mpg")
+  avg <- round(mean(means), 2)
+  SD <- round(sd(means), 2)
+  hist(means, probability = TRUE, main = paste0("1000 subsamples with ", y[i], " values each"))
+  legend("topright", legend = c(paste0("mean=", avg), paste0("SD=", SD)), 
+    bty = 'n', text.col = c("blue", "dark green"))
+}
+```
+
+# Exercise 3
+
+## Part 1
+
+> Please interpret the meaning of the CIs you just calculated. What can you say about the true population parameter (e.g., mean height of all Taiwanese high school students)?
+
+```{r}
+set.seed(2000) # Set the random seed so we get the same random numbers
+heights <- rnorm(10000, mean = 65, sd = 2)
+means <- mean(heights)
+zcrit <- qnorm(.975)
+sem <- (sd(heights) / sqrt(length(heights)))
+cifun(means, zcrit, sem)
+```
+
+The 95% confidence interval, $[64.95, 65.03]$, represents a good lower and upper bound for our *population* mean, $`r means`$.
+However, **there is no guarantee that any given 95% confidence interval will contain the population mean.**
+What the "95% confidence" in a 95% confidence interval *means* is that, if we construct a very large number of 95% confidence intervals the same way (each with the same sample size and approximately the same standard deviation), then 95% of the confidence intervals we construct would contain the true population mean.
+That means 5% of the confidence intervals we construct *would NOT* contain the true population mean.
+This is always possible with confidence intervals constructed from random samples because the values we might obtain in a given random sample may not be truly representative of the underlying population distribution (especially for small samples).
+As Radziwill wrote:
+
+> "[The] standard error tells us how much the means of [the values in our sample] will be spread around (depending on how big a sample size we choose). Consequently, standard error is a characteristic of a random sampling process, NOT of the population."
+
+**The following answers would NOT be correct;** they miss the true meaning of a 95% confidence interval.
+
+- "There is 95% chance that the true mean of the population lies in the interval of 64.99307 and 65.07210." **No, we can't say that there's a 95% chance for this confidence interval (CI) because the CI we construct from another random sample (for the same population) might be different.**
+- "95% of means from random samples will be between these two values." **Not necessarily true; again, each CI constructed from a different random sample will be slightly different.**
+- "A 95% probability that any given confidence interval from a random sample will contain the true population mean" **It is more accurate to say that 95% of the CIs constructed this way will contain the true population mean.**
+
+## Part 2
+
+> Please calculate the 90% CIs. How do these differ from the 95% CIs you first calculated?
+
+In R, we just need to change the probability value that is used to obtain the critical z value (`zcrit`). When calculating a 95% confidence interval, the probability value we used was $0.975$ (97.5%). Why? Recall that the confidence interval should be **centered on the mean value** (or centered on zero in a standard normal distribution.
+
+Imagine super-imposing the bell curve of a normal distribution so it is centered on your mean. If you highlight the central 95% of this area, the right edge of the highlighted area is at 97.5% (and the left edge at 2.5%). 
+
+**Put another way, with 95% of the probability density (area under the curve) centered on the mean, this leaves only 2.5% on the left and right tails.** So, 2.5% (in the left tail) + 95% (in the center) = 97.5%.
+
+**Now, how do we translate this intuition to constructing a 90% confidence interval?** Well, now we have 90% of our probability density centered on the mean, so that means there is 5% left in the tails (5% *each* on the left and on the right). This means that, reading the probability density from left to right (from 0% to 100%), we obtain: 5% (in the left tail) + 90% (in the center) = 95% (or 0.95).
+
+```{r}
+zcrit <- qnorm(0.95)
+sem <- (sd(heights) / sqrt(length(heights)))
+cifun(means, zcrit, sem)
+```
+
+Recall Radziwill's analogy of a fisher casting her net. If she wants a better chance of catching the fish, she should use a bigger net, right? So, a higher-confidence interval would be wider than a lower-confidence interval. That's what we observe here: the 95% confidence interval is wider than the 90% confidence interval.
+
+## Part 3
+
+> Say instead of sampling 10,000 students we only sampled 100. Calculate the 95% CIs of this new sample. How do they compare to the 95% CIs of the 10,000 sample data? **Hint:** you'll have to rerun the rnorm function at the start of this section.  
+
+```{r}
+set.seed(2000) # Set the random seed so we get the same random numbers
+heights <- rnorm(100, mean = 65, sd = 2)
+means <- mean(heights)
+zcrit <- qnorm(.975)
+sem <- (sd(heights) / sqrt(length(heights)))
+cifun(means, zcrit, sem)
+```
+
+The 95% confidence interval calculated on this smaller sample is wider, right? The lower bound is lower than it was before (64.65 instead of 64.95) and the upper bound is higher than it was before (65.40 instead of 65.03). That means our new confidence interval spans a wider range than the previous one. Why is it wider? Well, with a smaller sample size, our standard error is larger, which means we need to account for a larger range of numbers to ensure that 95% of the confidence intervals we construct will contain the true population mean.
+
+## Part 4
+
+> Let's take what we've learned and apply it to a problem where our sample size is small. How do we compute confidence intervals if our sample size is less than 30? Calculate the confidence interval for the dataset below:
+```{r}
+heights <- rnorm(25, mean = 65, sd = 2)
+```
+
+For a sample size this small (25), we should use a critical value from the t-distribution instead of from the standard normal distribution (a Z-value).
+The t-distribution has "heavier tails," so it better accounts for the possibility of seeing extreme values, which are more of a concern in smaller samples.
+
+```{r}
+set.seed(42) # Set the random seed so we get the same random numbers
+heights <- rnorm(25, mean = 65, sd = 2)
+means <- mean(heights)
+
+# Calculating a critical t-value this time;
+#   I'm required to specify the degrees of freedom (df)
+tcrit <- qt(0.975, df = length(heights) - 1)
+
+# We still calculate the standard error of the mean (sem) the same way
+sem <- (sd(heights) / sqrt(length(heights)))
+cifun(means, tcrit, sem)
+```
+
+Before, we used the quantile function associated with the (standard) normal distribution, `qnorm()`. Now, we use the quantile function associated with the t-distribution, `qt()`. The `qnorm()` function required us to specify the mean and standard deviation, though they are set to 0 and 1, respectively, by default so we got away with not setting anything for those arguments. The `qt()` function requires us to specify the degrees of freedom (`df` argument), which is **not** set by default; it is always dependent on our dataset.
+
+Recall that the degrees of freedom we want for a t-distribution corresponding to a small sample is $N-1$, where $N$ is the sample size. We can get the size of our sample in R as `length(heights)`; it's just the length of the `heights` vector.
