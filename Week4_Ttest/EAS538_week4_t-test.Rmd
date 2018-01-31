@@ -1,0 +1,237 @@
+---
+title: "EAS 538 - T-test"
+author: "Written by Meha Jain and modified by Oscar Feng-Hsun Chang and Arthur Endsley"
+date: "Week 4"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+# Student's t-test
+
+## One sample t-test
+
+We can use the `t.test()` function in __R__ to run one-sample vs two-sample, one-tailed vs two-tailed, and paired t-tests. To illustrate how the function works in __R__, let's use the apple pesticide data that we used last week. Read the file in and store it as a data frame named `apdata`, just like last week. **Remember how we read in the CSV file from last week? Look at last week's lab if you need a refresher.**
+
+```{r, message=FALSE, echo=FALSE}
+apdata <- read.csv('https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week3_CLT/aps.csv')
+```
+
+As a reminder, this is what's in the dataset:
+
+- `commod` = commodity. In this case we only have data for 'AP', which represents apples.  
+- `concen` = the concentration of pesticide residue on each apple tested.  
+- `lod` = the limit of detection for the given pesticide detected on each apple (i.e. the lowest level of pesticide that can be detected by the lab)
+
+Say that the USDA's limit for the amount of pesticides allowed in any food is an average of 0.1477 of all samples tested. How can we figure out if the mean pesticide value of apples in our dataset is significantly different from this reference value? 
+
+```{r, one sample, two tailed t-test,eval=FALSE}
+t.test(apdata[,"concen"], mu = 0.1477)
+```
+
+*What do these statistical results tell you?*
+
+But wait, is that the question we really want to answer? Do we care about whether the mean apple pesticide value is *different* from the USDA's limit of 0.1477? Or do we care only that the apple pesticide value is *less than* the USDA's limit of 0.1477? In this case we should use a one-tailed test!
+
+*Do you remember how a one-tailed test is different from a two-tailed test?*
+
+Let's see what happens to our result:
+```{r, one way one tailed t test,eval=FALSE}
+t.test(apdata[,'concen'], alternative = 'less', mu = 0.1477)
+```
+
+---------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 1__ (No R code or outputs required)  
+1. Write out the null and alternative hypothesis for a one-way, two-tailed t-test using the example above. What did your results tell you? Can you reject the null hypothesis (at the 0.05 level)?  
+2. Write out the null and alternative hypothesis for a one-way, one-tailed t-test using the example above. What did your results tell you? Can you reject the null hypothesis (at the 0.05 level)?
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Meha showed in lecture how we can calculate the t-statistic and p-value ourselves using what we learned about the central limit theorem, sampling distributions, and confidence intervals. Let's go through a direct correlate example to what we did above to remind ourselves how these concepts are all related.
+
+Let's focus on the one-tailed, one-way t-test we ran above, where we examined whether the mean value of pesticide concentration in the apples in our dataset is less than 0.1477. 
+
+Plot the distribution of the pesticide concentration data. Are the data normally distributed?
+```{r, hist orig data,eval=FALSE}
+hist(apdata$concen)
+```
+*Is it a problem that our sample dataset is not normally distributed?*
+
+Following the central limit theorem, it's okay that our data are not normally distributed because the sampling distribution of our means should be normally distributed. Let's look at this just to make sure!
+
+Say you take a sample of 1000 apples and calculate the mean of this sample. Let's imagine we now do this an infinite number of times. In this case, let's take 10,000 samples of 1000 apples each and calculate the mean of each sample. I've copied the function that does this from Week 3 lab below. If you don't remember what all of the parameters mean in the function below, please refer back to the lab from Week 3.
+
+```{r, mean function}
+meansVector <- function(data, times, size, var) {
+  v <- c()
+  for (i in 1:times) {
+    y <- sample(data[,var], size, replace=TRUE)
+    m <- mean(y)
+    v[i] <- m
+  }
+  return(v)
+}
+```
+
+Let's run this function using our apple dataset, where we take 10,000 samples of 1,000 apples in each sample and calculate the mean of each sample. 
+
+```{r, mean function run}
+mean_vector <- meansVector(apdata, 10000, 1000, 'concen')
+```
+
+Plot the distribution of the means from your 10,000 samples. What does the distribution look like? 
+```{r, sample mean distribution, eval=FALSE,echo=FALSE}
+hist(mean_vector)
+```
+
+It's normally distributed! Wahoo! This means we can now use the normal distribution to calculate confidence intervals! Thank you, central limit theorem!
+
+Now that we trust that our sampling distribution of means is normally distributed, let's calculate confidence intervals using the normal distribution and the formula you used last week in lab.
+
+```{r, ci levels}
+cifunz <- function(means, zcrit, sem) {
+  cilower <- means - zcrit*sem
+  ciupper <- means + zcrit*sem
+  civals <- c(cilower, ciupper)
+  return(civals)
+}
+```
+
+But wait, this is called a t-test and not a "z-test." Why are we calculating the z critical value? Shouldn't we be using the *t* distribution and the *t* critical value? *Why do we use the *t* distribution even if our sample size is sufficiently large (i.e. >= 30)*?
+
+```{r, ci levels t}
+cifunt <- function(means, tcrit, sem) {
+  cilower <- means - tcrit*sem
+  ciupper <- means + tcrit*sem
+  civals <- c(cilower, ciupper)
+  return(civals)
+}
+```
+
+Let's parameterize all of the values above. For the *t* critical value, let's calculate 95% confidence intervals because we want to determine significance at an alpha of 0.05. 
+
+```{r, parameterize and run CI,eval=FALSE}
+meanval <- mean(apdata$concen)
+tcritval <- qt(0.95, df = length(apdata$concen) - 1)
+semval <- (sd(apdata$concen) / sqrt(length(apdata$concen)))
+
+cifunt(meanval, tcritval, semval)
+```
+Okay, now we're going to ask you a few questions to see if you can describe the above code and outputs.
+
+---------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 2__ (Some R code, outputs required)    
+1) Why did you use 0.95 in your `qt` function instead of 0.975 (which is what you did last week)?  
+2) Can you reject the null hypothesis based on the confidence intervals that you calculated?  
+3) How would you change the code above if you ran a two-tailed, one-way t-test? Please calculate 95% confidence intervals for a two-tailed, one-way t-test and tell us whether you can reject the null hypothesis.  
+4) Let's use the `cifunz` function written above and `qnorm` to calculate 95% confidence intervals of a one-tailed, one-way test using the normal distribution. Can you reject the null hypothesis? How do the confidence intervals you calculated here (using the standard normal distribution) compare to those calculated originally (using the *t* distribution)?
+
+---------------------------------------------------------------------------------------------------------------------------
+
+You finished Exercise 2? Nice work! Let's consider the t-test output again and see whether we've manually calculated everything that it shows us.
+
+```{r, one way one tailed t test 2}
+t.test(apdata[,'concen'], alternative = 'less', mu = 0.1477)
+```
+Okay, so we calculated the confidence intervals and I understand how those can be used to reject or accept the null hypothesis. But what about the t-value, df, and p-value that I'm seeing in my t-test output? Where do those come from?
+
+Remember in lecture when Meha gave the example of standardizing the Flint lead level data to fit a standardized t distribution? That is what we're going to do now. Don't worry if how to do this is a bit unclear right now. Hopefully it will become more clear as we go through the exercise.
+
+You want to use the following formula to standardize your apple pesticide data to fit a standardized t distribution.
+```{r, standardize values to t distrib}
+tstat <- function(samplem, refval, sem) {
+  val <- (samplem - refval)/sem
+  return(val)
+  }
+```
+
+In this function:  
+
+- `samplem` = the mean of your sample  
+- `refval` = the reference value you are seeing whether your sample data is different from (or less/greater than in the case of a one-tailed test)  
+- `sem` = the standard error of the mean  
+
+Okay, let's now parameterize these values using our apple pesticide data
+```{r, calculate t val}
+samplem <- mean(apdata$concen)
+refval <- 0.1477
+sem <- sd(apdata$concen) / sqrt(length(apdata$concen))
+tval <- tstat(samplem, refval, sem)
+```
+*Does the t-statistic you calculated match what the t-test output tells you?* Yes!
+
+Now all that's left is the p-value. Since we now know the t-statistic, we can use the `pt` function in __R__ to quantify the percent of the t distribution that is to the left of the t-statistic. Remember that since we're using the t distribution, we need to include the degrees of freedom so we know the shape of the distribution.
+
+```{r, pval,eval=FALSE}
+pval <- pt(tval, df = length(apdata$concen) - 1)
+```
+*How does the p-value you just calculated compare to the p-value given in the t-test?* They match! Magic!
+
+Now let's visualize everything you just calculated to match the figures that Meha used in lecture. If you found what we've done so far in lab confusing, *please please please* reread your textbook, go through the lecture notes, go through the lab again, ask questions on Piazza, and/or come to office hours until all of the above makes sense. What we've just done is the bread and butter of this class (and frequentist statistics) so it is really important that you understand how all of these concepts work in practice!
+
+```{r, visualize t distrib}
+x <- seq(from = -4, to = 4, 0.1)
+plot(x, dt(x, df = length(apdata$concen) - 1), xlab = '', ylab = 'Frequency', main = 'Standardized t distribution (df=15775)', type = 'l') # this just plots the t distribution for the df of the apdata set
+abline(v = tval, col = 'red')
+cord.x <- c(-4, seq(from = -4, to = tval, 0.1), tval) 
+cord.y <- c(0, dt(seq(from = -4,to = tval, 0.1), df = length(apdata$concen) - 1), 0) 
+polygon(cord.x, cord.y, col = "grey30", border = NA)
+text(-2.5, 0.1, '4.6 %')
+```
+
+---------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 3__ (No R code or outputs required)  
+1. How would you use the above results to calculate the t-statistic, df, and p-value of a two-tailed, one-way t-test?   
+
+---------------------------------------------------------------------------------------------------------------------------
+
+## Two sample t-test
+
+Up until now we've been using a one sample t-test. Let's now consider a two sample t-test. The two sample t-test examines the hypothesis that the two population means from each sample are not significantly different from one another. 
+
+Let's switch to using the `iris` dataset. As a reminder, this is a dataframe that is already loaded in __R__. 
+
+Let's see if the means of sepal length are statistically different between `Species` `setosa` and `versicolor`. Check how many species are currently in the dataset. You can do this using:
+
+```{r, 2 way t test see data}
+table(iris$Species)
+```
+
+Since there are three species and not just the two we're interested in, we're going to have to subset the data. Remember how to do this? Subset the iris dataset so it only includes data for `setosa` and `versicolor`. You can name this new dataset `iris_sub`.
+
+```{r, 2 way t test sub,eval=FALSE}
+iris_sub <- subset(iris, Species %in% c('setosa', 'versicolor'))
+```
+
+Here's an alternate way of specifying the subset condition; *this does the exact same thing as the code above:*
+
+```{r}
+iris_sub <- subset(iris, Species == 'setosa' | Species == 'versicolor')
+```
+
+Now we can use the same t.test formula for our two-way t-test.
+```{r, 2 way t test,eval=FALSE}
+t.test(Sepal.Length ~ Species, data = iris_sub)
+```
+
+---------------------------------------------------------------------------------------------------------------------------
+
+__Exercise 4 __ (Some R code, outputs required) 
+1. Please write out the null and alternate hypothesis for the t-test above. Are you able to reject the null hypothesis? What does your result mean in non technical terms?    
+2. Please repeat the above analysis for `Sepal.Width`, `Petal.Length`, and `Petal.Width` for the `iris_sub` dataset. Please interpret the results of these 3 t-tests in non-technical terms. 
+
+I'm going to save you the next steps of calculating the confidence intervals, p-values, and t-value on your own, but just trust me that you would follow similar methods (at least conceptually) as those for the one-tailed, one-way t-test exercise. 
+
+---------------------------------------------------------------------------------------------------------------------------
