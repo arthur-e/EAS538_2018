@@ -58,11 +58,11 @@ __Alternative Hypothesis : __ The mean concentration of pesticide residue on eac
 t.test(apdata[,"concen"], mu = 0.1477)
 ```
 
-From the output, we there are two ways we can judge the null hypothesis.  
+From the output, there are two ways we can judge the null hypothesis.  
 1. The 95% confidence interval of the sample mean is from `r t.test(apdata[,"concen"], mu = 0.1477)$ conf.int[1]` to `r t.test(apdata[,"concen"], mu = 0.1477)$ conf.int[2]`. This does covers the reference value (0.1477), so we can't reject the null hypothesis given the data we have. Or, another way to put it is that we don't have enough data(evidence) to reject the null hypothesis.  
 2. The p-value of this two-tail test is `r t.test(apdata[,"concen"], mu = 0.1477)$p.value`, which is greater than the $\alpha$ value we set (0.05). We can't reject the null hypothesis given the data we have.
 
-*The third way to judge the null hypothesis is to compare the t-statistics of the reference value (0.1477) based on the data to the critical t-values corresponding to the $\alpha$ value we set (0.05).However the critical t-values are not reported in the output*
+*The third way to judge the null hypothesis is to compare the t-statistics of the reference value (0.1477) based on the data to the critical t-values corresponding to the $\alpha$ value we set (0.05). However the critical t-values are not reported in the output*
 
 ## Part 2
 
@@ -78,7 +78,7 @@ t.test(apdata[,"concen"], alternative = "less", mu = 0.1477)
 
 Similarly, from the output, we there are two ways we can judge the null hypothesis.  
 1. The 95% confidence interval of the sample mean is from `r t.test(apdata[,"concen"], alternative = "less", mu = 0.1477)$ conf.int[1]` to `r t.test(apdata[,"concen"], alternative = "less", mu = 0.1477)$ conf.int[2]`. This does NOT covers the reference value (0.1477), so we can reject the null hypothesis given the data we have. Or, we can say, we have enough data (evidence) to reject the null hypothesis.  
-2. The p-value of this two-tail test is `r t.test(apdata[,"concen"], mu = 0.1477)$p.value`, which is less than the $\alpha$ value we set (0.05). We can reject the null hypothesis given the data we have.
+2. The p-value of this two-tail test is `r t.test(apdata[,"concen"], alternative = "less", mu = 0.1477)$p.value`, which is less than the $\alpha$ value we set (0.05). We can reject the null hypothesis given the data we have.
 
 *Again, the critical t-values are not reported in the output, so we can't judge the null hypothesis by comparing the t-statistics of the reference value (0.1477) based on the data to the critical t-values corresponding to the $\alpha$ value we set (0.05).*
 
@@ -107,7 +107,9 @@ cifunt(meanval, tcritval, semval)
 ```
 
 The `cifunt` (and also `cifunz`) is not perfectly written, so it will always output both lower and upper bound of a specified confidence level according to the value input into `qt()` (or `qnorm()`). Take this case for example, because we put *0.95* in the `qt()` function, `cifunt()` function will output both the lower and upper bound of *90%* confidence level. However, since we want to use this function (`cifunt()`) for an one-tail test, we compare the reference value (0.1477) to one of these two boundaries. By doing so, the confidence level becomes -Inf to the upper bound (or the lower bound to Inf). This confidence interval covers 95% of the data (because we include one side of the 5%) and thus becomes a 95% confidence interval. 
-  
+
+## Part 2
+
 > Can you reject the null hypothesis based on the confidence intervals that you calculated?
 
 If we are testing the following null and alternative hypothesis. 
@@ -116,7 +118,7 @@ __Null Hypothesis 1 : __ The mean concentration of pesticide residue on each app
 
 __Alternative Hypothesis 1 : __ The mean concentration of pesticide residue on each apple tested is less than from the USDA limit, 0.1477.
 
-We use only the upper boundary for this null hypothesis, so that the confidence interval is from -Inf to `r cifunt(meanval, tcritval, semval)[2]`. The refercen value (0.1477) falls out side of the confidence interval, so we can reject the null hypothesis. 
+We use only the upper boundary for this null hypothesis, so that the confidence interval is from -Inf to `r cifunt(meanval, tcritval, semval)[2]`. The reference value (0.1477) falls out side of the confidence interval, so we can reject the null hypothesis. 
 
 Similarly, we can calculate the confidence interval base on another set of null and alternative hypothesis. 
 
@@ -125,6 +127,10 @@ __Null Hypothesis 2 : __ The mean concentration of pesticide residue on each app
 __Alternative Hypothesis 2 : __ The mean concentration of pesticide residue on each apple tested is less than from the USDA limit, 0.1477.
 
 In this case, the confidence interval becomes `r cifunt(meanval, tcritval, semval)[1]` to Inf. So that we can't reject this null hypothesis. 
+
+In conclusion, by calculating the confidence interval, we have the same results and the confidence interval we manually calculated matched those from the `t.test()` function. This is the second way of judging a null hypothesis. 
+
+## Part 3
 
 > How would you change the code above if you ran a two-tailed, one-way t-test? Please calculate 95% confidence intervals for a two-tailed, one-way t-test and tell us whether you can reject the null hypothesis. 
 
@@ -136,17 +142,19 @@ semval <- (sd(apdata$concen) / sqrt(length(apdata$concen)))
 cifunt(meanval, tcritval, semval)
 ```
 
-Because we are doing a two-tail test, we should use both lower and upper boundraries. In this case, we should modify the input for `qt()` function from 0.95 to 0.975. In this case, the null and alternative hypothesis become as follow. 
+Because we are doing a two-tail test, we should use both lower and upper boundaries. In this case, we should modify the input for `qt()` function from 0.95 to 0.975. In this case, the null and alternative hypothesis become as follow. 
 
 __Null Hypothesis : __ The mean concentration of pesticide residue on each apple tested is not different to the USDA limit, 0.1477.  
 
 __Alternative Hypothesis : __ The mean concentration of pesticide residue on each apple tested is  different from the USDA limit, 0.1477.
 
-The reference value (0.1477) falls within the confidence level, so that we cannot reject the null hypothsis give the data. 
+The reference value (0.1477) falls within the confidence level, so that we cannot reject the null hypothesis give the data. 
+
+## Part 4
 
 > Let's use the `cifunz` function written above and `qnorm` to calculate 95% confidence intervals of a one-tailed, one-way test using the normal distribution. Can you reject the null hypothesis? How do the confidence intervals you calculated here (using the standard normal distribution) compare to those calculated originally (using the *t* distribution)?
 
-This question is a bit tricky. We intend to have you calculate the condifence interval with the `cifunz()` based on the data, not the resampled means (the `mean_vector` variable). Ideally, you will find that the confidence interval calculated based on t-distribution and z-distribution (standard normal distribution) are similar because the sample size is sufficiently large. 
+This question is a bit tricky. We intend to have you calculate the confidence interval with the `cifunz()` based on the data, not the resampled means (the `mean_vector` variable). Ideally, you will find that the confidence interval calculated based on t-distribution and z-distribution (standard normal distribution) are similar because the sample size is sufficiently large. 
 
 ```{r}
 meanval <- mean(apdata$concen)
@@ -156,18 +164,18 @@ semval <- (sd(apdata$concen) / sqrt(length(apdata$concen)))
 cifunz(meanval, zcritval, semval)
 ```
 
-However, because the data is *NOT* normally distributed, technotically, we can't use t-test on this data. Although the mean of the data is still from a normal distribution, the standard deviation of this normal distribution can *NOT* be estimated by the standard error of the sample mean. 
+However, because the data is *NOT* normally distributed, technologically, we can't use t-test on this data. Although the mean of the data is still from a normal distribution, the standard deviation of this normal distribution can *NOT* be estimated by the standard error of the sample mean. 
 
 ```{r, mean function run}
 mean_vector <- meansVector(apdata, 10000, 1000, 'concen')
 ```
 
-We can see this by comparing the standard error of the sample mean (`r semval`) to the standard deviation of the distribution of the means (the standard deviation of the `mean_vector` variable; `r sd(mean_vector)`) Although this seems incorrect, but given the fact that we have large enought size, t-test is still the best practice. Provided our sample size isn't too small, **we shouldn't be overly concerned** if our data appear to violate the normal[ity] assumption. 
+We can see this by comparing the standard error of the sample mean (`r semval`) to the standard deviation of the distribution of the means (the standard deviation of the `mean_vector` variable; `r sd(mean_vector)`). Although this seems incorrect, but given the fact that we have large enough size, t-test is still the best practice. Provided our sample size isn't too small, **we shouldn't be overly concerned** if our data appear to violate the normal[it] assumption. 
 
 Moreover, I include a simulation in the end of this document demonstrating you that violating the normal distribution assumption should not affect the results too much. [An article on the Stats StackExchange](https://stats.stackexchange.com/questions/9573/t-test-for-non-normal-when-n50) also contains similar robustness language:  
 * The t-test assumes that the means of the different samples are normally distributed; it does not assume that the population is normally distributed.  
 * For approximately normal distributions, you won't need as large sample as a very non-normal distribution.  
-* As far as I know, t-test is fairly resistent to moderate deviations from normality."
+* As far as I know, t-test is fairly resistant to moderate deviations from normality."
 
 # Exercise 3
 
@@ -207,7 +215,7 @@ text(2.3, 0.2, 't-statistic \n = 1.683735')
 
 From the above calculation, the t-statistic is `r tval`, which is the quantile of the reference value (0.1477) in the t-distribution calculated based on the mean (`r samplem`) and the degree of freedom (`r length(apdata$concen) - 1`) of the data. The p-value (`r pval`) is the probability of seeing any t-statistic that is less than the t-statistic of the reference value (`r tval`). 
 
-However, if it is a two-tail test, we should consider the probability of of seeing any t-statistic that is less than the t-statistic of the reference value (`r tval`) and any t-statistic that is greater than the opposit the t-statistic of the reference value (`r -tval`). 
+However, if it is a two-tail test, we should consider the probability of of seeing any t-statistic that is less than the t-statistic of the reference value (`r tval`) and any t-statistic that is greater than the opposite the t-statistic of the reference value (`r -tval`). Therefore, we should times the p-value we calculated by 2. 
 
 # Exercise 4
 
@@ -224,7 +232,7 @@ __Null Hypothesis : __ The mean Sepal length of _setosa_ species is not differen
 
 __Alternative Hypothesis : __ The mean Sepal length of _setosa_ species is different from the Sepal length of _versicolor_. 
 
-Based on the condifernce interval or the p-value, we can reject the null hypothesis. This means the The mean Sepal length of _setosa_ species is different from the Sepal length of _versicolor_ given the data we have. 
+Based on the conference interval or the p-value, we can reject the null hypothesis. This means the The mean Sepal length of _setosa_ species is different from the Sepal length of _versicolor_ given the data we have. 
 
 ## Part 2
 
@@ -241,7 +249,7 @@ __Null Hypothesis : __ The mean Sepal width of _setosa_ species is not different
 
 __Alternative Hypothesis : __ The mean Sepal width of _setosa_ species is different from the Sepal width of _versicolor_. 
 
-Based on the condifernce interval or the p-value, we can reject the null hypothesis. This means the The mean Sepal width of _setosa_ species is different from the Sepal width of _versicolor_ given the data we have. 
+Based on the conference interval or the p-value, we can reject the null hypothesis. This means the The mean Sepal width of _setosa_ species is different from the Sepal width of _versicolor_ given the data we have. 
 
 ### Comparing the Petal length 
 
@@ -254,7 +262,7 @@ __Null Hypothesis : __ The mean Petal length of _setosa_ species is not differen
 
 __Alternative Hypothesis : __ The mean Petal length of _setosa_ species is different from the Petal length of _versicolor_. 
 
-Based on the condifernce interval or the p-value, we can reject the null hypothesis. This means the The mean Petal length of _setosa_ species is different from the Petal length of _versicolor_ given the data we have. 
+Based on the confidence interval or the p-value, we can reject the null hypothesis. This means the The mean Petal length of _setosa_ species is different from the Petal length of _versicolor_ given the data we have. 
 
 ### Comparing the Petal Width 
 
@@ -267,7 +275,7 @@ __Null Hypothesis : __ The mean Petal width of _setosa_ species is not different
 
 __Alternative Hypothesis : __ The mean Petal width of _setosa_ species is different from the Petal width of _versicolor_. 
 
-Based on the condifernce interval or the p-value, we can reject the null hypothesis. This means the The mean Petal width of _setosa_ species is different from the Petal width of _versicolor_ given the data we have.
+Based on the confidence interval or the p-value, we can reject the null hypothesis. This means the The mean Petal width of _setosa_ species is different from the Petal width of _versicolor_ given the data we have.
 
 
 # Consequence of violating normal distribution assumption
@@ -282,7 +290,7 @@ hist(gamma, breaks=30, probability=TRUE, main="probability density function of g
 lines(density(gamma), col="red")
 ```
 
-Here, I set the mean of gamma distribution to be the same with the normal distribution, so that the null hypothesis should still always be true. 
+Here, I set the mean of gamma distribution to be the same with the normal distribution, so that the null hypothesis should still always be true. In this case, I compare 10 numbers from normal distribution to 10 numbers from gamma distribution. The sample size is fairly small. 
 
 ```{r}
 t_stat = function(x, y) { # generates values of t-test statistic
@@ -301,7 +309,7 @@ n = 10
 m = 10
 crit = c(qt(0.025, n+m-2), qt(0.975, n+m-2))
 
-nsim = 10000 # number of repetitions for ONE Monte Carlo simulation,
+nsim = 1000 # number of repetitions for ONE Monte Carlo simulation,
             # produces ONE estimate of the probability of a type 1 error.
 nrep = 1000 # number of repetitions of Monte Carlo simulation of length nsim,
            # needed to compute several (nrep) estimates of the probability of type 1 error
@@ -332,8 +340,8 @@ print(paste0("probability of making type I error = ", p));
 print(paste0("Standard error of the probability of making type I error = ", se))
 ```
 
-We see that the probability of making type I error becomes `r p` กำ `r se`. It also increase the probability of making Type I error.  
-
+We see that the probability of making type I error becomes `r p` กำ `r se`. It also increase the probability of making Type I error. However, the probability of committing type-I error only increased by 0.006, although we set the ${\alpha}$ value to 0.05. From this simulation, we see that violating normality assumption *WILL* increase the probability of committing type-I error, but not so severe. Recall that the sample size is pretty small (10 VS 10). When increasing sample size to 30 VS 30, the the probability of committing type-I error only increased by about 0.002, which should further alleviate your anxiety from violating normality assumption.  
+Again, we should *NOT* use t-test when the data is not normally distributed if we have better option. If not, we don't have to be too worry as t-test is fairly robust. 
 
 
 
