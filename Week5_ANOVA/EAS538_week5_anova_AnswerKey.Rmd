@@ -203,6 +203,21 @@ summary(aov(domgross_2013 ~ binary + as.factor(decade_code), data = bechdel))
 
 We see that the effect of passing or failing the Bechdel test is still significant, though the p-value is larger. This is natural; it indicates that much of the variation in our dependent variable (domestic gross) is due to the effect of `decade_code`. Now that some of that variation is already explained, the chance of a Type-I error is increased; that is, the chance of getting such a significant (mean) difference in domestic gross (due to the effect of `binary` alone, even if passing/failing the Bechdel test has no real effect i.e., null hypothesis is true) is increased.
 
+> Arthur, please check if my understanding make sense.
+
+```{r}
+library(magrittr)
+library(plyr)
+
+contable <- bechdel %>%
+  ddply(~decade_code, summarise,
+        yes = length(which(binary=="PASS")),
+        no = length(which(binary=="FAIL")))
+chisq.test(contable[,2:3])
+```
+
+This indicates that the reason for the decreased p-value of the `binary` variable is because the `binary` and `decade_code` variables are not independent. 
+
 If we're really only substantively interested in the effect of the Bechdel test, we can say **whether or not a film passes the Bechdel test has a significant effect on domestic gross regardless of the decade in which the film was made.**
 
 The effect of `decade_code` is also significant (p-value much less than 0.05). Thus, if we're also substantively interested in the effect of the decade when the film was made, we can say **both the decade in which a film was made and whether or not the film passes the Bechdel test have a significant effect on domestic gross.**
