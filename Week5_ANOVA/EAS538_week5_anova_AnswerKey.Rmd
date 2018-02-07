@@ -60,7 +60,7 @@ You can write the null hypothesis in a number of different ways; here's my take:
 ccyes <- c(69, 31)
 ccno <- c(68, 32)
 state <- c('Texas', 'Michigan')
-contable <- rbind(ccyes, ccno)
+contable <- cbind(ccyes, ccno)
 colnames(contable) <- state
 contable
 chisq.test(contable)
@@ -153,7 +153,7 @@ In the two-way ANOVA, we test two things:
 1. Is the mean CO2 uptake different between `Treatment` groups, **controlling for** the effect of `Type`?
 2. Is the mean CO2 uptake different between `Type` of plant , **controlling for** the effect of `Treatment` group?
 
-What we mean by "controlling for" will be more clear when we talk about linear regression but here's how you can think about it in the context of this problem. Suppose that the effect of `Treatment` is only significant for plants of the `Mississippi` type? We might get a significant result (rejection of the null hypothesis) in the one-way ANOVA on `Treatment` only, especially if the `Mississippi` group membership is larger than the other group and the effect of `Treatment` on `Mississipppi` plants is very large.
+Conceptually, the idea of "statistical controlling for variable A" is that we want to see the effect of other variables on the dependent variable (the y) by holding variable A constant. This idea will be more clear when we talk about linear regression but here's how you can think about it in the context of this problem. Suppose that the effect of `Treatment` is only significant for plants of the `Mississippi` type? We might get a significant result (rejection of the null hypothesis) in the one-way ANOVA on `Treatment` only, especially if the `Mississippi` group membership is larger than the other group and the effect of `Treatment` on `Mississipppi` plants is very large.
 
 In the two-way test, we evaluate the effect of `Treatment` on the outcome (CO2 uptake) **within each `Type` of plant.** If the variation in the outcome (CO2 uptake) is explained much better by the `Type` of plant, which is true in this hypothetical situation where the effect of `Treatment` is only significant for `Mississippi` plants, then we would find that `Treatment` is no longer a significant effect. Discriminating the *conditional* effect of `Treatment` is important, in this case.
 
@@ -187,7 +187,7 @@ mean(subset(bechdel, binary == 'PASS')$domgross_2013, na.rm = TRUE)
 mean(subset(bechdel, binary == 'FAIL')$domgross_2013, na.rm = TRUE)
 ```
 
-We now the difference is significant, so we can also say that films that passed the Bechdel test had a *significantly lower* domestic gross (in 2013 dollars) than those failed the test.
+We know the difference is significant, so we can also say that films that passed the Bechdel test had a *significantly lower* domestic gross (in 2013 dollars) than those failed the test.
 
 **Note:** Some people ran into issues where they did not load the `fivethirtyeight` package into their R session or their RMarkdown file prior to trying to use `bechdel` dataset.
 While `bechdel` is a built-in dataset, it is built into the `fivethirtyeight` package, not the base R installation.
