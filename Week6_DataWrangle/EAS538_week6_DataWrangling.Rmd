@@ -83,6 +83,33 @@ __Exercise 1__
 
 --------------------------------------------------------------------------------------------------------------------------------
 
+# summarize
+
+In the previous exercise, we saw how we coud use `mutate()` to create a new column in our data frame; this column could contain a calculation based on the other columns in the data frame (such as the average of two columns, as we saw above).
+**The `mutate()` function always returns one value per row.**
+Sometimes, we want to *aggregate* our data over multiple rows.
+We can do this with the `summarize()` function in `dplyr`.
+
+```{r}
+summarize(RY,
+  mean.RY1 = mean(RY1),
+  mean.RY2 = mean(RY2))
+```
+
+What did we do here? We calculate the mean of `RY1` and `RY2` across the entire dataset.
+This is usually not physically meaningful---we're often not interested in the mean across an entire dataset, where the rows may vary across totally different species (like this example) or across totally different days, months, or years of a longitudinal study.
+
+That is, typically, there are *groups* within our data and we want to summarize some quantity *within* each group.
+To summarize within groups, we first need to `group_by()` one or more **categorical variables** in our data.
+For instance, below, we can look at the *mean* relative yield for each species in the first species group.
+
+```{r}
+RY.grouped <- group_by(RY, sp1)
+summarize(RY.grouped,
+  mean.RY1 = mean(RY1),
+  mean.RY2 = mean(RY2))
+```
+
 # subset/filter
 
 There are two different functions that help you subset your data by specified rows or columns. There is the `subset()` function which is in the __base__ R package, and then there is `filter()` which is in the `dplyr` package. You will see this happen several times in the lab where you can perform a specific function either using a function in __base__ R or in the `dplyr` package. In general, the functions in `dplyr` will run faster and will allow you to sometimes to fancier things that the equivalent functions in __base__ R. 
@@ -175,7 +202,7 @@ RY.mt <- inner_join(RY.m, trait, by = 'sp1_name')
 mean(RY.mt[,"C.N"])
 ```
 
-# gather/spread
+# gather and spread
 
 One particular challenge that comes up when working with environmental field data is **the need to convert a table of results from "long" format to "wide" format.**
 What are long and wide format?
@@ -208,7 +235,7 @@ surveys %>%
   head
 ```
 
-## gather/spread with Oscar's Data
+## gather and spread with Oscar's Data
 
 Now, let's see how to convert Oscar's data from wide to long form and back using the `gather()` and `spread()` functions in the `tidyr` package.
 
