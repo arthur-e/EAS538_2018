@@ -37,11 +37,11 @@ library(ggplot2) # For plotting
 
 
 ```{r, read data}
-RY <- read.csv('/Users/mehajain/Desktop/RY.csv')
+RY <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/RY.csv", sep = ",", header = T,comment.char = "#")
 
-id <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/sp_id.csv", sep = ",", header = T,comment.char = "#")
+id <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_id.csv", sep = ",", header = T,comment.char = "#")
 
-trait <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/sp_stoi_traits.csv", sep = ",", header = T,comment.char = "#")
+trait <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_stoi_traits.csv", sep = ",", header = T,comment.char = "#")
 ```
 
 These data are from an experiment that Oscar and his labmates worked on in Brad Cardinale's lab here at SEAS. The experiment examined how well green algae grew if they were grown in combination with another species versus if they were grown alone. This experiment helps us understand if having more biodiversity leads to increased ecosystem functioning within a given system. Let's look at each of the datasets to see what they exactly contain:   
@@ -138,14 +138,13 @@ __Exercise 3__
 Both the `merge` and the series of `join` functions allow you to merge two datasets together based on a common property. The `merge` function is part of the __base__ R package and the series of `join` functions belong to the __dplyr__ package. In general, while you can do similar things using the `merge` and `join` functions, you are able to do more complicated merges using the `join` function and often the code to do the same task is a bit cleaner. 
 
 Let's merge in the species name data found in the `id` data frame into the `RY` data frame for both the columns `sp1` and `sp2`. 
-
 ```{r, merge}
 RY.m <- RY %>%
   merge(id, by.x="sp2", by.y="id") %>%
   merge(id, by.x="sp1", by.y="id") %>%
   arrange(sp1)
 
-colnames(RY.m)[c(6:7)]=c("sp2_name", "sp1_name")
+colnames(RY.m)[c(6:7)] <- c("sp2_name", "sp1_name")
 head(RY.m)
 ```
 
@@ -174,12 +173,12 @@ RY.mt <- left_join(RY.m, trait, by = 'sp1_name')
 colSums(is.na(RY.mt))
 ```
 
-However, if we do an `inner_join` these rows without data will not be added in. Check it out!
+However, if we do an `inner_join` these rows without data will not be added in, so that we do not have to use `is.na()` in the `colSums()` function. Check it out!
 
 ```{r,warning=FALSE,results='hide'}
 colnames(trait)[1] <- 'sp1_name'
 RY.mt <- inner_join(RY.m,trait,by='sp1_name')
-colSums(is.na(RY.mt))
+colSums(RY.mt)
 ```
 
 # melt/cast
