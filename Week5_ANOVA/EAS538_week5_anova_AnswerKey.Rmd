@@ -1,0 +1,223 @@
+---
+title: 'EAS 538 Week 5 Lab: Answer Key'
+author: "Written by K. Arthur Endsley and modified by Oscar Feng-Hsun Chang"
+date: "February 7, 2018"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: false
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercise 1
+
+## Exercise 1, Part 1
+
+Some of you noticed a typo in the lab: according to the Yale Climate Communication website, New York's percentage of residents who answer "Yes" is actually 77%, not 75%, but we'll stick with what was written in the lab.
+
+You can write the null hypothesis in a number of different ways; here's my take:
+
+- **$H_0$ (Null hypothesis):** *There is no difference* in the distribution of responses to the question, "Is global warming happening?" between New York and Kentucky.
+- **$H_A$ (Alternative hypothesis):** *There is a difference* in the distribution of responses to the question, "Is global warming happening?" between New York and Kentucky.
+
+```{r}
+ccyes <- c(75, 62)
+ccno <- c(25, 38)
+state <- c('New York', 'Kentucky')
+contable <- rbind(ccyes, ccno)
+colnames(contable) <- state
+contable
+chisq.test(contable)
+```
+
+The p-value of 0.06775 is larger than our alpha/ critical value of 0.05. Thus, we fail to reject the null hypothesis at the 95% confidence level.
+
+If we change our confidence level to 90% and, therefore, our alpha/ critical value to 0.10, we can reject the null hypothesis at the 90% confidence level (because $0.06755 < 0.10$).
+
+## Exercise 1, Part 2
+
+Meha asks, "How did I use these to parameterize my `ccyes` and `ccno` values above?" Some of you noticed when you click on Kentucky, for instance, you can identify that 62% of residents answered "Yes" but only 18% answered "No." What about the remaining 20% of residents? The Yale website doesn't make that clear but they are undecided. What we've done here, for simplicity, is to lump these possibly "undecided" voters in with the "No" group. This is a reasonable assumption if the question is phrased properly: Is there a difference between New York and Kentucky in the percentage of residents who conclusively believe "global warming is happening?"
+
+You can choose any two states for this next example. I chose my (Arthur's) state of birth, **Texas** (only republic ever to be annexed into the U.S.; has its own state-wide electric grid), and my home state, **Michigan** (longest shoreline of U.S. states, absolutely gorgeous place to live, got a better deal than Ohio in the Toledo War).
+
+You can write the null hypothesis in a number of different ways; here's my take:
+
+- **$H_0$ (Null hypothesis):** *There is no difference* in the distribution of responses to the question, "Is global warming happening?" between Texas and Michigan.
+- **$H_A$ (Alternative hypothesis):** *There is a difference* in the distribution of responses to the question, "Is global warming happening?" between Texas and Michigan.
+
+```{r}
+ccyes <- c(69, 31)
+ccno <- c(68, 32)
+state <- c('Texas', 'Michigan')
+contable <- cbind(ccyes, ccno)
+colnames(contable) <- state
+contable
+chisq.test(contable)
+```
+
+The p-value of 1 here should not be interpreted as 100% (we can never be 100% sure of anything in statistics). It is so high (p-value so close to 1) because the distributions of "Yes" and "No" are virtually identical. Given our alpha/ critical value of 0.05, we fail to reject the null hypothesis at the 95% confidence level.
+
+Turns out Michigan and Texas are both pretty average in this respect! The U.S. percentage of "Yes" responses is 69%.
+
+# Exercise 2
+
+## Exercise 2, Part 1
+
+> Which treatments are significantly different from one another according to the results of the `TukeyHSD`?
+
+```{r}
+data(OrchardSprays)
+spray.aov <- aov(decrease ~ treatment, data = OrchardSprays)
+TukeyHSD(spray.aov)
+```
+
+**All that's really necessary here is to show the output of the function and in some way highlight which treatment (pairs) are significant.**
+
+Some of you were looking for a quick/ programmatic way of accessing the p-value table in the output above.
+Remember the `str()` function? Calling this function on weird R objects like the output from the `TukeyHSD()` function can sometimes help you to figure out how to tease apart results.
+
+```{r}
+tukey.output <- TukeyHSD(spray.aov)
+str(tukey.output)
+```
+
+We see here that the output of the `TukeyHSD()` function---let's just a call it a Tukey test object---has this `$ treatment` notation, similar to what we see when we call `str()` on a data frame.
+The Tukey test object is not a data frame and `treatment` is not a "column," but lots of objects in R have "slots" that can be accessed through the `$` notation. The Tukey test object's treatment matrix can be accessed in this way.
+
+```{r}
+class(tukey.output$treatment)
+```
+
+The result is a matrix. Remember how to subset matrices and data frames?
+Because the p-value column is written with a space in the name (`p val`), we can't use the `subset()` function, but there are other ways to slice a matrix/ data frame.
+
+```{r}
+tukey.output.matrix <- tukey.output$treatment
+
+# The 4th column is the column of p-values
+p.values <- tukey.output.matrix[,4]
+
+# Which p-values are less than 0.05?
+p.values < 0.05
+
+# Remember that we can subset a matrix or data frame with a logical vector the
+#   same length as the number of rows
+tukey.output.matrix[p.values < 0.05,]
+```
+
+We could either read off the labels from the `p.values < 0.05` output or go the extra step of slicing the `tukey.output.matrix` to show just those results that are significant.
+
+## Exercise 2, Part 2
+
+> Why do we use the Tukey's HSD test instead of just running multiple t-tests that compare each pair of treatments in your sample?
+
+There are a couple of different reasons. Here, I list them in *order of importance;* i.e., in order of most important reason to least important reason.
+
+1. **Running multiple t-tests increases our risk of a false positive (increases our Type-I error rate).** This is because, like everything in statistics, t-tests are based on chance. When we select a 95% confidence level, we are saying that we accept a risk of a false positive (Type-I error) of no more than 5%. That is, if we could somehow run this experiment 20 times and we knew that the null hypothesis was true, we accept that we will still get a significant result (a false positive) 1 in 20 times. Because our sample is just one part of the larger population, and because which measurements are included in our sample is determined by chance, we can get a significant result *by chance* even when the null hypothesis is true. Conducting multiple tests is like rolling the dice again and again (or flipping a coin over and over again): eventually, we will get a significant result even though the null hypothesis is true.
+2. Even if we correct our t-tests for multiple testing or choose a higher threshold for significance (e.g., 99% confidence level), **Tukey's HSD test is already parameterized for multiple testing; it already adjusts the p-values** to reflect the fact we are more likely to get a false positive because of multiple testing.
+3. **It is easier to run a single test than to run multiple tests.**
+
+How many pair-wise (two-sample) t-tests would we have to run to approximate the result of a single Tukey's HSD test? This number is given by the *binomial coefficient,* the number of unique combinations of 2, out of $M$ possible choices. There are $M=8$ treatments in the `OrchardSprays` data, so:
+
+```{r}
+choose(8, 2)
+```
+
+There are 28 t-tests we'd have to run, even if multiple testing wasn't a concern (and it is).
+
+# Exercise 3
+
+> Please interpret the results of your two-way ANOVA. Which factors have a significant effect on CO2 uptake?
+
+```{r}
+data(CO2)
+CO2.aov <- aov(uptake ~ Treatment + Type, data = CO2)
+summary(CO2.aov)
+```
+
+Our two-way ANOVA tests whether both `Treatment` and `Type` are significant effects on CO2 uptake.
+It is not equivalent to running two separate one-way ANOVAs.
+In the two-way ANOVA, we test two things:
+
+1. Is the mean CO2 uptake different between `Treatment` groups, **controlling for** the effect of `Type`?
+2. Is the mean CO2 uptake different between `Type` of plant , **controlling for** the effect of `Treatment` group?
+
+Conceptually, the idea of "statistical controlling for variable A" is that we want to see the effect of other variables on the dependent variable (the y) by holding variable A constant. This idea will be more clear when we talk about linear regression but here's how you can think about it in the context of this problem. Suppose that the effect of `Treatment` is only significant for plants of the `Mississippi` type? We might get a significant result (rejection of the null hypothesis) in the one-way ANOVA on `Treatment` only, especially if the `Mississippi` group membership is larger than the other group and the effect of `Treatment` on `Mississipppi` plants is very large.
+
+In the two-way test, we evaluate the effect of `Treatment` on the outcome (CO2 uptake) **within each `Type` of plant.** If the variation in the outcome (CO2 uptake) is explained much better by the `Type` of plant, which is true in this hypothetical situation where the effect of `Treatment` is only significant for `Mississippi` plants, then we would find that `Treatment` is no longer a significant effect. Discriminating the *conditional* effect of `Treatment` is important, in this case.
+
+So, the one-way ANOVA and two-way ANOVA answer different questions:
+
+- **One-way ANOVA** (with `Treatment` as predictor of interest): Does `Treatment` group have an effect on the mean CO2 uptake?
+- **Two-way ANOVA** (with `Treatment` and now also `Type`): Does `Treatment` group have an effect on the mean CO2 uptake *for each `Type` of plant*?
+
+Finally, if we suspect the effect `Treatment` is *different* depending on the `Type` of plant (i.e., significant for both plant types, but a smaller effect for one and a larger effect for another), we would include an interaction term. If the interaction term is not significant but the main effect of `Treatment` is significant, we could conclude that the effect of `Treatment` is the same for both `Type` of plants.
+
+# Exercise 4
+
+## Exercise 4, Part 1
+
+> Please write out the null and alternate hypothesis. Can you reject the null hypothesis at alpha = 0.05 based on the p value of your ANOVA? Please explain your results in non-technical terms.
+
+- **$H_0$ (Null hypothesis):** The domestic gross of a film (in 2013 U.S. dollars) **is not different/ does not depend on** whether the film passed the Bechdel test or not.
+- **$H_A$ (Alternative hypothesis):** The domestic gross of a film (in 2013 U.S. dollars) **is different/ does depend on** whether the film passed the Bechdel test or not.
+
+```{r}
+library(fivethirtyeight)
+summary(aov(domgross_2013 ~ binary, data = bechdel))
+```
+
+The p-value of `2.6e-06` ($2.6\times 10^{-6}$) is much smaller than our alpha/ critical value of 0.05. Therefore, we can reject the null hypothesis at the 95% confidence level. **In non-technical terms, we can say that films that passed the Bechdel test have a significantly different mean domestic gross (in 2013 dollars) than those that failed the Bechdel test.**
+
+Did passing the Bechdel test result, on average, in a higher or lower domestic gross? The test told us the different is significant, but it doesn't tell us whether the mean domestic gross is higher or lower in the group that passed the Bechdel test. We can figure that our easily, however, just by examining the means in each group.
+
+```{r}
+mean(subset(bechdel, binary == 'PASS')$domgross_2013, na.rm = TRUE)
+mean(subset(bechdel, binary == 'FAIL')$domgross_2013, na.rm = TRUE)
+```
+
+We know the difference is significant, so we can also say that films that passed the Bechdel test had a *significantly lower* domestic gross (in 2013 dollars) than those failed the test.
+
+**Note:** Some people ran into issues where they did not load the `fivethirtyeight` package into their R session or their RMarkdown file prior to trying to use `bechdel` dataset.
+While `bechdel` is a built-in dataset, it is built into the `fivethirtyeight` package, not the base R installation.
+You must include `library(fivethirtyeight)` at the top of your R script or RMarkdown file.
+
+## Exercise 4, Part 2
+
+In this part, we are extending the work in Part 1 using a two-way ANOVA to see if passing or failing the Bechdel test is still a significant effect on domestic gross when we control for the decade in which the film was made.
+
+```{r}
+summary(aov(domgross_2013 ~ binary + as.factor(decade_code), data = bechdel))
+```
+
+We see that the effect of passing or failing the Bechdel test is still significant, though the p-value is larger. This is natural; it indicates that much of the variation in our dependent variable (domestic gross) is due to the effect of `decade_code`. Now that some of that variation is already explained, the chance of a Type-I error is increased; that is, the chance of getting such a significant (mean) difference in domestic gross (due to the effect of `binary` alone, even if passing/failing the Bechdel test has no real effect i.e., null hypothesis is true) is increased.
+
+> Arthur, please check if my understanding make sense.
+
+```{r}
+library(magrittr)
+library(plyr)
+
+contable <- bechdel %>%
+  ddply(~decade_code, summarise,
+        yes = length(which(binary=="PASS")),
+        no = length(which(binary=="FAIL")))
+chisq.test(contable[,2:3])
+```
+
+This indicates that the reason for the decreased p-value of the `binary` variable is because the `binary` and `decade_code` variables are not independent. 
+
+If we're really only substantively interested in the effect of the Bechdel test, we can say **whether or not a film passes the Bechdel test has a significant effect on domestic gross regardless of the decade in which the film was made.**
+
+The effect of `decade_code` is also significant (p-value much less than 0.05). Thus, if we're also substantively interested in the effect of the decade when the film was made, we can say **both the decade in which a film was made and whether or not the film passes the Bechdel test have a significant effect on domestic gross.**
