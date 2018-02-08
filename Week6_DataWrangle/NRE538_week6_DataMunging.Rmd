@@ -62,7 +62,7 @@ The dataframe `id` contains the species names that are associated with each of t
 head(trait)
 ```
 
-Finally, the dataframe `trait` contains information about the ratio of a species' element content including carbon to nitrogen ratio (`C.N`), carbon to phosphrous ratio (`C.P`) and nitrogen to phosphorous ratio (`N.P`)
+Finally, the dataframe `trait` contains information about the ratio of a species' element content including carbon to nitrogen ratio (`C.N`), carbon to phosphorus ratio (`C.P`) and nitrogen to phosphorous ratio (`N.P`)
 
 During this lab, we will combine all of the information from these three different dataframes into a final dataframe named `goal`, which is shown below. We will use functions in the __dplyr__ and __tidyr__ packages!
 
@@ -183,7 +183,7 @@ mean(RY.mt[,"C.N"])
 
 # melt/cast
 
-The `melt` function can make a data frame shift from "wide" form into "long" form.
+The `melt` function can make a data frame shift from "wide" form into "long" form. The `is.vars` argument means the variable that contains the identifier. The `measure.vars` argument means the variable(s) that contains the measurement.
 
 ```{r,results='hide'}
 RY.long <- RY %>%
@@ -191,13 +191,15 @@ RY.long <- RY %>%
 head(RY.long)
 ```
 
-The `cast` function is the reverse of `melt`!
+The `cast` function is the reverse of `melt`. 
 
 ```{r,results='hide'}
 RY.wide <- RY.long %>%
   dcast(sp2+sp1 ~ RY_type)
 head(RY.wide)
 ```
+
+Here's another [tutorial](http://seananderson.ca/2013/10/19/reshape.html) for you to review.
 
 Btw - if you are dealing with a very large dataset, the [__data.table__](https://cran.r-project.org/web/packages/data.table/index.html) package will be a good friend, but we are not going to cover that in this class! We just wanted you to know about it in case you need it in the future :)
 
