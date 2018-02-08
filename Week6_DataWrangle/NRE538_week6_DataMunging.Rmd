@@ -170,15 +170,15 @@ We can also perform different types of joins. `inner_join` only includes rows fo
 ```{r,warning=FALSE,results='hide'}
 colnames(trait)[1] <- 'sp1_name'
 RY.mt <- left_join(RY.m, trait, by = 'sp1_name')
-colSums(is.na(RY.mt))
+mean(RY.mt[,"C.N"], na.rm = TRUE)
 ```
 
-However, if we do an `inner_join` these rows without data will not be added in, so that we do not have to use `is.na()` in the `colSums()` function. Check it out!
+However, if we do an `inner_join` these rows without data will not be added in, so that we do not have to use `na.rm()` in the `mean()` function. Check it out!
 
 ```{r,warning=FALSE,results='hide'}
 colnames(trait)[1] <- 'sp1_name'
-RY.mt <- inner_join(RY.m,trait,by='sp1_name')
-colSums(RY.mt)
+RY.mt <- inner_join(RY.m, trait, by = 'sp1_name')
+mean(RY.mt[,"C.N"])
 ```
 
 # melt/cast
