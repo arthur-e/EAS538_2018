@@ -1,7 +1,7 @@
 ---
-title: "NRE538_Data Munging"
-author: "Oscar Feng-Hsun Chang"
-date: "Week6"
+title: "EAS 538 Data Wrangling"
+author: "Written by Oscar Feng-Hsun Chang and Meha Jain and modified by Arthur Endsley"
+date: "Week 6"
 output: 
   html_document:
     code_folding: show
@@ -16,17 +16,18 @@ output:
       toc_depth: 4
 ---
 
-We have seen some basic functions built in the _base_ package of __R__ (which means you don't have to install anything). However, there are several packages that allows you to clean/reorganize/munge the data in a more elegant and efficient fashion. They are [__reshape2__](https://cran.r-project.org/web/packages/reshape2/reshape2.pdf), [__plyr__](https://cran.r-project.org/web/packages/plyr/plyr.pdf),
-[__dplyr__](https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html), or 
+We have seen some basic functions built in the _base_ package of __R__ (which means you don't have to install anything). However, there are several packages that allow you to clean/reorganize/wrangle the data in a more elegant and efficient way. They are [__reshape2__](https://cran.r-project.org/web/packages/reshape2/reshape2.pdf), [__dplyr__](https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html), or 
 [__tidyr__](https://cran.r-project.org/web/packages/tidyr/tidyr.pdf) packages. There even exists a cheat sheet for [__dplyr__ and __tidyr__](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) packages.
 
-We've seen `order`, `subset`, `r/cbind`, and `merge` before. Let's explore some more handy functions in the __reshape2__ and __plyr__ packages.
+We've seen `order`, `subset`, `r/cbind`, and `merge` before. Let's explore some more handy functions in the __reshape2__ and __dplyr__ packages.
 
-```{r}
+```{r, load package,message=FALSE, warning=FALSE}
 library(reshape2)
+library(dplyr)
 library(plyr)
 library(magrittr)
 ```
+If you don't have any of these packages installed, please install them first!
 
 ```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
 library(rmarkdown)
@@ -36,142 +37,152 @@ library(RCurl)
 ```
 
 
-```{r}
-RY=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/RY.csv"), sep=",", header=T,comment.char="#")
+```{r, read data}
+RY=read.csv('/Users/mehajain/Desktop/RY.csv')
 
 id=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/sp_id.csv"), sep=",", header=T,comment.char="#")
 
 trait=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/sp_stoi_traits.csv"), sep=",", header=T,comment.char="#")
 ```
+These data are from an experiment that Oscar and his labmates worked on in Brad Cardinale's lab here at SEAS. The experiment examined how well green algae grew if they were grown in combination with another species versus if they were grown alone. This experiment helps us understand if having more biodiversity leads to increased ecosystem functioning within a given system. Let's look at each of the datasets to see what they exactly contain:   
 
-```{r, echo=FALSE}
-goal=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/goal.csv"), sep=",", header=T,comment.char="#")
+```{r head RY, eval=FALSE}
+head(RY)
 ```
 
-Our goal is to organize the three data frames into the `goal` data frame.  
-Following are some functions for organizing/cleaning/munging data in R. 
+The dataframe `RY` contains information about which two species were grown together, `sp1` and `sp2`. It also contains information about how well these species grew as measured by their relative yield. Relative yield is defined as the relative biomass of a given species when compared to how much the biomass of the species would have been if it were grown alone. For example, a relative yield that is < 1 means that the species had less biomass when grow in combination with another species than it would have had if it were grown alone. A relative yield = 1 means that the species had the same biomass when grown in combination with another species and when grown alone. And a relative yield > 1 means that the species had increased biomass when grown in combination with another species than when grown alone. These variables are represented in the columns `RY1`, which is the relative yield of species 1, and `RY2`, which is the relative yield of species 2.   
 
-```{r}
-head(goal)
+```{r head id, eval=FALSE}
+head(id)
+```
+The dataframe `id` contains the species names that are associated with each of the species IDs found in the dataframe `RY`.
+
+```{r head trait, eval=FALSE}
+head(trait)
+```
+Finally, the dataframe `trait` contains information about the nutrient uptake rate of each species for Carbon, Nitrogen, and Phosphorus. 
+
+During this lab, we will combine all of the information from these three different dataframes into a final dataframe named `goal`, which is shown below. We will use functions in the __dplyr__ and __tidyr__ packages!
+
+```{r goal, echo=FALSE}
+goal=read.csv(text=getURL("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/Labs/NRE538_DataWrangling/goal.csv"), sep=",", header=T,comment.char="#") 
+head(goal) 
 ```
 
 # mutate
 
-Given a data frame, `mutate()` modifies, adds, or removes variables.
+Given a data frame, `mutate` modifies, adds, or removes variables from that data frame. 
 
-```{r}
+```{r,results='hide'}
 head(RY)
-
-RY = RY %>%
-  mutate(avgry = (RY1+RY2)/2)
-head(RY)
-
-RY = RY %>%
-  mutate(avgry = avgry/2)
+RY = mutate(RY, avgRY = (RY1+RY2)/2)
 head(RY)
 ```
 
-# subset
+__Exercise 1__    
+1. What did we just do using the mutate function? What column was added? What does the column represent?    
+2. Please use the mutate function to create a new column that is the sum of `RY1` and `RY2`. Name this new column `RYTotal` and name this new dataframe 'RY.t'. Please do not add this new column to the `RY` dataset because if you do you will run into problems later in the lab!
 
-This allows you to `subset()` rows or `select` (this is an argument in `subset()`, NOT a function here!) columns.
+# subset/filter
 
-```{r}
-sp1 = RY %>%
-  subset(sp1==1, select=c(RY1))
+There are two different functions that help you subset your data by specified rows or columns. There is the `subset` function which is in the __base__ R package, and then there is `filter` which is in the `dplyr` package. You will see this happen several times in the lab where you can perform a specific function either using a function in __base__ R or in the __dplyr__ package. In general, the functions in `dplyr` will run faster and will allow you to sometimes to fancier things that the equivalent functions in __base__ R. 
+
+Let's look at the `subset` function in __base__ R. This function allows you to `subset` rows or `select` columns. Please note that `select` is an argument within the `subset` function and is not a function in it of itself. Let's try it out!
+
+```{r subset, eval=FALSE}
+sp1 = subset(RY, sp1==1, select=c(RY1))
 head(sp1)
 ```
+__Exercise 2__   
+1. Please use the subset function to subset your data for species number 17 in the species 2 column (`s2`). Name this subset `sp17`. Now subset this data frame, `sp17`, to only include the column `RY2`.  
 
-This can also be achieved by the `filter()` (for rows) and `select()` (for columns) functions in the __dplyr__ package.
+You can also filter rows using the function `filter()` within the __dplyr__ package. Below we'll create the same `sp17` dataset you created in Exercise 2 using `subset`.    
+```{r filter, eval=FALSE}
+sp17 = filter(RY, sp2==17)
+head(sp17)
+```
+In both of these functions, `subset` and `filter`, you can also use more complicated selection criteria. Please look at the possible ways you can filter data under the heading `Useful filter functions` in the `?filter` help page.  
+
+Let's use the information we just learned to try a few more subsets.  
+```{r filter fancy,eval=FALSE}
+sp_test1 = filter(RY, sp2==17 & sp1==1)
+head(sp_test1)
+
+sp_test2 = filter(RY, sp2==17 | sp1==1)
+head(sp_test2)
+```
+__Exercise 3__    
+1. Please explain the difference between the above two data frames you created `sp_test1` and `sp_test2`. What is the difference between using `&` versus `|` in the `filter` or `subset` functions? Feel free to use the `?filter` function if you'd like more information.
 
 # merge/join
 
-These two, by its name, do the *join* operation.
-The `merge()` belongs to the __base__ package, and the `join()` belongs to __plyr__.
+Both the `merge` and the series of `join` functions allow you to merge two datasets together based on a common property. The `merge` function is part of the __base__ R package and the series of `join` functions belong to the __dplyr__ package. In general, while you can do similar things using the `merge` and `join` functions, you are able to do more complicated merges using the `join` function and often the code to do the same task is a bit cleaner. 
 
-```{r}
+Let's merge in the species name data found in the `id` data frame into the `RY` data frame for both the columns `sp1` and `sp2`. 
+
+```{r, merge}
 RY.m = RY %>%
   merge(id, by.x="sp2", by.y="id") %>%
   merge(id, by.x="sp1", by.y="id") %>%
   arrange(sp1)
 
-colnames(RY.m)[c(7:8)]=c("sp2_name", "sp1_name")
+colnames(RY.m)[c(6:7)]=c("sp2_name", "sp1_name")
 head(RY.m)
 ```
+Let's talk through what the above code just did. The data frame referenced before `%>%` is the data frame that the code following the `%>%` acts on. So for example, in the above code, we first merge species name (`id`) for species 2 (`sp2`) in the `RY` data frame. Next, we merge species name (`id`) for species 1 (`sp1`) to this new data frame that we didn't name but contains the species name for species 2. Finally, we order the data so that the rows increase based on the number in the species 1 columns (`sp1`). That was a lot to digest so if you are confused about any of the above please ask me! Finally, we rename the column names for the 2 new columns we added `sp2_name` and `sp1_name1`.
 
-In the `join()`, we can specify the `type`, which is the same with the `all` argument in the `merge()` function. Try `? join` to understand it. 
+We can use the series of `join` functions to do the same thing. Type `?join` to learn more about the available formulas. If two types of joins show up in your help table, select the one that says 'Join two tbls together' from the `dplyr` library. For the join function to work, we need the columns we want to join to have the same name.
 
-```{r}
-colnames(trait)[1] = "sp"
-trait.1 = trait %>%
-  join(id, by="sp", type="left")
-  # merge(id, by="sp", all.x=TRUE) This and the above arguments will do the same thing.
-head(trait.1)
+```{r join}
+colnames(id)[2]='sp1'
+RY.m=left_join(RY,id,by='sp1')
+colnames(RY.m)[6]='sp1_name'
+
+colnames(id)[2]='sp2'
+RY.m=left_join(RY.m,id,by='sp2')
+colnames(RY.m)[7]='sp2_name'
+
 ```
 
-Let's merge the two data frames but exclude species that have no trait information. We should have the following data frame. 
+The benefits of `left_join` over `merge` are that it merges your data in to follow the same order of your original dataset. If you look back up to the `merge` function, you'll see that we had to add in an additional line of code `arrange` to rearrange our dataset to the original order. This is because when you do the merge, rows will often get mixed around. `left_join` avoids this problem and always merges your data to match the same order of the first dataset you input into the `left_join` function. 
 
-```{r, echo=FALSE}
-trait.2 = trait %>%
-  join(id, by="sp", type="inner")
-  # merge(id, by="sp", all=FALSE) This and the above arguments will do the same thing.
-  # subset(select=c(id, C.N, C.P, N.P))
-head(trait.2)
+We can also perform different types of joins. `inner_join` only includes rows for which we have information in both datasets that we are merging together. For example, if we consider merging in the `trait` data frame, if we do a `left_join` we'll notice some rows have `NA` in the `C.N`,`C.P`, and `N.P` columns we just added (27 NAs to be exact!). 
+
+```{r,warning=FALSE,results='hide'}
+colnames(trait)[1]='sp1_name'
+RY.mt=left_join(RY.m,trait,by='sp1_name')
+colSums(is.na(RY.mt))
 ```
 
-# ddply
-
-This is a very useful function that allows you to apply a function to a data frame and reture a data frame back.  
-I always use this to summarize my own data. 
-
-```{r}
-sum = RY.m %>%
-  ddply(~sp1, summarize,
-        mean=mean(RY1),
-        med=quantile(RY1, 0.5),
-        lo=quantile(RY1, 0.05),
-        hi=quantile(RY1, 0.95))
-sum
+However, if we do an `inner_join` these rows without data will not be added in. Check it out!
+```{r,warning=FALSE,results='hide'}
+colnames(trait)[1]='sp1_name'
+RY.mt=inner_join(RY.m,trait,by='sp1_name')
+colSums(is.na(RY.mt))
 ```
 
 # melt/cast
 
-`melt` function can make a data frame from "wide" form into a "long" form.
+The `melt` function can make a data frame shift from "wide" form into "long" form.
 
-```{r}
+```{r,results='hide'}
 RY.long = RY %>%
   melt(id.vars=c("sp1", "sp2"), measure.vars=c("RY1", "RY2"), variable.name="RY_type", value.name="value")
 head(RY.long)
 ```
 
-`cast` function can do the reverse of `melt`
+The `cast` function is the reverse of `melt`!
 
-```{r}
+```{r,results='hide'}
 RY.wide = RY.long %>%
   dcast(sp2+sp1~RY_type)
 head(RY.wide)
 ```
 
+Btw - if you are dealing with a very large dataset, the [__data.table__](https://cran.r-project.org/web/packages/data.table/index.html) package will be a good friend, but we are not going to cover that in this class! We just wanted you to know about it in case you need it in the future :)
+
 # The GOAL
+__Exercise 4__   
+1. Your turn! Use what we've learned above to generate the `goal` data frame that was shown at the beginning of this lab.  
 
-1. Your turn. Use what we've learned to generate the `goal` data frame. 
 
-```{r, echo=FALSE}
-final = RY.m %>%
-  subset(select=c(1:5)) %>%
-  merge(trait.2, by.x="sp2", by.y="id") %>%
-  merge(trait.2, by.x="sp1", by.y="id") %>%
-  arrange(sp1)
-colnames(final)[6:13] = c("sp2.name", "C.N.sp2", "C.P.sp2", "N.P.sp2", "sp1.name", "C.N.sp1", "C.P.sp1", "N.P.sp1")
-head(final)
-```
-
-In addition, if you are dealing with large dataset, [__data.table__](https://cran.r-project.org/web/packages/data.table/index.html) package will be your good friend!
-
-2. Conduct some analysis to answer the following questions:   
-2.1 Does different species have different relative yield (RY)? _hint_: ANOVA  
-2.2 Does the RY of ones species depend on the other species? _hint_: interaction term  
-2.3 Does different species have different C:N, C:P, N:P ratio? _hint_: ANOVA or MANOVA
-```{r, include=FALSE}
-RYaov = lm(RY1~as.factor(sp1)*as.factor(sp2), data=final)
-summary.aov(RYaov)
-```  
