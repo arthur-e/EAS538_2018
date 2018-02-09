@@ -1,0 +1,5 @@
+I think you are combining the yes vs no wrong. In your case, you should use cbind.() 
+
+You can't use the p-value to judge which variable it "more significant". In fact, whether a variable affects the dependent variable more or less is determined by the effect size. 
+
+Please organize the format of the output. It's better to have the null hypothesis in the beginning, and followed by the statistics (code) and finally your interpretation. 
