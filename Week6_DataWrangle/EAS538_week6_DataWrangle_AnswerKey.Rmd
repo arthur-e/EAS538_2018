@@ -43,14 +43,13 @@ RY <- mutate(RY, avgRY = (RY1 + RY2)/2)
 head(RY)
 ```
 
-By using the `mutate()` function, we created a new column named `avrRY`, which means the average relative yield (RY) of `sp1` and `sp2`.
+By using the `mutate()` function, we created a new column named `avgRY`, which means the average relative yield (RY) of `sp1` and `sp2`.
 
 
 > 2. Please use the mutate function to create a new column that is the sum of RY1 and RY2. Name this new column RYTotal and name this new dataframe RY.t. Please do not add this new column to the RY dataset because if you do you will run into problems later in the lab!
 
 ```{r}
-RY.new <- RY %>%
-  mutate(RYTotal = RY1 + RY2)
+RY.new <- mutate(RY, RYTotal = RY1 + RY2)
 head(RY.new)
 ```
 
@@ -59,8 +58,7 @@ head(RY.new)
 > 1. Please use the subset function to subset your data for species number 17 in the species 2 column (`sp2`). Name this subset  sp17. Now subset this data frame, sp17, to only include the column RY2.
 
 ```{r}
-sp17 <- RY %>%
-  subset(sp2 == "17", select =RY2)
+sp17 <- subset(RY, sp2 == "17", select =RY2)
 head(sp17)
 ```
 
@@ -75,7 +73,7 @@ sp_test2 <- filter(RY, sp2 == 17 | sp1 == 1)
 head(sp_test2)
 ```
 
-> 1. Please explain the difference between the above two data frames you created `sp_test1` and `sp_test2`. What is the difference between using `&` versus `|` in the `filter()` or `subset()` functions? Feel free to use the ?filter function if you¡¦d like more information.
+> 1. Please explain the difference between the above two data frames you created `sp_test1` and `sp_test2`. What is the difference between using `&` versus `|` in the `filter()` or `subset()` functions? Feel free to use the ?filter function if youÂ¡Â¦d like more information.
 
 `sp1_test1` and `sp_test` differs in that `sp_test1` contains rows with `sp2` equals to 17 **AND** `sp1`equals to 1, whild `sp2_test2` contains rows with `sp2` equals to 17 **OR** `sp1` equals to 1. 
 
@@ -111,7 +109,6 @@ id <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/ma
 
 trait <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_stoi_traits.csv", sep = ",", header = T,comment.char = "#")
 ```
-
 
 ```{r}
 # change the column name in order to use join functions
