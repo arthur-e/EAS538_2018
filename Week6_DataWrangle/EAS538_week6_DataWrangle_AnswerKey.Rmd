@@ -1,0 +1,146 @@
+---
+title: 'EAS 538 Week 5 Lab: Answer Key'
+author: "Written by Oscar Feng-Hsun Chang and modified by K. Arthur Endsley"
+date: "February 14, 2018"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: false
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+RY <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/RY.csv", sep = ",", header = T,comment.char = "#")
+
+id <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_id.csv", sep = ",", header = T,comment.char = "#")
+
+trait <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_stoi_traits.csv", sep = ",", header = T,comment.char = "#")
+```
+
+
+# Exercise 1
+
+## Exercise 1, Part 1
+
+> 1. What did we just do using the mutate() function? What column was added? What does the column represent?
+
+```{r}
+RY <- mutate(RY, avgRY = (RY1 + RY2)/2)
+head(RY)
+```
+
+By using the `mutate()` function, we created a new column named `avrRY`, which means the average relative yield (RY) of `sp1` and `sp2`.
+
+
+> 2. Please use the mutate function to create a new column that is the sum of RY1 and RY2. Name this new column RYTotal and name this new dataframe RY.t. Please do not add this new column to the RY dataset because if you do you will run into problems later in the lab!
+
+```{r}
+RY.new <- RY %>%
+  mutate(RYTotal = RY1 + RY2)
+head(RY.new)
+```
+
+# Exercise 2
+
+> 1. Please use the subset function to subset your data for species number 17 in the species 2 column (`sp2`). Name this subset  sp17. Now subset this data frame, sp17, to only include the column RY2.
+
+```{r}
+sp17 <- RY %>%
+  subset(sp2 == "17", select =RY2)
+head(sp17)
+```
+
+
+# Exercise 3
+
+```{r}
+sp_test1 <- filter(RY, sp2 == 17 & sp1 == 1)
+head(sp_test1)
+
+sp_test2 <- filter(RY, sp2 == 17 | sp1 == 1)
+head(sp_test2)
+```
+
+> 1. Please explain the difference between the above two data frames you created `sp_test1` and `sp_test2`. What is the difference between using `&` versus `|` in the `filter()` or `subset()` functions? Feel free to use the ?filter function if you¡¦d like more information.
+
+`sp1_test1` and `sp_test` differs in that `sp_test1` contains rows with `sp2` equals to 17 **AND** `sp1`equals to 1, whild `sp2_test2` contains rows with `sp2` equals to 17 **OR** `sp1` equals to 1. 
+
+In __R__, `&` and `|` are two commonly used logical operators. Other logical and arithmetic operators acan be found [here](https://www.statmethods.net/management/operators.html).
+
+The `filter()` and `subset()` function are nearlly identical. The only difference would be the their [efficiency](https://stackoverflow.com/questions/39882463/difference-between-subset-and-filter-from-dplyr), although the difference is subtle. 
+
+# Exercise 4
+
+> Creating the `goal` data frame. 
+
+```{r}
+goal <- RY %>%
+  merge(id, by.x = "sp1", by.y = "id", all = TRUE) %>%
+  merge(id, by.x = "sp2", by.y = "id", all = FALSE) %>%
+  merge(trait, by.x = "sp.x", by.y = "Species.name", all = FALSE) %>%
+  merge(trait, by.x = "sp.y", by.y = "Species.name", all = FALSE) %>%
+  subset(select = -c(sp.x, sp.y)) %>%
+  arrange(sp1, sp2)
+head(goal)
+```
+
+What I did above is that, in the first two lines,  I `merge` the `RY` data frame and `id` data frame as there is no species id in the `trait` data frame. I then merge the data frame with species name with the `trait` data frame. Finally I used the `select` _argument_ in the `subset()` function to _unselect_ the species name columns. 
+
+Note that I used the pipeline (`%>%`) many times so that I don't have to create a new data frame each time I use a function. 
+
+I can create the same data frame in another way and I used the functions in `dplyr` package.
+
+```{r, echo=FALSE}
+RY <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/RY.csv", sep = ",", header = T,comment.char = "#")
+
+id <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_id.csv", sep = ",", header = T,comment.char = "#")
+
+trait <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_stoi_traits.csv", sep = ",", header = T,comment.char = "#")
+```
+
+
+```{r}
+# change the column name in order to use join functions
+colnames(id)[1] <- "Species.name"
+
+# These two lines are to transform factor variable into character variable.
+id[,"Species.name"] <- as.character(id[,"Species.name"]) 
+trait[,"Species.name"] <- as.character(trait[,"Species.name"])
+
+id.name <- id %>%
+  inner_join(trait, by = "Species.name")
+
+colnames(id.name)[2] <- "sp1"
+goal.temp <- RY %>%
+  inner_join(id.name, by = "sp1")
+
+colnames(id.name)[2] <- "sp2"
+goal.2 <- goal.temp %>%
+  inner_join(id.name, by = "sp2") %>%
+  select(-c(Species.name.x, Species.name.y))
+```
+
+In this second method, I join the `trait` data frame with the `id` data frame first and then join this data frame with the `RY` data frame. 
+To do so, I had to rename the `sp` column in the `id` data frame into `Species.name` because `join()` function can not join two data frames with different column names. In addition, it's better to transform the factor variable to character variable, so that there is not warning meassage. I now created a new data frame, `id.name`. I then join this `id.name` data frame with the `RY` data frame. Here I had to change the column name of `id.name` to `sp1` and `sp2` each time I join the `id.name` with the `RY` for `sp1` and `sp2`. Finally, I used the `select()` function to _unselect _ species names. 
+
+By default, `merge()` function (`all = FALSE`) equals to `inner_join()` function. They both return all rows from x data frame where there are matching values in y data frame. The `left_join()` function equals to specifying `all.x = TRUE` in the `merge()` function, which means returning all rows from _x_ data frame , and all columns from x data frame and y data frame. Similarly, The `right_join()` function equals to specifying `all.y = TRUE` in the `merge()` function, which means returning all rows from _y_ data frame , and all columns from x data frame and y data frame. Finally, `full_join()` function equals to specifying `all = TRUE` in the `merge()` function, which means returning all rows and columns from both _x_ and  _y_ data frames.
+
+
+
+
+
+
