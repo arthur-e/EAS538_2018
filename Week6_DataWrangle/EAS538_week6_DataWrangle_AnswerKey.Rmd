@@ -139,6 +139,8 @@ To do so, I had to rename the `sp` column in the `id` data frame into `Species.n
 
 By default, `merge()` function (`all = FALSE`) equals to `inner_join()` function. They both return all rows from x data frame where there are matching values in y data frame. The `left_join()` function equals to specifying `all.x = TRUE` in the `merge()` function, which means returning all rows from _x_ data frame , and all columns from x data frame and y data frame. Similarly, The `right_join()` function equals to specifying `all.y = TRUE` in the `merge()` function, which means returning all rows from _y_ data frame , and all columns from x data frame and y data frame. Finally, `full_join()` function equals to specifying `all = TRUE` in the `merge()` function, which means returning all rows and columns from both _x_ and  _y_ data frames.
 
+[Here](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) is the cheat sheet for functions (including `join`) in the `dplyr` package for your referece. 
+
 
 
 
