@@ -1,5 +1,5 @@
 ---
-title: 'EAS 538 Week 5 Lab: Answer Key'
+title: 'EAS 538 Week 6 Lab: Answer Key'
 author: "Written by Oscar Feng-Hsun Chang and modified by K. Arthur Endsley"
 date: "February 14, 2018"
 output: 
@@ -20,9 +20,9 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-library(dplyr)
-library(tidyr)
+```{r message=FALSE}
+library(dplyr, warn.conflicts = F)
+library(tidyr, warn.conflicts = F)
 
 RY <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/RY.csv", sep = ",", header = T,comment.char = "#")
 
@@ -45,6 +45,7 @@ head(RY)
 
 By using the `mutate()` function, we created a new column named `avgRY`, which means the average relative yield (RY) of `sp1` and `sp2`.
 
+## Exercise 1, Part 2
 
 > 2. Please use the mutate function to create a new column that is the sum of RY1 and RY2. Name this new column RYTotal and name this new dataframe RY.t. Please do not add this new column to the RY dataset because if you do you will run into problems later in the lab!
 

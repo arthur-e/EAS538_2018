@@ -31,11 +31,11 @@ library(tidyr)
 If you don't have any of these packages installed, please install them first!
 
 ```{r, read data}
-RY <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/RY.csv", sep = ",", header = T,comment.char = "#")
+RY <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/RY.csv", sep = ",", header = T, comment.char = "#")
 
-id <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_id.csv", sep = ",", header = T,comment.char = "#")
+id <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_id.csv", sep = ",", header = T, comment.char = "#")
 
-trait <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_stoi_traits.csv", sep = ",", header = T,comment.char = "#")
+trait <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week6_DataWrangle/sp_stoi_traits.csv", sep = ",", header = T, comment.char = "#")
 ```
 
 These data are from an experiment that Oscar and his labmates worked on in Brad Cardinale's lab here at SEAS. The experiment examined how well green algae grew if they were grown in combination with another species versus if they were grown alone. This experiment helps us understand if having more biodiversity leads to increased ecosystem functioning within a given system. Let's look at each of the datasets to see what they exactly contain:   
