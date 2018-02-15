@@ -43,7 +43,7 @@ head(airquality)
 
 # Correlation
 
-The correlation coefficient describes how two variables vary together in a linear fashion. The correlation coefficient is the same regardless which variable you define as `x` and which variable you define as `y`. Similarly, in __R__, you will get the same result regardless of the order of your arguments to the `cor()` function. In other words, you will get the same correlation coefficient if you define `Ozone` as `x` and `Wind` as `y` as if you define `Ozone` as `y` and `Wind` as `x`. Let's check this out:
+The correlation coefficient describes how two variables vary together in a linear fashion. The correlation coefficient is the same regardless of which variable you define as `x` and which variable you define as `y`. Similarly, in __R__, you will get the same result regardless of the order of your arguments to the `cor()` function. In other words, you will get the same correlation coefficient if you define `Ozone` as `x` and `Wind` as `y` as if you define `Ozone` as `y` and `Wind` as `x`. Let's check this out:
 
 ```{r, cor1,results='hidden',eval=FALSE}
 cor(airquality$Ozone, airquality$Wind, use = 'complete.obs')
@@ -112,9 +112,7 @@ Now plot `var1` vs `var2` and `var1` vs `var3` to see the relationship between t
 
 ```{r, plot ys vs x, eval=FALSE,results='hidden'}
 plot(var2 ~ var1)
-abline(lm(var2 ~ var1))
 plot(var3 ~ var1)
-abline(lm(var3 ~ var1)) 
 ```
 
 Although the correlations are nearly 0, the main problem is we shouldn't have been using a correlation coefficient to see how these variables are related in the first place since they are related in a _nonlinear_ way. 
@@ -307,7 +305,7 @@ Another assumption of the regression is that your errors are normally distribute
 qqPlot(residuals(mod))
 ```
 
-Like Meha said in lecture, as long as your residuals fall within the dotted red lines, your residuals are mostly normal and you don't have to worry. To learn more about what the dotted lines represent you can read the help function of `qqPlot` using `?`. Generally, what they are a 95% confidence interval around an expected normal distribution.  
+Like Meha said in lecture, as long as your residuals fall within the dotted red lines, your residuals are mostly normal and you don't have to worry. To learn more about what the dotted lines represent you can read the help function of `qqPlot` using `?`. Generally, what they are are a 95% confidence interval around an expected normal distribution.  
 
 We can also use a test to statistically see whether our residuals are normal. This is the Shapiro-Wilk test!
 
