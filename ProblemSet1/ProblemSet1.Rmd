@@ -1,0 +1,98 @@
+---
+title: "Problem Set 1"
+author: "Written by Meha Jain"
+date: "Week 8"
+output:
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+      toc_depth: 4
+  pdf_document:
+    toc: yes
+---
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(car)
+```
+
+Below are a series of questions related to datasets that are already preloaded in __R__ or are ones that you will pull in from our Github account. A few things:   
+
+
+1. Please work on this problem set **individually** and do not ask any other students for help.    
+2. Please **do not** post on Piazza for help with this problem set.  
+3. This exam is **open book** so you can use any lecture notes, labs, and/or anything you find online for help!  
+4. You can also ask me (Meha), Arthur, or Oscar for help.  
+5. Please remember if you run a test that requires a post hoc test to answer the question, please use one. You will not get full credit for your answer if you do not use a post hoc test when needed.   
+6. To test for equal variance in an ANOVA, use `leveneTest` which is in the `car` package. Remember you will have to load the `library` for `car` in order to get it to work.   
+
+
+#  Question 1                
+
+Let's first use the built in dataset `PlantGrowth` in __R__. Remember how to load this dataset? It is similar to how you loaded built in datasets (like `airquality`) in previous labs. You can learn more about the PlantGrowth dataset by using the `?` command like you've done in previous labs. **Please test whether yields (as measured by the dry weight of plants) are significantly different across control and treatment groups. Which groups are significantly different from one another?** 
+
+-----------------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)         
+a. Please write the null and alternate hypothesis (1 point).  
+b. Please create a visual plot to answer this question (1 point).  
+c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
+d. Please run the statistical test and interpret the result (1 point).
+-----------------------------------------------------------------------------------------------
+
+#  Question 2                
+
+Let's use a new (made up) dataset on students' quiz scores and whether they read or did not read the textbook. You can load the dataset using the following code:
+
+``` {r,load test data} 
+test <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet1/test.csv", sep = ",", header = T, comment.char = "#")
+```
+
+Please check what variables are in the dataset using `head`. The column `score` represents the test score and the column `textbook` represents whether the student read or did not read the textbook. **Please test whether students' scores were significantly different based on whether they read or did not read the textbook.** 
+
+-----------------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)             
+a. Please write the null and alternate hypothesis (1 point).  
+b. Please create a visual plot to answer this question (1 point).  
+c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
+d. Please run the statistical test and interpret the result (1 point).
+-----------------------------------------------------------------------------------------------
+
+#  Question 3                
+
+Let's use another (made up) dataset on how much students love coding and doing statistics in __R__ before and after taking EAS 538. This is measured by how much a student's heart rate goes up when he or she opens up __R studio__ on their laptop. The more a student's heart rate goes up, the more the student loves doing statistics in __R__! **Please test whether a student's heart rate was significantly different before and after taking EAS 538.** 
+
+``` {r,load rate data} 
+rate <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet1/rate.csv", sep = ",", header = T, comment.char = "#")
+```
+
+-----------------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)           
+a. Please write the null and alternate hypothesis (1 point).  
+b. Please create a visual plot to answer this question (1 point).  
+c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
+d. Please run the statistical test and interpret the result (1 point).
+-----------------------------------------------------------------------------------------------
+
+#  Question 4                
+
+Let's use another dataset on housing prices in Boston. Information about what each of the variables are can be found here: http://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.names. **Let's examine the relationship between nitric oxide concentrations (`nox`) and median housing prices (`medv`).**
+
+``` {r,load house data} 
+house <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet1/housingdata.csv", sep = ",", header = T, comment.char = "#")
+```
+
+
+-----------------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)           
+a. What is the correlation between nitric oxide concentrations and median housing values? Please interpret what this correlation shows about how nitric oxide emissions are associated with median housing values in non-technical terms (1 point). 
+b. Please create a plot that shows the relationship between nitric oxide and median housing values (1 point).  
+c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
+d. Please run the statistical test and interpret the result. Please do not just write whether the variable is significant or not - please also interpret what the result means in non technical terms that state how the two variables are related to one another (1 point).
+e. Discuss the fit of your model and whether you think it is a good or bad fit. Why?
+-----------------------------------------------------------------------------------------------
