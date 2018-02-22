@@ -30,8 +30,9 @@ Below are a series of questions related to datasets that are already preloaded i
 3. This exam is **open book** so you can use any lecture notes, labs, and/or anything you find online for help!  
 4. You can also ask me (Meha), Arthur, or Oscar for help.  
 5. Please remember if you run a test that requires a post hoc test to answer the question, please use one. You will not get full credit for your answer if you do not use a post hoc test when needed.   
-6. To test for equal variance in an ANOVA, use `leveneTest` which is in the `car` package. Remember you will have to load the `library` for `car` in order to get it to work.   
-
+6. To test for equal variance in an ANOVA, use `leveneTest` which is in the `car` package. Remember you will have to load the `library` for `car` in order to get it to work. To test for equal variance in a t test, use `var.test`.
+7. Please remember for a paired t test that you are running the equivalent of a **one sample t test** of the differences between group 1 and group 2 for each individual. Please keep this in mind when you are checking the assumptions of a paired t test. 
+8. If assumptions of normality or homoscedasticity are ever violated, feel free to proceed with the statistical test as if the assumptions were met - just make note in your answer which assumption(s) was(were) violated. For 1 point extra credit, you can transform your dependent variable and see whether that improves normality and homoscedasticity. We'll give you extra credit as long as your transform improves the normality or homoscedasticity of your errors, even if they still don't pass the statistical test for that assumption.
 
 #  Question 1                
 
@@ -42,7 +43,7 @@ __Specific Questions__ (Show relevant R code as needed)
 a. Please write the null and alternate hypothesis (1 point).  
 b. Please create a visual plot to answer this question (1 point).  
 c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
-d. Please run the statistical test and interpret the result (1 point).
+d. Please run the statistical test and interpret the result (1 point). Which group(s) are significantly different from one another (if any)? How are they different?
 -----------------------------------------------------------------------------------------------
 
 #  Question 2                
@@ -60,7 +61,7 @@ __Specific Questions__ (Show relevant R code as needed)
 a. Please write the null and alternate hypothesis (1 point).  
 b. Please create a visual plot to answer this question (1 point).  
 c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
-d. Please run the statistical test and interpret the result (1 point).
+d. Please run the statistical test and interpret the result (1 point). Which group(s) are significantly different from one another (if any)? How are they different?
 -----------------------------------------------------------------------------------------------
 
 #  Question 3                
@@ -76,7 +77,7 @@ __Specific Questions__ (Show relevant R code as needed)
 a. Please write the null and alternate hypothesis (1 point).  
 b. Please create a visual plot to answer this question (1 point).  
 c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
-d. Please run the statistical test and interpret the result (1 point).
+d. Please run the statistical test and interpret the result (1 point). Which group(s) are significantly different from one another (if any)? How are they different?
 -----------------------------------------------------------------------------------------------
 
 #  Question 4                
