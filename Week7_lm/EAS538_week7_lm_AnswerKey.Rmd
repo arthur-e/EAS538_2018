@@ -1,0 +1,269 @@
+---
+title: 'EAS 538 Week 7 Lab: Answer Key'
+author: "Written by K. Arthur Endsley and modified by Oscar Feng-Hsun Chang"
+date: "March 4, 2018"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: false
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercise 1
+
+## Exercise 1, Part 1
+
+> What is the correlation between `Ozone` and `Wind`? Please describe the meaning of this correlation value in *non-technical* terms (e.g., as Ozone increases, Wind...). In your opinion, is this a strong correlation?
+
+```{r}
+data(airquality)
+cor(airquality$Ozone, airquality$Wind, use = 'complete.obs')
+```
+
+The correlation between `Ozone` and `Wind` is `r round(cor(airquality$Ozone, airquality$Wind, use = 'complete.obs'), 3)`. This is a negative correlation that indicates as `Ozone` concentration (in ppb) increases, `Wind` speed (in mph) decreases. Alternatively, as `Wind` speed increases, `Ozone` concentration decreases. A correlation with a coefficient in the (absolute value) range of 0.5 to 0.7 is often described as a "moderately strong" correlation.
+
+Note that because `Ozone` has some missing values (and `Wind` does not), we need to tell the `cor()` function what to do. The correlation coefficient can't be calculated for missing data, so we tell the function to `use` only `'complete.obs'`, i.e., use only those paired `Ozone` and `Wind` where nothing is missing in either column.
+
+## Exercise 1, Part 2
+
+> What is the correlation between `Ozone` and `Solar.R`? Please describe the meaning of this correlation value in
+*non-technical* terms. In your opinion, is this a strong correlation?  
+
+```{r}
+cor(airquality$Ozone, airquality$Solar.R, use = 'complete.obs')
+```
+
+The correlation between `Ozone` and `Solar.R` (solar irradiance or downward solar radiation) is `r round(cor(airquality$Ozone, airquality$Solar.R, use = 'complete.obs'), 3)`. This is a positive correlation that indicates as `Ozone` concentration increases, `Solar.R` increases. Alternatively, as `Solar.R` increases, `Ozone` concentration increases. A correlation with a coefficient in this range is often described as a "weak" or "minor" correlation.
+
+# Exercise 2
+
+## Exercise 2, Part 1
+
+> Plot the waiting time between eruptions (`waiting`) against the duration of the eruption (`eruptions`) for the Old Faithful geyser in Yellowstone National Park. The dataset is built in R and is named [faithful](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/faithful.html). 
+
+Which variable should go on the x-axis?
+Typically, we want to plot that variable which we can experimentally adjust or which we think might cause the other.
+Here, an argument could be made for either variable to be on the x-axis, but I'll go with `eruptions` on the x-axis, because it seems possible that longer (or more intense) eruptions will require a longer waiting period afterward.
+
+```{r}
+data(faithful)
+plot(waiting ~ eruptions, data = faithful,
+  xlab = 'Eruption time (min)', ylab = 'Waiting time (min)',
+  main = 'Waiting time vs. Eruption time, Old Faithful')
+```
+
+## Exercise 2, Part 2
+
+> Calculate the correlation coefficient between the waiting time (`waiting`) and duration of eruption (`eruptions`).
+
+To avoid the ugly and sometimes distracting column variable syntax when I have to extract multiple columns from a data frame at once (e.g., `cor(faithful$waiting, faithful$eruptions)`), I can use the `with()` function.
+The `with()` function's first argument is a data frame and the second argument is some R expression I want to be evaluated; if R finds a name in the expression that it doesn't recognize (i.e., an undefined variable), it will look in the data frame to see if those names refer to columns.
+
+```{r}
+with(faithful, cor(waiting, eruptions))
+```
+
+# Exercise 3
+
+## Exercise 3, Part 1
+
+> Build a second linear model using `Temp` as your dependent variable and `Ozone` as your independent variable. Interpret your linear model results. Plot a scatterplot of your variables with an estimated regression line.   
+
+```{r}
+m2 <- lm(Temp ~ Ozone, data = airquality)
+summary(m2)
+```
+
+The coefficient describing the effect of `Ozone` on `Temp` is given by `coef(m2)['Ozone']`$ = `r coef(m2)['Ozone']`$.
+It is significant at a 95% confidence level with a p-value much less than 0.05.
+The coefficient value indicates that for every 1 unit increase in `Ozone` (i.e., a 1 ppb increase in ozone concentration), the measured `Temp` (temperature) increases by approximately 0.2 degrees F.
+
+```{r}
+plot(Temp ~ Ozone, data = airquality)
+abline(m2, col = 'red', lty = 'dashed', lwd = 1.5)
+```
+
+The arguments to `abline()` above include:
+
+- `lty`, which stands for "line type" and indicates what kind of line to draw;
+- `lwd`, which stands for "line width" and indicates how thick of a line to draw.
+
+## Exercise 3, Part 2
+
+> Build a third linear model using the `faithful` dataset to examine if you see longer erruption times if you wait longer. Interpret your linear model results. Plot a scatterplot of your variables with an estimated regression line.   
+
+Here, the phrase "if you wait longer" suggests that `waiting` time is the variable we can adjust (i.e., we can choose to wait longer).
+Hence, `waiting` is our independent variable and `eruptions` is our dependent (outcome) variable.
+
+```{r}
+m3 <- lm(eruptions ~ waiting, data = faithful)
+summary(m3)
+```
+
+The coefficient describing the effect of `waiting` time on `eruptions` time is given by `coef(m3)['waiting']`$ = `r coef(m3)['waiting']`$.
+It is significant at a 95% confidence level with a p-value much less than 0.05.
+The coefficient value indicates that for every minute longer we wait, the `eruptions` duration increases by approximately 0.076 minutes.
+
+```{r}
+plot(eruptions ~ waiting, data = faithful)
+abline(m3, col = 'red', lty = 'dashed', lwd = 1.5)
+```
+
+# Exercise 4
+
+> Remember that `SSY` is comprised of both `SSYp` ($SSY'$) and `SSE`. Please calculate `SSE`. I know this may be hard, but you can do it! Then, verify that `SSY - SSYp` is equal to `SSE`. What is `SSE` measuring in non-technical terms? 
+
+`SSE` is our sum of squared residuals. As part of the lab, we saw how to calculate this already, in the section "Errors:"
+
+```{r}
+mod <- lm(Temp ~ Wind, data = airquality)
+sum(residuals(mod)^2)
+```
+
+Because `SSY = SSYp + SSE`, we can re-arrange the terms and obtain `SSE = SSY - SSYp`.
+This way, we can check our answer.
+
+```{r}
+# Calculating SSY, the sum of squared deviations of y from the mean of y
+diff <- with(airquality, Temp - mean(Temp))
+SSY <- sum(diff^2)
+
+# Calculating SSY' (read "SSY prime"),
+#   the sum of squared deviations of y' (read "y prime") from the mean of y
+diff <- predict(mod) - mean(airquality$Temp)
+SSYp <- sum(diff^2)
+
+SSY - SSYp
+
+all.equal(sum(residuals(mod)^2), SSY - SSYp)
+```
+
+# Exercise 5
+
+> Create a linear model using the `airquality` dataset with `Temp` as your dependent variable and `Ozone` as your independent variable. Check whether your model meets the assumptions of homoscedasticity and normality using the plots and tests we used above. 
+
+```{r}
+m4 <- lm(Temp ~ Ozone, data = airquality)
+summary(m4)
+```
+
+## Checking Assumptions
+
+The important assumptions of the linear regression model are as follows.
+
+- Identically distributed (homoscedastic) residuals;
+- Normality of the residuals;
+- Independence in the residuals;
+
+### Checking for Constant Variance/ Homoscedasticity
+
+We can check for homoscedasticity in the residuals a number of ways.
+
+- By plotting the residuals against the fitted values;
+- With a Breusch-Pagan test, `bptest()`;
+- With a non-constant variance test, `ncvTest()`;
+
+```{r}
+plot(residuals(m4) ~ fitted(m4),
+  main = 'Residuals v. Fitted')
+abline(h = 0, col = 'red', lty = 'dashed', lwd = 1.5)
+```
+
+From the plot, the residuals seem fairly even across all levels of the (fitted/ predicted) response variable; however, this is really only because of a small number of data points on the right-hand side of the plot.
+If we're unsure, a formal test like the Breusch-Pagan test can offer us a solid "yes or no" answer in the form of a p-value.
+**The null hypothesis of both the `bptest()` and the `ncvTest()` is that the residuals homoscedastic.**
+
+```{r message=F, warning=F}
+library(lmtest)
+lmtest::bptest(m4)
+
+library(car)
+car::ncvTest(m4)
+```
+
+Though the p-value is close to 0.05, in both tests, it is still greater than 0.05, so we fail to reject the null hypothesis of homoscedasticity at the 95% confidence level.
+We conclude that our residuals have constant variance across the response and, thus, our model's assumption of homoscedasticity is met.
+
+### Checking for Normality
+
+Again, we have a couple of plots we can use to test this assumption in addition to a formal test.
+Most simply, we can examine a histogram of the residuals to see if they are normally distributed.
+
+```{r}
+hist(residuals(m4))
+```
+
+The histogram suggests the residuals may not be normally distributed.
+A slightly more rigorous visualization of the residuals would be a normal quantile-quantile (QQ) plot.
+
+```{r}
+require(car)
+qqPlot(residuals(m4), distribution = 'norm')
+```
+
+The very obvious departure of the data points from the 95% confidence envelope, above, suggests the data are definitely not normal.
+If either the histogram or the QQ plot of the residuals left us any doubt as to normality, we could conduct a Shaprio-Wilk test on the residuals.
+**The null hypothesis of the Shapiro-Wilk test is that the vector of values (here, the residuals) are not distributed differently from a normal distribution, i.e., they are normally distributed.**
+
+```{r}
+shapiro.test(residuals(m4))
+```
+
+We obtain a p-value much smaller than 0.05, thus, we can reject the null hypothesis of normality at the 95% confidence level.
+We conclude that our model violates the assumption of residual normality.
+
+### Checking for Independence
+
+Some students conducted a Durbin-Watson test of the residuals to determine if there was any serial correlation present.
+It's important to remember that we would only expect serial correlation to be present if the residuals (and measured response values, to begin with) are ordered in time or by distance.
+That is, we would only expect the assumption of independence in the residuals to be violated in three general cases:
+
+- There exists *temporal correlation* between observations, e.g., the measured value at time $t$ depends on the measured value at time $t-1$;
+- There exists *spatial correlation* between observations, e.g., the measured value at location $x_1$ depends on the measured value at location $x_2$ where $x_1$ and $x_2$ are "close" (and the definition of "close" depends on the type of data and the system being studied);
+- Two or more observations are made on the same subject (e.g., same person, same farm plot), which, is really just a variation on the first two cases.
+
+In the `airquality` data, we do have measurements over time, so it might be appropriate to check for independence in the residuals, **but we must make sure the measured response values (and, ultimately, the residuals) are ordered in time.**
+If adjacent values in the residuals vector are not adjacent in time, then we can't test whether one value depends on earlier values (because the values are not in the right order).
+So, here, we'll make sure our data are sorted correctly before conducting this test.
+
+```{r message=F, warning=F}
+library(dplyr)
+
+# Arrange the rows first by month (ascending), then by day (ascending)
+airquality.sorted <- arrange(airquality, Month, Day)
+
+m4 <- lm(Temp ~ Ozone, data = airquality.sorted)
+```
+
+Now, when we pull the residuals out with `residuals(m4)`, we will get the residuals in the order of the `Temp` values in `airquality.sorted`; that is, we'll get them in the correct time order.
+Rearranging the order of the observations, theoretically, has no effect on the model results, so we shouldn't need to re-check any assumptions we already checked.
+A visual check for dependence in the residuals is to plot the residuals in order; that is, to plot them against their index.
+
+```{r}
+plot(residuals(m4), type = 'b')
+```
+
+We would be looking for systematic swings or patterns in the residuals in the plot above.
+Although residuals do tend to be higher in the middle of the plot than the beginning and end, there is no obvious long-term pattern to the residuals.
+A short-term pattern may exist, however, in that a high residual tends to be followed by a low residual and vice-versa (there is a lot of high-frequency oscillation in the residuals).
+Now we might conduct a Durbin-Watson test to be sure there is no serial correlation.
+
+```{r}
+library(car)
+durbinWatsonTest(m4)
+```
+
+The null hypothesis of the Durbin-Watson test is that the residuals do not have serial correlation.
+More specifically, the null hypothesis is that `rho`, which is a parameter that describes the degree of serial correlation/ autocorrelation in the values, is equal to zero.
+Here, we obtain a very small p-value (estimated to be 0), so we can reject the null hypothesis of no serial correlation and conclude that our model's residuals violate the assumption of independence.
