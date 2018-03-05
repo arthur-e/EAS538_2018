@@ -33,7 +33,7 @@ cor(airquality$Ozone, airquality$Wind, use = 'complete.obs')
 
 The correlation between `Ozone` and `Wind` is `r round(cor(airquality$Ozone, airquality$Wind, use = 'complete.obs'), 3)`. This is a negative correlation that indicates as `Ozone` concentration (in ppb) increases, `Wind` speed (in mph) decreases. Alternatively, as `Wind` speed increases, `Ozone` concentration decreases. A correlation with a coefficient in the (absolute value) range of 0.5 to 0.7 is often described as a "moderately strong" correlation.
 
-Note that because `Ozone` has some missing values (and `Wind` does not), we need to tell the `cor()` function what to do. The correlation coefficient can't be calculated for missing data, so we tell the function to `use` only `'complete.obs'`, i.e., use only those paired `Ozone` and `Wind` where nothing is missing in either column.
+Note that because `Ozone` has some missing values (and `Wind` does not), we need to tell the `cor()` function what to do. The correlation coefficient can't be calculated for missing data, so we tell the function to `use` only `'complete.obs'`, i.e., use only those paired `Ozone` and `Wind` where nothing is missing in either column. Pleas checkthe arguemtnt details in the help page or the `cor()` function for other possible arguments for the `use` argument. 
 
 ## Exercise 1, Part 2
 
@@ -87,7 +87,7 @@ summary(m2)
 
 The coefficient describing the effect of `Ozone` on `Temp` is given by `coef(m2)['Ozone']`$ = `r coef(m2)['Ozone']`$.
 It is significant at a 95% confidence level with a p-value much less than 0.05.
-The coefficient value indicates that for every 1 unit increase in `Ozone` (i.e., a 1 ppb increase in ozone concentration), the measured `Temp` (temperature) increases by approximately 0.2 degrees F.
+The coefficient value for the `Ozone`variable indicates that for every 1 unit increase in `Ozone` (i.e., a 1 ppb increase in ozone concentration), the measured `Temp` (temperature) increases by approximately 0.2 degrees F. The coefficient value for the `Interecept`means the expected value of `Temp` when the `Ozone` is forced to be zero. 
 
 ```{r}
 plot(Temp ~ Ozone, data = airquality)
@@ -165,6 +165,8 @@ The important assumptions of the linear regression model are as follows.
 - Identically distributed (homoscedastic) residuals;
 - Normality of the residuals;
 - Independence in the residuals;
+
+Note that violating the  assumptions of linear regression here means that the regression coefficients we estimated are inaccurate. If this is the case, we should consider other types of model or transforming the data in some ways. 
 
 ### Checking for Constant Variance/ Homoscedasticity
 
