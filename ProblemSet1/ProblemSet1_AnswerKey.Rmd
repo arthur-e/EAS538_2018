@@ -24,7 +24,6 @@ library(car)
 
 Below are a series of questions related to datasets that are already preloaded in __R__ or are ones that you will pull in from our Github account. A few things:   
 
-
 1. Please work on this problem set **individually** and do not ask any other students for help.    
 2. Please **do not** post on Piazza for help with this problem set.  
 3. This exam is **open book** so you can use any lecture notes, labs, and/or anything you find online for help!  
@@ -34,7 +33,7 @@ Below are a series of questions related to datasets that are already preloaded i
 7. Please remember for a paired t test that you are running the equivalent of a **one sample t test** of the differences between group 1 and group 2 for each individual. Please keep this in mind when you are checking the assumptions of a paired t test. 
 8. If assumptions of normality or homoscedasticity are ever violated, feel free to proceed with the statistical test as if the assumptions were met - just make note in your answer which assumption(s) was(were) violated. For 1 point extra credit, you can transform your dependent variable and see whether that improves normality and homoscedasticity. We'll give you extra credit as long as your transform improves the normality or homoscedasticity of your errors, even if they still don't pass the statistical test for that assumption.
 
-#  Question 1                
+# Question 1
 
 Let's first use the built in dataset `PlantGrowth` in __R__. Remember how to load this dataset? It is similar to how you loaded built in datasets (like `airquality`) in previous labs. You can learn more about the PlantGrowth dataset by using the `?` command like you've done in previous labs. **Please test whether yields (as measured by the dry weight of plants) are significantly different across control and treatment groups. Which groups are significantly different from one another?**
 
@@ -44,39 +43,39 @@ __Specific Questions__ (Show relevant R code as needed)
 
 > a. Please write the null and alternate hypothesis (1 point).  
 
-* Null hypothesis ($H_0$) : The dried weight of plants (the `weight` variable) does not differ among the control and two treatment conditions.  
-* Alternative hypothesis ($H_1$) : The dried weight of plants of least one group is different from another group. 
+* Null hypothesis ($H_0$): The mean dried weight of plants (the `weight` variable) does not differ among the control and two treatment conditions.
+* Alternative hypothesis ($H_1$): The mean dried weight of plants is different in at least one of the groups. 
 
 > b. Please create a visual plot to answer this question (1 point).  
 
 ```{r}
 data(PlantGrowth)
-boxplot(weight ~ group, data = PlantGrowth, ylab = "dried weight of plants", xlab = "treatment")
+boxplot(weight ~ group, data = PlantGrowth, ylab = "Dried weight of plants", xlab = "Treatment")
 ```
 
 > c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).
 
-Because we have more than two groups, so we should use anova to compare the dried weight of plants. The assumptions of anova are:  
+Because we have more than two groups, we should use an analysis of variance (ANOVA) to compare the dried weight of plants. The assumptions of ANOVA are:  
 
-1. Independence of the sample  
-We can assume this assumption holds as this data is from an designed experiments, which generally take independent identical measurement.  
+1. **Independence of the sample;** we can assume this assumption holds as this data is from an designed experiments, which generally take independent identical measurement.  
 
-2. Normality of the **residuals** after running the test (anova in this case)  
-The residuals reflect the random part of the model, which are what F (or t) statistics and thus p-values depend on. We should thus check the normality of residuals when as perfome anova (and linear regression).  
-```{r}
-anomod=aov(weight~group,data=PlantGrowth)
-shapiro.test(resid(anomod))
-qqPlot(resid(anomod))
-```
+2. **Equality (or "homogeneity") of variance** between the two groups.
 
-From both the qqplot and the shapiro test, we see that normality assumption can not be rejected. This means anova will give us an accurate estimate of whether the differences between groups is significant.
-
-3. Equality (or "homogeneity") of variances, which is homoscedasticit  
 ```{r}
 leveneTest(weight ~ group, data = PlantGrowth)
 ```
 
-The nulll hypothesis of the Levene's test for homogeneity of variance is that the variance among groups are equal (homogenized). From the above p-value, we can't reject this null hypothesis. This means the variance of each group are not different from each other. 
+The nulll hypothesis of the Levene's test for homogeneity of variance is that the variances between the groups are equal (homogenized). From the above p-value, we can't reject this null hypothesis. This means the variances between the groups are not different from each other. 
+
+3. **Normality of the *residuals* after running the test;** the residuals reflect the random part of the model, which are what F (or t) statistics and thus p-values depend on. We should thus check the normality of residuals when we perfom an ANOVA (or a linear regression).  
+
+```{r}
+anomod <- aov(weight ~ group, data = PlantGrowth)
+shapiro.test(residuals(anomod))
+car::qqPlot(residuals(anomod))
+```
+
+From both the normal QQ plot and the Shapiro-Wilk test, we see that the normality assumption can not be rejected. Taken together, these assumptions being met means ANOVA will give us an accurate estimate of whether the differences between groups is significant.
 
 > d. Please run the statistical test and interpret the result (1 point). Which group(s) are significantly different from one another (if any)? How are they different?
 
@@ -84,17 +83,17 @@ The nulll hypothesis of the Levene's test for homogeneity of variance is that th
 summary(anomod)
 ```
 
-Here we first used the `summary` funtion on the anova object wer created earlier (the `anomod`) to see if we should reject the null hypothesis. The p-value is less than 0.05, so we reject the null hypothesis. There is at least one group that has dired weight of plants that is different from another group.
+Here we first used the `summary` funtion on the ANOVA object we created earlier (`anomod`) to see if we should reject the null hypothesis. The p-value is less than 0.05, so we reject the null hypothesis. There is at least one group with a mean dried weight that is different from at least one other group.
 
-We then used Tukey HSD to perform post hoc test to figure out which group is significantly different from another. 
+We then used Tukey's honestly significant differences (HSD) test as a *post hoc* analysis to figure out which group is significantly different from another. 
 
 ```{r}
 TukeyHSD(anomod)
 ```
 
-From the above results, we see that the dried weight of plants in treatment 2 is significantly higher than those of treatment 1 at 95% confidence level (p-value is `r TukeyHSD(anomod)$group[3,4]`). 
+From the above results, we see that the mean dried weight of plants in treatment 2 is significantly higher than those of treatment 1 at the 95% confidence level (p-value is `TukeyHSD(anomod)$group[3,4]`$= `r TukeyHSD(anomod)$group[3,4]`$). 
 
-#  Question 2                
+# Question 2
 
 Let's use a new (made up) dataset on students' quiz scores and whether they read or did not read the textbook. You can load the dataset using the following code:
 
@@ -110,40 +109,38 @@ __Specific Questions__ (Show relevant R code as needed)
 
 > a. Please write the null and alternate hypothesis (1 point).  
 
-* Null hypothesis ($H_0$) : The test score of students who read the text book and those who did not read the test book are not different from each other.  
-* Alternative hypothesis ($H_1$) : The test score of students who read the text book differs from those who did not read the test book.
+* Null hypothesis ($H_0$): The mean test score of students who read the textbook and those who did not read the textbook are not different from each other.  
+* Alternative hypothesis ($H_1$): The mean test score of students who read the textbook differs from those who did not read the textbook.
 
 > b. Please create a visual plot to answer this question (1 point).  
 
 ```{r}
-boxplot(score~textbook,data=test)
+boxplot(score ~ textbook, data = test)
 ```
 
 > c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
 
-Here we should do two sample two tailed t-test. The assumptions are : 
+Here we should conduct a two-sample t-test. This is because we have two samples (students who read the textbook, students who didn't read the textbook). We could conduct this test as either a two-tailed or one-tailed, two-sample t-test. The assumptions are: 
 
-1. Independence of the sample  
-We can assume this assumption holds as this data is a made up data set.   
+1. **Independence of the sample;** we can assume this assumption holds as the students are separated into two groups that are mututally exclusive.   
 
-2. Normality of sample  
-
-In t-test, t statistics and the resulting p-value are based on the sample _per se_, so that the normality assumption is on the sample. 
+2. **Normality of sample.** 
 
 ```{r}
 shapiro.test(test$score)
-qqPlot(test$score)
+car::qqPlot(test$score)
 ```
 
-From both the qqplot and the shapiro test, we see that normality assumption can not be rejected. 
+From both the normal QQ plot and the Shapiro-Wilk test, we see that normality assumption can not be rejected. 
 
-3. Equality (or "homogeneity") of variances of the two sample  
+3. **Equality (or "homogeneity") of variances** between the two samples.
+
 ```{r}
 var.test(score ~ textbook, data = test)
 leveneTest(score ~ textbook, data = test)
 ```
-The `var.test` and `leveneTest` are essentially the same method to test if variance of different variables are equal. The only difference is that `leveneTest` can be used to test on more than two groups, while `var.test` can be used for two samples. The null hypothesis of `var.test` is that the two samples have the same variance, which is the same as the `leveneTest`.  
-From the above result, we can not reject the null hypothesis, so the two samples have the same variance.  
+
+The `var.test` and `leveneTest` are essentially the same method to test if variance of different variables are equal. The only difference is that `leveneTest` can be used to test on more than two groups, while `var.test` can be used for two samples. The null hypothesis of `var.test` is that the two samples have the same variance, which is the same as the `leveneTest`. From the above result, we can not reject the null hypothesis, so the two samples have the same variance.  
 
 > d. Please run the statistical test and interpret the result (1 point). Which group(s) are significantly different from one another (if any)? How are they different?
 
@@ -151,11 +148,11 @@ From the above result, we can not reject the null hypothesis, so the two samples
 t.test(score ~ textbook, var.equal = TRUE, data = test)
 ```
 
-The above results show that we should reject the null hypothesis (p-value < 0.05) at 95% confidence interval. In addition, in the bottom of the output, we see that the mean score of students who do not read the text book is `r t.test(score ~ textbook, var.equal = TRUE, data = test)$estimate[1]` lower than the mean score of students who read the text book is `r t.test(score ~ textbook, var.equal = TRUE, data = test)$estimate[2]`. 
+The above results show that we should reject the null hypothesis (p-value < 0.05) at a 95% confidence level. In addition, in the bottom of the output, we see that the mean score of students who do not read the textbook is `r t.test(score ~ textbook, var.equal = TRUE, data = test)$estimate[1]`, which is lower than the mean score of students who did read the textbook: `r t.test(score ~ textbook, var.equal = TRUE, data = test)$estimate[2]`. 
 
-#  Question 3                
+# Question 3
 
-Let's use another (made up) dataset on how much students love coding and doing statistics in __R__ before and after taking EAS 538. This is measured by how much a student's heart rate goes up when he or she opens up __R studio__ on their laptop. The more a student's heart rate goes up, the more the student loves doing statistics in __R__! **Please test whether a student's heart rate was significantly different before and after taking EAS 538.** 
+Let's use another (made-up) dataset on how much students love coding and doing statistics in __R__ before and after taking EAS 538. This is measured by how much a student's heart rate goes up when he or she opens up __R studio__ on their laptop. The more a student's heart rate goes up, the more the student loves doing statistics in __R__! **Please test whether a student's heart rate was significantly different before and after taking EAS 538.** 
 
 ``` {r,load rate data} 
 rate <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet1/rate.csv", sep = ",", header = T, comment.char = "#")
@@ -167,8 +164,8 @@ __Specific Questions__ (Show relevant R code as needed)
 
 > a. Please write the null and alternate hypothesis (1 point).  
 
-* Null hypothesis ($H_0$) : The students' heart beat rates before taking the statistic class are not different from that of after taking the statistic class.  
-* Alternative hypothesis ($H_1$) : The students' heart beat rate before taking the statistic class are different from that of after taking the statistic class. 
+* Null hypothesis ($H_0$): The students' heart rates from before taking the statistics class are *not different* from after taking the statistics class.  
+* Alternative hypothesis ($H_1$): The students' heart rates from before taking the statistics class are different from after taking the statistics class. 
 
 > b. Please create a visual plot to answer this question (1 point).  
 
@@ -178,20 +175,18 @@ boxplot(rate ~ when, data = rate)
 
 > c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
 
-Here we should do two sample paired t-test. The assumptions are  : 
+Here we should conduct a two-sample, paired t-test. The assumptions are: 
 
-1. Independence of the sample  
-This assumption should hold because the students should be independent to each other. In addition, we used paired t-test to take the non-independence between the two samples (same individual being measured twice) into account. 
+1. **Independence of the sample;** this assumption should hold insofar as the students should be independent of each other (i.e., one students' heart rate does not depend on that of another's). However, we do know that we have more than one measurement from the same student, so the assumption of independence is violated in this sense. This is why we are using a paired t-test. 
 
-2. Normality of the sample  
-In this case, we should chkeck the normality of the differences between the two sample (before vs. after taking the class) because paired t-test is actually comparing the differences to 0. The paire t-test is a one-sample t-test in disguise. However, we did not take point off if you check the normality of the entire `rate` column, even though this not correct.  
+2. **Normality of the sample;** in this case, we should check the normality of the *differences* between the two samples (before vs. after taking the class) because the paired t-test is actually a one-sample t-test comparing the differences to 0. However, we did not take point off if you checked the normality of the entire `rate` column.  
 
 ```{r}
-before=subset(rate,when=='before')
-after=subset(rate,when=='after')
-diff=after$rate-before$rate
+before <- subset(rate, when == 'before')
+after <- subset(rate, when == 'after')
+diff <- after$rate - before$rate
 shapiro.test(diff)
-qqPlot(diff)
+car::qqPlot(diff)
 ```
 
 From the above results, we see that we can't reject the null hypothesis, which is that the differences follows a normal distribution. 
@@ -202,9 +197,9 @@ From the above results, we see that we can't reject the null hypothesis, which i
 t.test(rate ~ when, data = rate, paired = TRUE)
 ```
 
-From the above results, we see that the mean of the differences (`r t.test(rate ~ when, data = rate, paired = TRUE)$estimate`) is significantly from 0 at 95% confidence level. We conclude that students' heart beat rates are higher after taking the statistic class. 
+From the above results, we see that the mean of the differences (`r t.test(rate ~ when, data = rate, paired = TRUE)$estimate`) is significantly different from 0 at a 95% confidence level. We conclude that students' heart rates are higher after taking the statistic class.
 
-#  Question 4                
+# Question 4
 
 Let's use another dataset on housing prices in Boston. Information about what each of the variables are can be found here: http://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.names. **Let's examine the relationship between nitric oxide concentrations (`nox`) and median housing prices (`medv`).**
 
@@ -215,13 +210,14 @@ house <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018
 -----------------------------------------------------------------------------------------------
 __Specific Questions__ (Show relevant R code as needed)           
 -----------------------------------------------------------------------------------------------
+
 > a. What is the correlation between nitric oxide concentrations and median housing values? Please interpret what this correlation shows about how nitric oxide emissions are associated with median housing values in non-technical terms (1 point). 
 
 ```{r}
 cor(house$nox, house$medv)
 ```
 
-The two variables are negatively correlated, which means that as `nox` increases, `medv` decreases (or vice versa). We consider the correlation is neither very strong nor very weak because the correlation coefficient `r cor(house$nox,house$medv)` is not very high. 
+The two variables are negatively correlated, which means that as `nox` increases, `medv` decreases (or vice-versa). We might consider the correlation is neither very strong nor very weak because the correlation coefficient `r cor(house$nox,house$medv)` is not very high. On the other hand, because one variable (`nox`) is an environmental measure and the other a social/ economic measure (`medv`), we might find a correlation of this magnitude to be surprisingly strong. Again, assessing the strength of a correlation coefficient should always take into account the source of the data and the field you are working in.
 
 > b. Please create a plot that shows the relationship between nitric oxide and median housing values (1 point).  
 
@@ -231,16 +227,15 @@ plot(house$nox ~ house$medv, xlab = 'nox', ylab = 'medv')
 
 > c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).  
 
-The assumptions are that : 
+The assumptions are: 
 
-1. Identically distributed (homoscedastic) residuals  
-We can check for homoscedasticity in the residuals a number of ways.
+1. **Identically distributed (homoscedastic) residuals;** we can check for homoscedasticity in the residuals a number of ways.
 
 - By plotting the residuals against the fitted values;    
+
 ```{r}
-linmod = lm(medv ~ nox, data = house)
-plot(residuals(linmod) ~ fitted(linmod),
-  main = 'Residuals v. Fitted')
+linmod <- lm(medv ~ nox, data = house)
+plot(residuals(linmod) ~ fitted(linmod), main = 'Residuals v. Fitted')
 abline(h = 0, col = 'red', lty = 'dashed', lwd = 1.5)
 ```
 
@@ -259,16 +254,15 @@ From the above results, we see that the residuals are fairly homoscedastic.
 2. Normality of the residuals;
 
 ```{r}
-linmod = lm(medv ~ nox, data = house) 
-resids = resid(linmod)
+linmod <- lm(medv ~ nox, data = house) 
+resids <- resid(linmod)
 qqPlot(resids)
 shapiro.test(resids) 
 ```
 
-From both the qqplot and the shapiro test, we see that the residuals are not normally distributed. You can get one point extra credit if you try to transforme the data and describe whether it improved/made worse normality and homoscedasticity.
+From both the normal QQ plot and the Shapiro-Wilk test, we see that the residuals are not normally distributed. You can get one point extra credit if you try to transforme the data and describe whether it improved/made worse normality and homoscedasticity.
 
-3. Independence in the residuals  
-Since we did not explicitely talk about the independence in the residuals, we did not grade this part. However, given the nature of this data, we woudl expect there is spatial autocorrelation among these housing data. 
+3. **Independence in the residuals;** since we did not explicitly talk about the independence in the residuals, we did not grade this part. However, given the nature of this data, we would expect there is spatial autocorrelation among these housing data. It is not technically correct to perform a Durbin-Watson test on the residuals of this model because the observations are not ordered in time or space. 
 
 > d. Please run the statistical test and interpret the result. Please do not just write whether the variable is significant or not - please also interpret what the result means in non technical terms that state how the two variables are related to one another (1 point).
 
@@ -278,10 +272,14 @@ plot(medv ~ nox, data = house, xlab = 'nox', ylab = 'medv')
 abline(linmod, col = "red")
 ```
 
-From the summary table and the plot we see that nitric oxides concentration (parts per 10 million; `nox`) negatively affects the median value of owner-occupied homes in $1000 (`medv`). With 1 ppm increase of nitric oxides concentration, median value of owner-occupied homes should decrease `r round(-summary(linmod)$coefficients[2,1]*1000, 1)`. If the nitric oxides concentration is 0, the median value of owner-occupied homes is expected to be `r round(-summary(linmod)$coefficients[1,1]*1000, 1)`. 
+From the summary table and the plot we see that nitric oxides concentration (parts per 10 million; `nox`) negatively affects the median value of owner-occupied homes in $1000 (`medv`). For a 1 ppm increase of nitric oxide concentration, median value of owner-occupied homes should decrease (on average) by `r round(-summary(linmod)$coefficients[2,1]*1000, 1)`. If the nitric oxides concentration is 0, the median value of owner-occupied homes is expected to be `r round(-summary(linmod)$coefficients[1,1]*1000, 1)`. 
 
 > e. Discuss the fit of your model and whether you think it is a good or bad fit. Why?  
 
-We see consider linear model is not a good fit to the data because  
-1. The adjusted $R^2$ is `r summary(linmod)$adj.r.squared`, which pretty low. Only 10 % of the variance of the median value of owner-occupied homes.  
-2. The normality of the residual assumption is not met. 
+Again, this is up to your interpretation, but it should be justified.
+
+You might argue the linear regression model is *not* a good fit because:
+
+- The adjusted $R^2$ is `r summary(linmod)$adj.r.squared`, which pretty low; only 10% of the variance of the median value of owner-occupied homes is accounted for by this model.
+- The residuals are clearly and significantly non-normal. 
+- The relationship between `nox` and `medv` appears to be non-linear.
