@@ -1,0 +1,11 @@
+Q1. Actually, the normality assumption is about the normality of the residuals after you conducted the ANOVA. 
+
+Normality should be checked with qqplot instead of histogram. 
+
+Q3. Since it is a paired t-test, which is a one sample t-test, you should check the normality of differences of heart rates. 
+
+1 extra point credit because you checked the normality of the difference as opposed to the normality of the 'rate' column as is.
+
+1 extra point because you add proper axis labels throughout the problem set. 
+
+1 extra point extra credit because you tried a transform and describe whether it improved/made worse normality and homoscedasticity.
