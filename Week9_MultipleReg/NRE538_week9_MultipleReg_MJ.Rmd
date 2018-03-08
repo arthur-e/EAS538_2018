@@ -30,7 +30,7 @@ library(MASS)
 
 Let's use the wheat yield dataset that I've shown in several lectures to run our own multivariate regression in today's lab. You can load the dataset using the following code:
 ```{r, airquality data,results='hide'}
-yield=read.csv('/Users/mehajain/Desktop/yielddata.csv')
+yield=read.csv('https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week9_MultipleReg/yielddata.csv')
 head(yield)
 ```
 As a reminder, this dataset examines mean wheat yields from 2000 to 2015 for every village in India's main wheat belt, the Indo-Gangetic Plains, and potential factors that influence yield. Below is a description of all the variables:          
