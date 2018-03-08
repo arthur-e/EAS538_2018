@@ -1,0 +1,146 @@
+---
+title: "EAS 538 Multiple Linear Regression"
+author: "Written by Meha Jain and modified by Oscar Feng-Hsun Chang and Arthur Endsley"
+date: "Week 9"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+```{r, set global theme, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=10)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE}
+library(rmarkdown)
+library(knitr) # Run R Code Chunks
+library(dplyr)
+library(tidyr)
+library(MASS)
+```
+
+Let's use the wheat yield dataset that I've shown in several lectures to run our own multivariate regression in today's lab. You can load the dataset using the following code:
+```{r, airquality data,results='hide'}
+yield=read.csv('/Users/mehajain/Desktop/yielddata.csv')
+head(yield)
+```
+As a reminder, this dataset examines mean wheat yields from 2000 to 2015 for every village in India's main wheat belt, the Indo-Gangetic Plains, and potential factors that influence yield. Below is a description of all the variables:          
+`State` and `District`- the state and district the village is found in       
+`Yield` - mean wheat yield from 2000 to 2015 as measured using satellite data    
+`Canal_Dist` - distance to closest canal in meters   
+`Irrigated_Per` - the percent of the village that is irrigated   
+`Literate` - the percent of the village that is literate   
+`Cultivator` - the percent of the village that cultivates a crop (i.e. is a farmer)   
+`AgLabor` - the percent of the village that works as agricultural laborers to help manage farm fields    
+`Rain` - the mean winter rainfall for each village from 2000 to 2015 (in mm)    
+`Temperature` - the mean winter temperature for each village from 2000 to 2015 (in Celsius)   
+`Elevation` - the elevation of the village    
+`SowDate` - the day wheat was sown on average in the village, where 1 = November 1, 15 = November 15, etc. 
+
+In lecture, we only ran a univariate model using these data and we focused on the effect of temperature on wheat yields. As a reminder, this is what we found:
+
+```{r, uni model,results='hide'}
+unimodel = lm(Yield~Temperature,data=yield)
+summary(unimodel)
+```
+Do you remember how to interpret this result? This regression is showing that temperature has a significant negative association with yield. For every one degree Celsius increase in temperature, there is 186.43 less kg/ha in yield.  
+
+We can also look at model fit by examining the R-squared value. We see that the R-squared is 0.4951, which means that temperature explains approximately 50% of the variation in wheat yields across these villages in India. That's a pretty good model fit, especially given that we are only including one predictor variable (`Temperature`). 
+
+# Multicollinearity 
+Now let's say we're interested in identifying the effect of temperature on yield while **controlling** for other variables that we think are important in explaining differences in yield. For example, for good reason we could think that the amount of irrigation farmers have access to might influence yields. We may also think that villages that have more people who work as agricultural laborers may have higher yields because there are more people to help prepare, weed, fertilize, and apply pesticides to fields. In India there is little mechanization so farmers rely on additional help to prepare and manage fields.  
+
+It looks like we will want to run a **multivariate** regression instead of a **univariate regression**. But before running that, we need to check for correlation across all of our potential x (predictor) variables and make sure that we don't have problems with multicollinearity. Remember from lecture that there are several ways to examine multicollinearity. You can plot scatterplots of your variables and see if they look correlated. One helpful function to do this is `pairs` but you can only give it continuous variables (and not categorical variables like `State` and `District`). 
+
+```{r, pairs,results='hide',eval=FALSE}
+pairs(yield[,3:12])
+```
+
+A second way you can examine potential multicollinearity is by creating a correlation table of all of the continuous variables in your dataset. There are no formal rules for what is **too** correlated, but as a general rule I try not to include variables that have correlation values > 0.6. Oscar and Arthur may have different rules that they usually use.
+```{r, corr, results='hide'}
+cor(yield[,3:12],use='complete.obs')
+```
+
+More formally, you can also identify which variables are highly correlated using the [variance inflation factor (VIF)](https://en.wikipedia.org/wiki/Variance_inflation_factor). You can calculate the vif for all independent variables in your model using the `vif` function from the `car` package. Typically, people worry about vif values greater than 5. 
+
+```{r, vif,results='hide',warning=FALSE,message=FALSE}
+library(car)
+vif(lm(Yield~Canal_Dist+Irrigated_Per+Literate+Cultivator+AgLabor+Rain+Temperature+Elevation+SowDate,data=yield))
+```
+Once again, there is no hard and fast rule about what is **too** correlated. All of the above metrics will just signal a potential problem with multicollinearity that could bias the beta coefficients of the correlated variables in your model, but in the end what you include is up to you!
+
+**Exercise 1**    
+1. Using information that you just produced from the scatterplots, correlation table, and vif, are there any variables you are concerned about including together in the same linear model? In other words, which variables do you think would lead to multi-collinearity in your model? Why?   
+2. What are the two most correlated variables you see in the correlation table produced using `cor`? Please run two separate univariate models where `Yield` is your dependent variable and one of the two correlated variables is your predictor variable. Now run a multivariate regression with `Yield` as your dependent variable and both of your correlated variables as predictor variables in the same model. Compare the beta coefficients you get for each of the two predictor variables in the univariate model and the multivariate model. Are they the same? Are they different? Why?
+
+# Do I need to transform my data?
+As I said in lecture, researchers will often examine the distribution of the dependent variable (your y variable) before running a regression to get an idea of whether the residuals from your linear model will be normally distributed. **In reality we don't really care about the distribution of the dependent variable. We are only using this as a proxy for what the residuals of the linear regression may look like.** If we see that our dependent variable is not normally distributed, this suggests we should likely transform the variable. Let's see what the distribution of yield data look like. 
+
+```{r, hist y,results='hide',eval=FALSE}
+par(mfrow=c(2,1))
+hist(yield$Yield)
+qqPlot(yield$Yield)
+```
+
+Okay, that doesn't look too bad so I'm going to go ahead and use the data as is without applying a transform. If the residuals of the linear model are not normally distributed, I will think about transforming my dependent variable at that stage.
+
+# Model selection 
+What model should I run? I have a dataset with 9 potential predictor variables. I could run the full model below:
+```{r, full model,results='hide'}
+fullmod = lm(Yield~Canal_Dist+Irrigated_Per+Literate+Cultivator+AgLabor+Rain+Temperature+Elevation+SowDate,data=yield)
+```
+
+But maybe I do not want to do this. First, I remember from the correlation plots we made in the first section of the lab that `Temperature` was highly correlated with both `Rain` and `Elevation`. Thus we should not include all of these in the model. Since I set this lab up by saying I am interested in examining the effect of `Temperature` on `Yield` I know I want to keep `Temperature` in the model. Therefore let's get rid of `Rain` and `Elevation`!
+
+```{r, full model 2,results='hide'}
+fullmod2 = lm(Yield~Canal_Dist+Irrigated_Per+Literate+Cultivator+AgLabor+Temperature+SowDate,data=yield)
+```
+
+I may have reasons that I want to simplify the model further. Maybe it takes a lot of time to collect each of these different variables and I want to come up with the simplest model that only considers the predictor variables that are important for explaining yield variation. That way if I ever expand the dataset I will not have to collect the additional unimportant variables. Maybe I'm worried about overfitting and creating a linear model that is too specific to the 200 observations used to create the model. I'm going to create a smaller model based on my knowledge of the literature that only includes management variables, like irrigation access and sow date, since previous studies have shown that management is the strongest driver of yield variation. 
+
+```{r, small mod 2,results='hide'}
+smallmod = lm(Yield~Canal_Dist+Irrigated_Per+Temperature+SowDate,data=yield)
+```
+
+I can compare this simpler model to my full model using `AIC`. As a reminder, we are not going to cover how this works exactly in our class because it is too much to cover in just one lecture, but you should pick the model with the lowest AIC score. Please read the textbook suggested in lecture if you are going to use this for any of your own research!
+
+```{r, AIC,results='hide'}
+AIC(fullmod2)
+AIC(smallmod)
+```
+# Checking assumptions and interpreting model results
+**Exercise 2**       
+1. Which model would you select considering the AIC values shown above?          
+2. Please test the assumptions of normality and homoscedasticity of this model. Do you think there are problems with either normality or homoscedasticity of the residuals? Why or why not?        
+3. Please run this model and look at the summary table. Which variables are significant? How does the beta coefficient value of `Temperature` differ between the multivariate and univariate models? Why do you think that is?     
+
+# Saving the output
+Great! Now that we have our results, let's create a table so we can include our results in a paper. Remember from lecture that the `stargazer` package is particularly helpful for this. If you don't already have this installed, please remember to install this before running the below code. Please remember to change the output directory for where you will save the file (since you can't connect to my Desktop!).
+
+```{r, stargazer,results='hide',eval=FALSE}
+library(stargazer)
+table=stargazer(fullmod2,type='html')
+writeLines(table,'/Users/mehajain/Desktop/table.html')
+```
+
+# Variable importance
+While the output of the linear model helped me understand which factors were significantly associated with yield, I'm also really interested in knowing which variables are the most important in explaining yield variation in my model. To do this, we will use the `relaimpo` package in __R__, which partitions the amount that the model's R-squared value is explained by each of the independent variables. Remember the package does this by running all possible order permutations of the predictor variables in the model. This is because the amount of variance a variable explains in a model is dependent on the order you put it into the model. Please install the `relaimpo` package if you don't have it already installed.
+
+```{r, varimp,results='hide',eval=FALSE}
+library(relaimpo)
+calc.relimp(fullmod2, type = c("lmg"), rela = TRUE)
+```
+**Exercise 3**       
+1. Please interpret the results of the `calc.relimp` function. Remember that you should only focus on the values under the `Relative importance metrics:` section. Which variable explains the most amount of variance? Which explains the second most? Which explains the least?  
+
+
+Nice work!! 
