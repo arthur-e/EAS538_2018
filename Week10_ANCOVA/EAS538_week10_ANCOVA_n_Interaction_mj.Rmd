@@ -140,12 +140,14 @@ summary(linmod3)
 
 Please now compare the results of `linmod2` and `linmod3`. You should see that even though the order of the variables changes, the beta coefficients, standard errors, and p values all remain the same between the two models. 
 
-You can also force the linear regression model to *not* to include a baseline/ reference level with including `-1` in the `lm()`. Let's try it!
+You can also force the linear regression model to *not* include a baseline/ reference level with including `-1` in the `lm()`. Let's try it!
 
-```{r, lm ANCOVA 3_1, eval = FALSE}
-linmod3 <- lm(juveniles ~ -1 + temperature + rainfall + humanpop + country + sand, data = dataset)
-summary(linmod3)
+```{r, lm ANCOVA 4, eval = FALSE}
+linmod4 <- lm(juveniles ~ -1 + temperature + rainfall + humanpop + country + sand, data = dataset)
+summary(linmod4)
 ```
+
+**What's different?** Notice that the estimates of the continuous independent variables (`temperature`, `rainfall`, `humanpop`, and `sand`) haven't changed; the coefficients, standard errors, and p-values are all the same. What has changed is that there is an estimate of **the mean response (annual number of juvenile cranes) for each level of the categorical variable (i.e., for each country).** With this model formulation, it is easier to see the mean number of juvenile cranes at a glance, *however,* we can't test for significant differences between countries. Which formulation you chose (with or without a reference level for the intercept) depends on what question(s) you want to answer with your model.
 
 ## ANOVA framework
 
