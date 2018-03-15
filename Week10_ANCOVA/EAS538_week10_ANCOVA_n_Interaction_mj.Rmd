@@ -167,12 +167,6 @@ leveneTest(juveniles ~ country, data = dataset)
 
 Wahoo! This test is telling us that our variances are equal across groups since the p value of the test is > 0.05. Now, let's interpret our model results.
 
-```{r}
-linmod <- lm(juveniles ~ sand, data = dataset)
-summary(linmod)
-```
-
-
 ``` {r interpret aov, results='hide'}
 summary(anomod)
 ```
@@ -217,9 +211,9 @@ Weird! Why does this difference occur when using `aov` and not `lm`? This has to
 Let's now quickly go through an interaction term in our ANCOVA. Let's go back to using the `lm` framework. Say we want to see whether the effect of human population on juvenile bird populations varies based on country. We may hypothesize that this occurs because different countries have different policies in place for protecting birds. In a country with strict protection policies, we hypothesize that a large human population may not have a large negative impact on bird populations. However, in a country with no protection policies, a large human population may have a larger negative effect on bird populations. In this case, we would want to include an interaction term between `humanpop` and `country`.
 
 ```{r, interaction, results='hide'}
-linmod4 <- lm(juveniles ~ sand + temperature + rainfall + humanpop + 
+linmod5 <- lm(juveniles ~ sand + temperature + rainfall + humanpop + 
     country + humanpop*country, data = dataset)
-summary(linmod4)
+summary(linmod5)
 ```
 
 Whoa! That model output is messy. Let's just focus on the `country` and interaction terms in the model to see if we can unpack what is going on. The beta coefficients on each of the country variables (e.g., `countryIndia`, `countryIndonesia`, and `countryMalaysia`) are all negative and significant. This suggests that India, Indonesia, and Malaysia are associated with fewer juveniles than China (which is in the intercept). Now let's interpret the interaction terms. Since they are all positive and significant, this shows that the effect of human population on juvenile birds is **larger** in India, Indonesia, and Malaysia compared to China. Another way to think about it is that the slope of human population is more positive in these three countries compared to China. Lets make a graph to visually explain this.
