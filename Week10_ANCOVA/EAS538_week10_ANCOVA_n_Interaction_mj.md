@@ -1,0 +1,230 @@
+---
+title: "EAS 538 ANCOVA and interactions"
+author: "Written by Meha Jain and modified by Oscar Feng-Hsun Chang and Arthur Endsley"
+date: "Week 10"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: yes
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+\newcommand\expect[1]{\mathbb{E}\left[{#1}\right]}
+\newcommand\var[1]{\mathrm{Var}\left[{#1}\right]}
+
+
+
+
+
+# ANCOVA
+
+Let's practice running ANCOVAs this week using both the `aov` and the `lm` framework. We're going to use a made up dataset based on a real story (http://www.sciencemag.org/news/2018/03/asias-hunger-sand-takes-toll-endangered-species) about how sand mining is reducing bird populations across Asia. You can load in the dataset using the following code:
+
+
+```r
+dataset <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week10_ANCOVA/sanddata.csv", sep = ",", header = T,comment.char = "#")
+```
+
+This dataset contains the following variables for the year 2017 for 1000 sites across Asia:   
+`juveniles`: number of juvenile cranes counted annually   
+`sand`: tons of sand removed annually   
+`temperature`: mean annual temperature in degrees Celsius   
+`rainfall`: total annual rainfall in mm   
+`humanpop`: total human population (in 1000s) within 50 miles of each site   
+`country`: country where each site is found (China, India, Indonesia, or Malaysia)   
+
+## Linear Model Framework
+Now, let's run an ANCOVA! First, let's use the `lm` framework since this is what we've used most in class. Before we run the ANCOVA, let's check for multicollinearity.
+
+
+```r
+cor(dataset[,-6],dataset[,-6])
+```
+Do you understand why I removed the sixth column from `dataset` before calculating the correlations? It's because the sixth column represents `country`, which is a categorical variable and can't be included in a correlation matrix. 
+
+Okay, great. I don't see any worrying correlations so let's move on to the ANCOVA!  
+
+```r
+linmod = lm(juveniles~sand + temperature + rainfall + humanpop + country,data=dataset)
+```
+First, let's check to make sure our model meets the assumptions of a linear model. I'm pretty sure there is independence of observations based on the way the data were collected so I won't worry about that one. Let's check to see that our x variables are linearly related with our y variable.
+
+
+```r
+par(mfrow=c(2,2))
+plot(juveniles~sand,data=dataset)
+plot(juveniles~temperature,data=dataset)
+plot(juveniles~rainfall,data=dataset)
+plot(juveniles~humanpop,data=dataset)
+```
+There is a lot of noise, but overall the trends look like they could be linear so I'll say that the data meet this assumption.
+
+Next, let's check if our model's residuals are homoscedastic and normal. We can do this quickly by plotting the linear model.
+
+```r
+par(mfrow=c(2,2))
+plot(linmod)
+```
+Based on this, what do you think? To me the first plot shows that the errors are homoscedastic, and the second plot shows the residuals are more or less normally distributed. Wahoo! This model meets all of the assumptions for a linear regression!  
+
+Now, let's interpret the results in non-technical terms. I know you have done this a lot and are hopefully pros at this by now, but it's always good to practice since this is what you will likely do most in your future work. 
+
+
+```r
+summary(linmod)
+```
+
+For the coefficient of sand, we can say: *Every one ton of sand removed is associated with a reduction of 1.5 juvenile cranes.* Please note that I used the word *associated* instead of *caused*. Think back to the lecture on experimental vs observational studies. It is often challenging to get at causality using observational data - usually we are only able to tell that two variables are *associated* with one another. We haven't been too picky about this to date in lecture + lab, but from now on please be careful about the terms you are using when you interpret statistical results. If your dataset is observational and you didn't do a carefully controlled experiment, you likely cannot make causal claims (unless you are using some cool methods from econometrics + statistics, which are outside of the scope of this class but which you can read about in this great book - https://www.amazon.com/Mostly-Harmless-Econometrics-Empiricists-Companion/dp/0691120358).
+
+**Exercise 1**    
+1. Now your turn! For each significant coefficient (at alpha = 0.05), please write out what each coefficient means in non-technical terms. You do not have to write a sentence out for sand since I already did that above. Please be careful not to suggest causality. Since this is an ANCOVA and one of your categorical variables is represented by the intercept, please interpret what the intercept means in non-technical terms.     
+2. For each non-significant coefficient (at alpha = 0.05), please write out what each coefficient means in non-technical terms. 
+
+Great! Let's think a bit more about the intercept term and what it is doing. As we discussed in class, one of the categories in your categorical variable is getting captured by the intercept. In this example, our categorical variable is made up of four countries:
+
+
+```r
+table(dataset$country)
+```
+
+You can see from our linear model results that `China` is the category that was captured by the intercept. This is because __R__ automatically makes the category that is first in the alphabet the reference category for a regression. But what if we wanted to have `India` captured by the intercept instead? We may want to do this if we want to see how each of the countries differs from `India.` We can do this using the `relevel` function in __R__!
+
+
+```r
+dataset$country=relevel(dataset$country,ref='India')
+```
+
+Let's now rerun the linear model and look at the results!
+
+
+```r
+linmod2 = lm(juveniles~sand + temperature + rainfall + humanpop + country,data=dataset)
+summary(linmod2)
+```
+
+Is India now captured by the intercept? Yes!! 
+
+**Exercise 2**   
+1. Please compare the results for your original linear model (`linmod`) and the new linear model you just ran (`linmod2`) where you used `India` instead of `China` as the intercept. Which coefficients stayed the same between both models? Which coefficients changed? Why?   
+
+One more thing before we switch to the `aov` framework. Remember in lecture I said that the order in which you put variables into your model *does not* matter when using `lm`? Let's try this out just to make sure. 
+
+
+```r
+linmod3 = lm(juveniles~temperature + rainfall + humanpop + country+sand,data=dataset)
+summary(linmod3)
+```
+
+Please now compare the results of `linmod2` and `linmod3`. You should see that even though the order of the variables changes, the beta coefficients, standard errors, and p values all remain the same between the two models. 
+
+## ANOVA framework
+
+Alright, let's move on to analyzing the ANCOVA in an ANOVA framework using `aov`. Remember that the ANCOVA model you're creating is EXACTLY the same model. It is just interpreted differently depending on whether you use `lm` or `aov`. 
+
+Let's create our model.
+
+```r
+anomod = aov(juveniles~sand + temperature + rainfall + humanpop + country,data=dataset)
+```
+
+Before we interpret our results, let's make sure this model meets all of the assumptions of an ANCOVA within the ANOVA framework. We already checked 1) that our x variables are linearly related to y, 2) that our model residuals are normally distributed, and 3) that our observations are independent. The only other assumption left to check is that variances are equal across all of our categorical groups. Remember how to do this from the problem set?
+
+
+```r
+leveneTest(juveniles~country,data=dataset)
+```
+
+Wahoo! This test is telling us that our variances are equal across groups since the p value of the test is > 0.05. Now, let's interpret our model results.
+
+
+```r
+summary(anomod)
+```
+
+How do the results compare to the results of `linmod`, which is the **EXACT** same model but just interpreted using a linear model framework? We see that the exact same variables are significant, though the p values change between the two models. We also only see that `country` is significant, but we do not know how each country is different from one another. To know this, we have to do a posthoc test. Let's use the Tukey HSD since the variances are equal across all groups and the sample size is the same across all groups (as shown when we used `table(dataset$country)` above).
+
+
+```r
+TukeyHSD(anomod)
+```
+
+```
+## Warning in replications(paste("~", xx), data = mf): non-factors ignored:
+## sand
+```
+
+```
+## Warning in replications(paste("~", xx), data = mf): non-factors ignored:
+## temperature
+```
+
+```
+## Warning in replications(paste("~", xx), data = mf): non-factors ignored:
+## rainfall
+```
+
+```
+## Warning in replications(paste("~", xx), data = mf): non-factors ignored:
+## humanpop
+```
+
+```
+## Warning in TukeyHSD.aov(anomod): 'which' specified some non-factors which
+## will be dropped
+```
+
+**Exercise 3**   
+1. Please interpret the results of the Tukey HSD test. Which countries are different from one another? What additional information did we gain from this Tukey HSD test that we did not get from only running our linear model (`linmod`)?  
+
+Okay, now let's run a second `aov` function where we change the order of the variables that we input into the model. This is a direct correlate of `linmod3` above.
+
+
+```r
+anomod3 = aov(juveniles~temperature + rainfall + humanpop + country+sand,data=dataset)
+summary(anomod3)
+```
+
+**Exercise 4**   
+1. Compare the p values between `anomod` and `anomod3`. Are the same variables significant (at alpha = 0.05)? Are the p values the same between both models? 
+
+Weird! Why does this difference occur when using `aov` and not `lm`? This has to do with the way an ANOVA works. Think back to when we learned about ANOVAs at the end of January. The way an ANOVA works is it partitions the sum of squares into the different variables included in your model - in essence it's looking for how much of the variance in your y variable can be explained by each of the x variables in your model. The ANOVA does this partioning sequentially, meaning that it will first attribute as much of the variance in y to the first variable you include in the model. It will then take all of the remaining variation that wasn't explained by that first variable, and then try to explain it using the second variable, and so on until it goes through all of the variables in your model. Because of this, the earlier you put in a variable in your model, the more variation it explains and the smaller the p value. This is why when we run variable importance metrics using ANOVAs (like is done with the `relaimpo` package), the function runs through all of the possible orders in which you could have included each variable (if this isn't ringing a bell, please go back to the lecture were we discussed variable importance).
+
+# Interaction Terms
+
+Let's now quickly go through an interaction term in our ANCOVA. Let's go back to using the `lm` framework. Say we want to see whether the effect of human population on juvenile bird populations varies based on country. We may hypothesize that this occurs because different countries have different policies in place for protecting birds. In a country with strict protection policies, we hypothesize that a large human population may not have a large negative impact on bird populations. However, in a country with no protection policies, a large human population may have a larger negative effect on bird populations. In this case, we would want to include an interaction term between `humanpop` and `country`.
+
+
+```r
+linmod4 = lm(juveniles~sand + temperature + rainfall + humanpop + 
+    country + humanpop*country, data = dataset)
+summary(linmod4)
+```
+
+Whoa! That model output is messy. Let's just focus on the `country` and interaction terms in the model to see if we can unpack what is going on. The beta coefficients on each of the country variables (e.g., `countryIndia`, `countryIndonesia`, and `countryMalaysia`) are all negative and significant. This suggests that India, Indonesia, and Malaysia are associated with fewer juveniles than China (which is in the intercept). Now let's interpret the interaction terms. Since they are all positive and significant, this shows that the effect of human population on juvenile birds is **larger** in India, Indonesia, and Malaysia compared to China. Another way to think about it is that the slope of human population is more positive in these three countries compared to China. Lets make a graph to visually explain this.
+
+
+```r
+plot(1:1000,rep(-100,1000),ylim=c(4000,6000),xlim=c(50,1000),xlab='Human Population',ylab='Juveniles')
+abline(a=5054.11977,b=-1.24563,col='blue') # China
+abline(a=5054.11977,b=-1.24563+1.31526,col='red') # India
+abline(a=5054.11977,b=-1.24563+1.53082,col='orange') # Indonesia
+abline(a=5054.11977,b=-1.24563+0.81239,col='green') # Malaysia
+```
+
+![](EAS538_week10_ANCOVA_n_Interaction_mj_files/figure-html/plot interaction-1.png)<!-- -->
+
+Notice in the `abline` code above, all lines have the same intercept, but the slopes were all different. 
+
+**Exercise 5**    
+1. Please explain where I got the numbers to calculate the slopes for each country (what I put as the `b` value in each `abline`). This is how you interpret interaction terms! If any of the interaction terms were not significant, then we would have added 0 to the original slope of -1.24563, meaning there is no difference in the effect of human population on juvenile bird populations in that country.
+
+
+**Extra Credit**    
+If you would like 1 point extra credit (and want to get some more practice) please create an ANCOVA model using the built in `iris` dataset in __R__. Please make sure you include at least two continuous and one categorical variables as your predictor variables. Please check for multicollinearity and the assumptions of a linear regression. Please interpret the results of the model.
