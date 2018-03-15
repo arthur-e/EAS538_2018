@@ -140,6 +140,13 @@ summary(linmod3)
 
 Please now compare the results of `linmod2` and `linmod3`. You should see that even though the order of the variables changes, the beta coefficients, standard errors, and p values all remain the same between the two models. 
 
+You can also force the linear regression model to *not* to include a baseline/ reference level with including `-1` in the `lm()`. Let's try it!
+
+```{r, lm ANCOVA 3_1, eval = FALSE}
+linmod3 <- lm(juveniles ~ -1 + temperature + rainfall + humanpop + country + sand, data = dataset)
+summary(linmod3)
+```
+
 ## ANOVA framework
 
 Alright, let's move on to analyzing the ANCOVA in an ANOVA framework using `aov`. Remember that the ANCOVA model you're creating is EXACTLY the same model. It is just interpreted differently depending on whether you use `lm` or `aov`. 
@@ -158,11 +165,21 @@ leveneTest(juveniles ~ country, data = dataset)
 
 Wahoo! This test is telling us that our variances are equal across groups since the p value of the test is > 0.05. Now, let's interpret our model results.
 
+```{r}
+linmod <- lm(juveniles ~ sand, data = dataset)
+summary(linmod)
+```
+
+
 ``` {r interpret aov, results='hide'}
 summary(anomod)
 ```
 
-How do the results compare to the results of `linmod`, which is the **EXACT** same model but just interpreted using a linear model framework? We see that the exact same variables are significant, though the p values change between the two models. We also only see that `country` is significant, but we do not know how each country is different from one another. To know this, we have to do a posthoc test. Let's use the Tukey HSD since the variances are equal across all groups and the sample size is the same across all groups (as shown when we used `table(dataset$country)` above).
+How do the results compare to the results of `linmod`, which is the **EXACT** same model but just interpreted using a linear model framework? 
+
+We see that the exact same variables are significant, though the p values change between the two models. ANOVA(`aov`) is based on _F_-test, which is calculating the _sum of squared within group_ over _sum of square among groups_. We see that the `Df` of `sand`, `temperature`, `rainfall`, and `humanpop` are all 1 because there is no grouping structure in these variable. The _sum of squared_ of those variables are the _explained sum of square_ of that variable, i.e. the `SSY` you calculated in the lm session. The `F-value` is being calculated by dividing this `SSY` by `SST` (total sum of square). The `p-value` is based on this `F-value` and the `Df`. On the other hand, the `lm` function is comparing the estimate of each regression (or beta) coefficient to 0 based on t-test, not based on _F_-test. This is why we see a `t value` in the `lm` output. 
+
+We also only see that `country` is significant, but we do not know how each country is different from one another. To know this, we have to do a posthoc test. Let's use the Tukey HSD since the variances are equal across all groups and the sample size is the same across all groups (as shown when we used `table(dataset$country)` above).
 
 ```{r, tukey HSD,warning='FALSE',results='hide',message='FALSE'}
 TukeyHSD(anomod)
