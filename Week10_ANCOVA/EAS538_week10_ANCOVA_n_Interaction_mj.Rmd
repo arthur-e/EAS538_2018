@@ -211,6 +211,7 @@ Weird! Why does this difference occur when using `aov` and not `lm`? This has to
 Let's now quickly go through an interaction term in our ANCOVA. Let's go back to using the `lm` framework. Say we want to see whether the effect of human population on juvenile bird populations varies based on country. We may hypothesize that this occurs because different countries have different policies in place for protecting birds. In a country with strict protection policies, we hypothesize that a large human population may not have a large negative impact on bird populations. However, in a country with no protection policies, a large human population may have a larger negative effect on bird populations. In this case, we would want to include an interaction term between `humanpop` and `country`.
 
 ```{r, interaction, results='hide'}
+dataset$country <- relevel(dataset$country, ref = 'China')
 linmod5 <- lm(juveniles ~ sand + temperature + rainfall + humanpop + 
     country + humanpop*country, data = dataset)
 summary(linmod5)
@@ -219,11 +220,11 @@ summary(linmod5)
 Whoa! That model output is messy. Let's just focus on the `country` and interaction terms in the model to see if we can unpack what is going on. The beta coefficients on each of the country variables (e.g., `countryIndia`, `countryIndonesia`, and `countryMalaysia`) are all negative and significant. This suggests that India, Indonesia, and Malaysia are associated with fewer juveniles than China (which is in the intercept). Now let's interpret the interaction terms. Since they are all positive and significant, this shows that the effect of human population on juvenile birds is **larger** in India, Indonesia, and Malaysia compared to China. Another way to think about it is that the slope of human population is more positive in these three countries compared to China. Lets make a graph to visually explain this.
 
 ```{r, plot interaction, results='hide',fig.show='FALSE'}
-plot(1:1000, rep(-100, 1000), ylim = c(4000, 6000), xlim = c(50, 1000), xlab = 'Human Population', ylab = 'Juveniles')
+plot(1:1000, rep(-100, 1000), ylim = c(4000, 5500), xlim = c(50, 1000), xlab = 'Human Population', ylab = 'Juveniles')
 abline(a = 5054.11977, b = -1.24563, col = 'blue') # China
-abline(a = 5054.11977, b = -1.24563 + 1.31526, col = 'red') # India
-abline(a = 5054.11977, b = -1.24563 + 1.53082, col = 'orange') # Indonesia
-abline(a = 5054.11977, b = -1.24563 + 0.81239, col = 'green') # Malaysia
+abline(a = 5054.11977 - 818.65030, b = -1.24563 + 1.31526, col = 'red') # India
+abline(a = 5054.11977 - 961.39246 , b = -1.24563 + 1.53082, col = 'orange') # Indonesia
+abline(a = 5054.11977 - 676.65413, b = -1.24563 + 0.81239, col = 'green') # Malaysia
 ```
 
 Notice in the `abline` code above, all lines have the same intercept, but the slopes were all different. 
