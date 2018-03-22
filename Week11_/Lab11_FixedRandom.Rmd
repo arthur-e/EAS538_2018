@@ -50,9 +50,11 @@ Alright, let's interpret this result. Attending more networking events while in 
 
 Hopefully you are suspicious of your beta coefficient given my leading statements above. What could be going on? Well, one thing that we didn't include in our model (in other words *omitted*) is what type of graduate school students went to (e.g., SEAS, Business School, etc). Do you think this could result in OVB? Remember, in order for OVB to occur, the omitted variable (i.e., graduate school) has to be associated with both your x variable (i.e., networking) AND your y variable (i.e, wages). It's easy to see how type of graduate school is associated with wages - students who attend business school likely make way more money than those of us in SEAS. What about the x variable? You can also imagine that students in business school also happen to go to more networking events per month because that's something that is explicitly built into their program. So, since type of graduate school is associated with BOTH the number of networking events attended per month AND future wages, it is likely that not including this variable is leading to bias in your beta coefficient. 
 
+> Try to plot `wage` against `networking` and you will see how the OVB is misguiding you. 
+
 Okay, let's see what happens when we include graduate school in our model. Let's pull in a new dataset with this information. 
 ``` {r, lm include grad school,results='hide'}
-nwork2$school = relevel(nwork2$school, ref = 'SEAS')
+nwork$school = relevel(nwork$school, ref = 'SEAS')
 lmod2 = lm(wages ~ networking + school, data = nwork)
 summary(lmod2)
 ```
@@ -126,7 +128,7 @@ head(lakedf)
 
 Okay, let's run our regression!
 ```{r, run lin mod, results='hide'}
-lmod5 = lm(prod~diversity+temp+rain+sun,data=lakedf)
+lmod5 = lm(prod ~ diversity + temp + rain + sun, data = lakedf)
 summary(lmod5)
 ```
 But wait! We should control for the lake that each sample was taken in since there may be differences across each lake. Let's try doing this as a random effect because we don't think we have problems with OVB. This is because we included information on all of the covariates that we think could cause OVB, including `temp`, `rain`, and `sun`. 
@@ -135,12 +137,14 @@ To use a random effect, we have to install a packages called `nlme`. This packag
 
 ```{r, install nlme,results='hide',warning=FALSE,message=FALSE}
 library(nlme) # please install this package first
-mod = lme(prod~diversity + temp + rain + sun, random = ~1|lake, data = lakedf)
+mod = lme(prod ~ diversity + temp + rain + sun, random = ~1|lake, data = lakedf)
 summary(mod)
 ```
-Whoa! This looks different from the `lm` outputs you've seen up until now. 
+Whoa! This looks different from the `lm` outputs you've seen up until now. Can you try to figure out which model fit the data or explain the data better?
 
 Even though we get p values from this analysis, you should know that the p value you're getting may not actually be correct. Why is that? It's because it is not straightforward to calculate the degrees of freedom when using mixed models (more explanation here: https://daijiang.name/en/2015/06/22/why-no-p-values-in-mixed-models/). There are ways to approximate it, which is what the package above did. I'd love to go more in depth about this in the class, but it is fairly complicated (for example, both Oscar and I took full semester long classes on mixed models). I just want to introduce you to this concept so you have it as a potential tool you may use in the future, after learning much more about it on your own of course :)
+
+Just to summarize, *fixed effect* is an unknown constant that we try to estimate from the data. In contrast, *random effects* is a random variable. It does not make sense to estimate a random effect; instead, we try to estimate the parameters that describe the _distribution_ of this random effect. 
 
 ---
 __Exercise 3__    
