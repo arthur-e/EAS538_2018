@@ -6,7 +6,7 @@ output:
   html_document:
     code_folding: show
     highlight: textmate
-    keep_md: yes
+    keep_md: no
     number_sections: true
     theme: flatly
     toc: yes
@@ -35,20 +35,67 @@ library(dplyr)
 
 We talked about linear models when dealing with data that followed a normal distribution. However, mother nature is not always that nice to us... Luckily, we have lots of brilliant mathematicians and statisticians who developed __generalized linear model (GLM)__ that can be used when encountering non-normally distributed data.
 
-The idea of GLM is to use a link function to "link" (or your can think of it as being transformed) the distribution mean $\mu$, that the dependent variable (Y) follows to the outcome of linear predictors (independent variables, or X). The model can be written in the following form:
+A GLM is not just a fix for non-normality. Rather, we want to choose the right kind of model for our data.
+For instance, consider any dataset with a non-normal distribution; we can calculate a mean (e.g., we measure 5.0, shown as red dashed line) and standard deviation (e.g., we measure 2.2, shown as blue dashed line, centered on mean) even though the distribution is not normal.
+Imagine fitting a normal distribution to these data; that is, we can draw a normal distribution with mean 5.0 and standard deviation 2.2, shown below.
+
+```{r echo=F}
+set.seed(99)
+plot(density(rnorm(10000, mean = 5, sd = 2.2), bw = 1), bty = 'n', lwd = 2)
+abline(v = 5, col = 'red', lty = 'dashed', lwd = 2)
+abline(v = c(2.8, 7.2), col = 'blue', lty = 'dashed', lwd = 2)
+```
+
+Using the normal distribution as a model of our data, we can ask, e.g., what percentage of our data are less than zero?
+Remember how we did this in R?
+
+```{r}
+pnorm(0, mean = 5, sd = 2.2) * 100
+```
+
+It seems about 1.15% of our values are predicted to be negative using the normal distribution.
+If we haven't looked at the data, we might think this bell-curve shape is a reasonable model of our data.
+But take a look at a histogram of our data, below.
+They actually come from a gamma distribution and, as such, there are no negative values!
+Think about real-world datasets like this: the count of people at a beach, the number of animal caught in a trap, the mean leaf area of a tree; none of these quantities can run negative.
+
+```{r echo=F}
+hist(rgamma(10000, shape = 5))
+abline(v = 5, col = 'red', lty = 'dashed', lwd = 2)
+abline(v = c(2.8, 7.2), col = 'blue', lty = 'dashed', lwd = 2)
+```
+
+So don't think of GLMs as just a fix for non-normal data.
+Rather, we want to choose the model that faithfully represents our data.
+If our data are:
+
+- Counts (which can only take on positive integer values) or rates;
+- Binary outcomes (events);
+- Categorical outcomes;
+
+Then the assumption of normality in residuals and the ordinary least-squares linear regression we've learned about so far is not going to work well for us.
+
+## The Generalized Linear Model
+
+Up to this point, we've discussed the **general linear model,** which includes the t-test, ANOVA, ANCOVA, and ordinary least-squares linear regression.
+We're now going to see an extension or *generalization* of the general linear model which can handle data that are not normally distributed or perhaps not even continuous!
+Because statisticians are not very good at naming things, this extension is called the **generalized linear model (GLM).** Try not to get the general linear model (let's abbreviate it LM) and GLMs confused.
+
+The idea of GLM is to use a link function to "link" the distribution mean $\mu$ (which the dependent variable, $Y$, follows) to the outcome of linear predictors (independent variables, or $X$). You can also think of this "linking" as a kind of transformation. The model can be written in the following form:
 
 $$Y_i\ \stackrel{\text{i.i.d.}}{\sim}\ f(\mu,\ \dots)$$
 
 $$ g(\mu)\ = \ X\,\beta_i$$
 
-- The $f$ is the Error distribution, BUT! it is actually the distribution of your dependent variable (i.e. the **data distribution**)... Theoretically, this can be ANY distribution.
+- The $f$ is the Error distribution, BUT! it is actually the distribution of your dependent variable (i.e. the **data distribution**)... Theoretically, this can be ANY distribution. For instance, in the linear regression model with normal errors, $Y_i \sim \mathrm{Normal}(\mu, \sigma^2)$.
 - The $g$ is the **link function**. 
 
 To determine what data distribution to use requires you to understand how your data are being generated. For example, it would be logical to use the [binomial distribution](https://en.wikipedia.org/wiki/Binomial_distribution) as the data distribution if you are dealing with a yes-no (binary) data set. To determine what link function to use requires **knowledge of the data**, **theoretical consideration**, and **empirical fit** to the data. Most of the time, there is a typical link function that goes together with the specified data distribution. However, always keep in mind that __chosing the data distribution and the link function are just two pieces of the model__. It is just like figuring out what independent variables to include in your model. 
 
-The following two posts are pretty clear in explaining the link function and some conceptual theory of GLM. I encourage you to read them.  
-[GLM](http://stats.stackexchange.com/questions/40876/difference-between-link-function-and-canonical-link-function-for-glm)  
-[link function](http://stats.stackexchange.com/questions/20523/difference-between-logit-and-probit-models#30909)  
+The following two posts are pretty clear in explaining the link function and some conceptual theory of GLM. I encourage you to read them.
+
+- [More about the GLM](http://stats.stackexchange.com/questions/40876/difference-between-link-function-and-canonical-link-function-for-glm)
+- [More about the link function](http://stats.stackexchange.com/questions/20523/difference-between-logit-and-probit-models#30909)  
 
 In the generalized linear model, the dependent variable does not need to follow the normal distribution (i.e. $f$ does not need to be a normal distribution). We will not get into the detailed mathematical theory of the generalized linear function, but just the application of this `glm` function in this class. 
 
