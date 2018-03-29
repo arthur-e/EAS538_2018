@@ -6,7 +6,7 @@ output:
   html_document:
     code_folding: show
     highlight: textmate
-    keep_md: yes
+    keep_md: no
     number_sections: true
     theme: flatly
     toc: yes
@@ -31,13 +31,13 @@ In lecture this week we discussed the idea of *omitted variables* and why they m
 Pull in a (made up) dataset that examines whether attending networking events in graduate school increases your average annual salary after finishing graduate school. My hypothesis is that increased networking in graduate school is associated with greater earnings because students who network find out about more job opportunities, including those that pay better salaries. I know this is a really silly example, but I wanted us to use an easy dataset to better understand the issues of omitted variable bias. 
 
 ```{r, load data, results='hide'}
-nwork = read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/networking.csv", sep = ",", header = T,comment.char = "#")
+nwork = read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/networking2.csv", sep = ",", header = T,comment.char = "#")
 head(nwork)
 ```
 Let me explain the variables in the dataset:   
 `networking`: the average number of networking events the student attended per month while in graduate school (ranges from 0 to 10).     
 `wages`: the average annual wage a person earned for the rest of their career after graduating from graduate school.    
-`degree`: the type of degree the student earned.    
+`school`: the program the student graduated from 
 
 Since we're interested in understanding the effect of networking (continuous variable) on wages (continuous variable), let's run a linear regression.
 
@@ -45,24 +45,27 @@ Since we're interested in understanding the effect of networking (continuous var
 lmod = lm(wages~networking,data=nwork)
 summary(lmod)
 ```
+
 Alright, let's interpret this result. Attending more networking events while in graduate school significantly increases your salary. By how much? Whoa! For every additional networking activity you go to per month, your future annual salary increases by $13,291.90. That's HUGE! Do you really believe that result? I can see how networking may be important, but does it seem reasonable that the effect is THAT big?
 
 Hopefully you are suspicious of your beta coefficient given my leading statements above. What could be going on? Well, one thing that we didn't include in our model (in other words *omitted*) is what type of graduate school students went to (e.g., SEAS, Business School, etc). Do you think this could result in OVB? Remember, in order for OVB to occur, the omitted variable (i.e., graduate school) has to be associated with both your x variable (i.e., networking) AND your y variable (i.e, wages). It's easy to see how type of graduate school is associated with wages - students who attend business school likely make way more money than those of us in SEAS. What about the x variable? You can also imagine that students in business school also happen to go to more networking events per month because that's something that is explicitly built into their program. So, since type of graduate school is associated with BOTH the number of networking events attended per month AND future wages, it is likely that not including this variable is leading to bias in your beta coefficient. 
 
+> Try to plot `wage` against `networking` and you will see how the OVB is misguiding you. 
+
 Okay, let's see what happens when we include graduate school in our model. Let's pull in a new dataset with this information. 
 ``` {r, lm include grad school,results='hide'}
-nwork2 = read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/networking2.csv", sep = ",", header = T,comment.char = "#")
-head(nwork2)
-nwork2$school=relevel(nwork2$school,ref='SEAS')
-lmod2 = lm(wages~networking + school,data=nwork2)
+nwork$school = relevel(nwork$school, ref = 'SEAS')
+lmod2 = lm(wages ~ networking + school, data = nwork)
 summary(lmod2)
 ```
 Let's interpret our new linear regression results. What happened? You see that the effect of networking on wages is still positive and significant, suggesting that the more networking activities you go to per month the more your future salary. However, what happened to the size of the beta coefficient? It's WAY smaller now! This model says that for every networking event you go to per month, your future annual salary increases by $593.96. That seems MUCH more reasonable, right? 
 
 In our first linear regression (`lmod`), where we didn't include type of school, we were falsely attributing much of the increase in salary you get from going to business school to the networking variable because those students who networked a lot happened to also be in business school. This is OVB. Once we added the omitted variable into the regression (`lmod2`), we get a much more reasonable beta coefficient for the variable we care about (i.e., `networking`). 
 
+---
 __Exercise 1__        
 1. Think about a research project you've either worked on in the past or that you've read about recently in class. Think of one potential omitted variable that may have resulted in bias of your beta coefficients. Please describe the research project in one sentence and describe a potential omitted variable in 2-3 sentences. Remember! The omitted variable has to be associated with BOTH an x variable and the y variable.
+---
 
 # Fixed Effects
 Okay, now that we're all convinced omitted variables can be a problem, how do we deal with this? In the example above it was pretty easy because collecting information about the school somebody graduated from is pretty straightforward and easy to include in a model. What if the omitted variable is much more complicated and hard to collect information on?    
@@ -70,7 +73,7 @@ Okay, now that we're all convinced omitted variables can be a problem, how do we
 Let's consider a recent study that I worked on that examined the impacts of losing groundwater irrigation access on wheat yields for farmers in India. This is an important problem because many wells are overexploited in India and farmers are starting to lose access to irrigation because the depth of groundwater has fallen too low to access. To answer this question, I'm going to examine the association between the number of times a farmer irrigates his/her field per season and the yield of their wheat crop.
 
 ```{r, pull in gwater data,results='hide'}
-irrdata=read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/irrdata.csv", sep = ",", header = T,comment.char = "#")
+irrdata = read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/irrdata.csv", sep = ",", header = T,comment.char = "#")
 head(irrdata)
 ```
 `irrigation`: the number of times a farmer irrigated his/her crop throughout the growing season    
@@ -79,7 +82,7 @@ head(irrdata)
 
 Okay, let's run our regression!
 ```{r, run linmod,results='hide'}
-lmod3 = lm(yield~irrigation,data=irrdata)
+lmod3 = lm(yield ~ irrigation, data = irrdata)
 summary(lmod3)
 ```
 
@@ -92,15 +95,17 @@ table(irrdata$state)
 Farmers live in the states of `Punjab` and `Bihar`. In Punjab, farmers are much richer and have better access to inputs than farmers in Bihar. To account for differences across States that could potentially cause OVB (e.g., wealth) let's include `state` as a fixed effect!
 
 ```{r, lmod fe, results='hide'}
-lmod4 = lm(yield~irrigation+state,data=irrdata)
+lmod4 = lm(yield ~ irrigation + state, data = irrdata)
 summary(lmod4)
 ```
 
 Let's look at our results. 
 
+---
 __Exercise 2__     
 1. Compare the beta coefficients on `irrigation` between `lmod3` and `lmod4`. How are they different? How are they similar?     
 2. Can you explain why the beta coefficient on irrigation changes when you include `state` in your model using the information I've provided about the differences between `Punjab` and `Bihar` above?
+---
 
 # Random Effects
 Sometimes you may not want to include a fixed effect. Remember, doing so eats up degrees of freedom and also makes it so that your results are only specific to the groups you have in your dataset. With the example above, by including `state` as a fixed effect (and not a random effect), our results are now only applicable to farmers in `Punjab` and `Bihar`. We cannot use our results to more broadly interpret the relationship between groundwater irrigation and wheat yield in other states in India.
@@ -110,9 +115,10 @@ For these reasons, you may want to use a random effect instead of a fixed effect
 Oscar is interested in understanding the impact of diversity of algal communities on lake productivity across hundreds of lakes in Michigan. Let's pull in a fake dataset about this work. 
 
 ```{r, pull in lake data, results='hide'}
-lakedf=read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/lakedf.csv", sep = ",", header = T,comment.char = "#")
+lakedf = read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/lakedf.csv", sep = ",", header = T,comment.char = "#")
 head(lakedf)
 ```
+
 `lake`: the number ID of the lake where the sample was taken  
 `diversity`: the number of different algae species   
 `prod`: the productivity of the algae (in kg/m)   
@@ -122,7 +128,7 @@ head(lakedf)
 
 Okay, let's run our regression!
 ```{r, run lin mod, results='hide'}
-lmod5 = lm(prod~diversity+temp+rain+sun,data=lakedf)
+lmod5 = lm(prod ~ diversity + temp + rain + sun, data = lakedf)
 summary(lmod5)
 ```
 But wait! We should control for the lake that each sample was taken in since there may be differences across each lake. Let's try doing this as a random effect because we don't think we have problems with OVB. This is because we included information on all of the covariates that we think could cause OVB, including `temp`, `rain`, and `sun`. 
@@ -131,15 +137,18 @@ To use a random effect, we have to install a packages called `nlme`. This packag
 
 ```{r, install nlme,results='hide',warning=FALSE,message=FALSE}
 library(nlme) # please install this package first
-mod = lme(prod~diversity+temp+rain+sun,random=~1|lake,data=lakedf)
+mod = lme(prod ~ diversity + temp + rain + sun, random = ~1|lake, data = lakedf)
 summary(mod)
 ```
-Whoa! This looks different from the `lm` outputs you've seen up until now. 
+Whoa! This looks different from the `lm` outputs you've seen up until now. Can you try to figure out which model fit the data or explain the data better?
 
 Even though we get p values from this analysis, you should know that the p value you're getting may not actually be correct. Why is that? It's because it is not straightforward to calculate the degrees of freedom when using mixed models (more explanation here: https://daijiang.name/en/2015/06/22/why-no-p-values-in-mixed-models/). There are ways to approximate it, which is what the package above did. I'd love to go more in depth about this in the class, but it is fairly complicated (for example, both Oscar and I took full semester long classes on mixed models). I just want to introduce you to this concept so you have it as a potential tool you may use in the future, after learning much more about it on your own of course :)
 
+Just to summarize, *fixed effect* is an unknown constant that we try to estimate from the data. In contrast, *random effects* is a random variable. It does not make sense to estimate a random effect; instead, we try to estimate the parameters that describe the _distribution_ of this random effect. 
+
+---
 __Exercise 3__    
 1. Compare the beta coefficients and p values between the linear model with no random effects (`lmod5`) and the mixed effect model with random effects (`mod`). What is the same? What is different?      
 2. Think back to other research projects you've worked on or have read about. Can you give another example where a random effect would be more appropriate than a fixed effect?    
-
+---
 
