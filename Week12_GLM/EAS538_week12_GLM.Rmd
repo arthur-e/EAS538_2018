@@ -67,9 +67,10 @@ abline(v = c(2.8, 7.2), col = 'blue', lty = 'dashed', lwd = 2)
 
 So don't think of GLMs as just a fix for non-normal data.
 Rather, we want to choose the model that faithfully represents our data.
-If our data are:
+If we have a large sample of count data that can only take on positive integer values, as in the above synthetic example, we could still assume a normal distribution of the residuals, but if the mean of the counts is small, our model will make predictions and confidence intervals that can run negative, as in the above example.
+In general, if our data are:
 
-- Counts (which can only take on positive integer values) or rates;
+- Count data with small means or rates;
 - Binary outcomes (events);
 - Categorical outcomes;
 
