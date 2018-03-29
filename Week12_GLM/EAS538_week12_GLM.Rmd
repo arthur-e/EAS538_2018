@@ -67,10 +67,10 @@ abline(v = c(2.8, 7.2), col = 'blue', lty = 'dashed', lwd = 2)
 
 So don't think of GLMs as just a fix for non-normal data.
 Rather, we want to choose the model that faithfully represents our data.
-If we have a large sample of count data that can only take on positive integer values, as in the above synthetic example, we could still assume a normal distribution of the residuals, but if the mean of the counts is small, our model will make predictions and confidence intervals that can run negative, as in the above example.
+If we have a large sample of count data that can only take on positive integer values, as in the above synthetic example, we could still assume a normal distribution of the residuals, but if the mean of the counts is small, our model will make predictions and confidence intervals that can run negative, as in the very first normal distribution.
 In general, if our data are:
 
-- Count data with small means or rates;
+- Count data with small means or rates;  
 - Binary outcomes (events);
 - Categorical outcomes;
 
@@ -224,11 +224,12 @@ Man - those plots look BAD! This suggests that the linear model isn't fitting th
 
 ```{r, dist,results='hide',eval=FALSE}
 hist(gala$Species)
+mean(gala$Species)
 ```
 
-Whoa! Those data are NOT normally distributed. Thinking back to the different data distributions Meha showed in class, what distribution does it look like the data follow? They could fit either a Poisson or a Gamma distribution, right? Which one would we choose? Well, let's think about what our y variable is. We are measuring the number of species on each island, which is a *count* variable. We also know that since it is the number of species on an island, the number must be an integer (i.e., we can't have 1.2 species on an island). Since the data are skewed (as shown in the histogram), count data, and integer data, let's go with the Poisson distribution.
+Whoa! Those data are NOT normally distributed. Thinking back to the different data distributions Meha showed in class, what distribution does it look like the data follow? They could fit either a Poisson or a Gamma distribution, right? Which one would we choose? Well, let's think about what our y variable is. We are measuring the number of species on each island, which is a *count* variable. We also know that since it is the number of species on an island, the number must be an integer (i.e., we can't have 1.2 species on an island). From the histogram, we see that this data are skewed, non-negative count data, and integer data. Refer back to the beginning, we shouldn't use OLS method to model number species (`Species`), so let's go with the Poisson distribution to model the `Species` variable. 
 
-We can build a glm with a Poisson distribution.
+We can build a glm with a Poisson distribution for th dependenet variable.
 
 ```{r,results='hide'}
 mod4 <- glm(Species ~ Area + Nearest + Adjacent, data = gala, family = poisson(link = "log"))
