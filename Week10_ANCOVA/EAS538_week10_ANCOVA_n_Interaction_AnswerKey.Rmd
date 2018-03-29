@@ -1,6 +1,6 @@
 ---
 title: "EAS 538 Lab ANCOVA and interactions: Answer Key"
-author: "Written by Meha Jain and modified by Oscar Feng-Hsun Chang and Arthur Endsley"
+author: "Written by Arthur Endsley and modified by Oscar Feng-Hsun Chang"
 date: "Week 10"
 output: 
   html_document:
