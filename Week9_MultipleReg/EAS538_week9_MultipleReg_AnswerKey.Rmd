@@ -25,7 +25,7 @@ library(rmarkdown)
 library(knitr) # Run R Code Chunks
 library(dplyr)
 library(tidyr)
-library(MASS)
+library(MASS, warn.conflicts = F)
 ```
 
 ```{r, pairs, results='hide'}
@@ -42,7 +42,7 @@ which(absCor == max(absCor[which(absCor<1)]), arr.ind = TRUE)
 
 > 1. Using information that you just produced from the scatterplots, correlation table, and vif, are there any variables you are concerned about including together in the same linear model? In other words, which variables do you think would lead to multi-collinearity in your model? Why?
 
-From the correlation plots and correlation coefficients, we see that the highest correlation is between `Temperature` and `Elevation`. The correlation coefficient is `r round(cor(yield$Temperature, yield$Elevation), 3)`. (Hope you still remember how we find the max correlation coefficient from Week 2.).  
+From the correlation plots and correlation coefficients, we see that the highest correlation is between `Temperature` and `Elevation`. The correlation coefficient is `r round(cor(yield$Temperature, yield$Elevation), 3)`. (Hope you still remember how we find the max correlation coefficient from Week 2.)
 
 Since these two variabels have pretty high correlation, we should be concerned about having these two variables in the same regression model. Otherwise the estimation of the regression (beta) coefficients will be not precise. We can verify that multi-collinearity is an issue by calculating variance inflation factors (VIFs).
 
@@ -133,4 +133,4 @@ calc.relimp(fullmod2, type = c("lmg"), rela = TRUE)
 
 From the output table we see that `Temperature` is the most important variable taht contribute 59% of the explanation power of the model and the distance to the nearest canal (`Canal_Dist`) is the least important one. 
 
-Note that the relative importance does *not* represent the R2 of that variable. It is the contribution of that variable to the R2 of the model. For example, 0.59 of temperature means the temperature accounts for 59% of the explanation power (or R2) of the model. 
+Note that the relative importance does *not* represent the variation explained by that variable. It is the contribution of that variable to the variance explained (to $R^2$) of the model. For example, 0.59 of temperature means the temperature accounts for 59% of the explained variation (or $R^2$) in the model. 
