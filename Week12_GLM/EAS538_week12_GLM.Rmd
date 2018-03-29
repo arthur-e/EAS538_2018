@@ -112,11 +112,12 @@ well <- read.csv("https://raw.githubusercontent.com/OscarFHC/NRE538_GSRA/master/
 
 - `switch`: Whether the household switched to a new, clean well (1 = yes, 0 = no)  
 - `arsenic`: Natural arsenic concentration in well water in ppm.  
-- `dist`: The distance of the household to the closest known safe well in 100 meter    
+- `dist`: The distance of the household to the closest known safe well in hundreds of meters (i.e., distance in meters divided by 100).    
 - `assoc`: Whether any members of the household are active in community organizations (1 = yes, 0 = no).  
 - `educ`: The education level (in years) of the head of household.  
 
 Let's do some exploratory analyses. 
+
 ```{r, cor plot,eval=FALSE}
 cor(well)
 pairs(well)
