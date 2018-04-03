@@ -62,10 +62,10 @@ Let's interpret our new linear regression results. What happened? You see that t
 
 In our first linear regression (`lmod`), where we didn't include type of school, we were falsely attributing much of the increase in salary you get from going to business school to the networking variable because those students who networked a lot happened to also be in business school. This is OVB. Once we added the omitted variable into the regression (`lmod2`), we get a much more reasonable beta coefficient for the variable we care about (i.e., `networking`). 
 
----
+-------------------
 __Exercise 1__        
 1. Think about a research project you've either worked on in the past or that you've read about recently in class. Think of one potential omitted variable that may have resulted in bias of your beta coefficients. Please describe the research project in one sentence and describe a potential omitted variable in 2-3 sentences. Remember! The omitted variable has to be associated with BOTH an x variable and the y variable.
----
+-------------------
 
 # Fixed Effects
 Okay, now that we're all convinced omitted variables can be a problem, how do we deal with this? In the example above it was pretty easy because collecting information about the school somebody graduated from is pretty straightforward and easy to include in a model. What if the omitted variable is much more complicated and hard to collect information on?    
@@ -101,11 +101,11 @@ summary(lmod4)
 
 Let's look at our results. 
 
----
+-------------------
 __Exercise 2__     
 1. Compare the beta coefficients on `irrigation` between `lmod3` and `lmod4`. How are they different? How are they similar?     
 2. Can you explain why the beta coefficient on irrigation changes when you include `state` in your model using the information I've provided about the differences between `Punjab` and `Bihar` above?
----
+-------------------
 
 # Random Effects
 Sometimes you may not want to include a fixed effect. Remember, doing so eats up degrees of freedom and also makes it so that your results are only specific to the groups you have in your dataset. With the example above, by including `state` as a fixed effect (and not a random effect), our results are now only applicable to farmers in `Punjab` and `Bihar`. We cannot use our results to more broadly interpret the relationship between groundwater irrigation and wheat yield in other states in India.
@@ -146,9 +146,9 @@ Even though we get p values from this analysis, you should know that the p value
 
 Just to summarize, *fixed effect* is an unknown constant that we try to estimate from the data. In contrast, *random effects* is a random variable. It does not make sense to estimate a random effect; instead, we try to estimate the parameters that describe the _distribution_ of this random effect. 
 
----
+-------------------
 __Exercise 3__    
 1. Compare the beta coefficients and p values between the linear model with no random effects (`lmod5`) and the mixed effect model with random effects (`mod`). What is the same? What is different?      
 2. Think back to other research projects you've worked on or have read about. Can you give another example where a random effect would be more appropriate than a fixed effect?    
----
+-------------------
 
