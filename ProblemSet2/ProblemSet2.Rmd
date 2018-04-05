@@ -1,0 +1,152 @@
+---
+title: "Problem Set 2"
+author: "Written by Meha Jain"
+date: "Week 13"
+output:
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: yes
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+      toc_depth: 4
+  pdf_document:
+    toc: yes
+---
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(car)
+```
+
+Below are a series of questions related to datasets that you will pull in from our Github account. A few things:   
+
+1. Please work on this problem set **individually** and do not ask any other students for help.    
+2. Please **do not** post on Piazza for help with this problem set.  
+3. This exam is **open book** so you can use any lecture notes, labs, and/or anything you find online for help!  
+4. You can also ask me (Meha), Arthur, or Oscar for help.  
+5. Please remember if you run a test that requires a post hoc test to answer the question, please use one. You will not get full credit for your answer if you do not use a post hoc test when needed. In the case of chi-square, we DO NOT expect you to run any post hoc tests and instead you can qualitatively explain the differences across groups by examining summary statistics.  
+6. Please run all ANOVAs and ANCOVAs in the linear model framework (do not use `aov`).
+7. If the assumption of homoscedasticity is ever violated, feel free to proceed with the statistical test as if the assumption was met - just make note in your answer that the assumption was violated.
+8. If the assumption of normality is ever violated, we expect you to use a non-parametric test or transform your variable to meet the normality assumption. We do not expect you to use any GLMs except for a logistic regression.
+9. We want you to run multi-variate regressions and logistic regressions with as many x covariates as possible.
+10. When interpreting the results of a logistic regression, please backtransform your beta coefficients to make interpretations non-technical.
+
+#  Question 1                
+
+Let's use a dataset that has information about restaurant ratings through Yelp for restaurants from India and the United States. **Please test whether `Ratings` given to restaurants are significantly different between `Country`**.
+
+```{r, pull in data,results='hide'}
+rating = read.csv('/Users/mehajain/Desktop/yelp.csv')
+head(rating)
+```
+
+The dataset contains the following variabes:      
+`Restaurant`: Restaurant name      
+`Country`: Country that restaurant is found in      
+`City`: City the restaurant is found in        
+`Price`: Price ranking of the restaurant (`1`, `2`, or `3`)     
+`Rating`: Rating of the restaurant (`Average`,`Good`,`Very Good`, and `Excellent`)      
+
+-------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)           
+-------------------------------------------------------------------------------------
+
+a. Please write the null and alternate hypothesis (1 point).  
+
+b. Please create a visual plot or table to answer this question (1 point).  
+
+c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).
+
+d. Please run the statistical test and interpret the result (1 point). Which group(s) are significantly different from one another (if any)? How are they different? 
+
+#  Question 2                
+
+Let's now use a dataset on a measure of poverty that is constructed by considering multiple dimensions. Specifically, this poverty index is comprised of both the number of people who are in poverty within a given country and also the intensity of poverty. If you are interested, you can read more about how the poverty index was constructed here (https://www.kaggle.com/ophi/mpi). **Please test whether `Regions` have different levels of `Poverty`.**
+
+``` {r,load poverty data,results='hide'} 
+poverty <- read.csv('/Users/mehajain/Desktop/poverty.csv')
+head(poverty)
+```
+
+The dataset contains the following variables:       
+`Country`: Country       
+`Region`: Region country is found in        
+`Poverty`: Poverty Index
+
+-------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)           
+-------------------------------------------------------------------------------------         
+
+a. Please write the null and alternate hypothesis (1 point).  
+
+b. Please create a visual plot to answer this question (1 point).  
+
+c. Please decide what statistical test to use and check whether your data meet the assumptions to run this test (2 points).
+
+d. Please run the statistical test and interpret the result (1 point). Which group(s) are significantly different from one another (if any)? How are they different?
+
+#  Question 3                
+
+Let's use a real dataset from Facebook about 440 posts from 440 different people. Using this dataset, **identify which factors are significantly associated with more `shares` of a post.** 
+
+``` {r,load rate data,results='hide'} 
+fbook <- read.csv('/Users/mehajain/Desktop/facebook.csv')
+head(fbook)
+```
+
+The dataset contains the following variables:   
+`type`: the type of post    
+`paid`: whether it was a paid advertisement or not    
+`users`: the number of friends that the individual had     
+`comment`: the number of people who commented on the post   
+`like`: the number of people who liked the post     
+`share`: the number of times that post was shared   
+
+-------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)           
+-------------------------------------------------------------------------------------   
+
+a. Please decide which statistical test to use and please identify which model you are going to run (2 points).
+
+b. Please check whether your data meet the assumptions to run this test (2 points).  
+
+c. Please run the statistical test and interpret the result. Which variables are significantly associated with the number of times a post is shared? Please write out one sentence for each significant beta coefficient explaining what it means in non-technical terms (2 points).
+
+d. Discuss the fit of your model and whether you think it is a good or bad fit. Why? (1 point).
+
+e. Please run a second model that tests whether the number of `likes` has a different effect on the number of `shares` depending on the `type` of post. Please interpret whether the effect of `likes` varies based on the type of post in non-technical terms (1 point).
+
+#  Question 4                
+
+Let's use another dataset on ratings of wine (either good or bad) and different characteristics of the wine. **Please use this dataset to identify which factors are significantly associated with ranking a wine as good (`1`) or bad (`0`).**
+
+``` {r,load house data,results='hide'} 
+wine <- read.csv('/Users/mehajain/Desktop/wine.csv')
+head(wine)
+```
+
+The dataset contains the following variables:   
+`citricacid`: the amount of citric acid per glass   
+`sugar`: the amount of sugar per glass   
+`chlorides`: the amount of chlorides per glass   
+`density`: the density of the wine   
+`sulphates`: the amount of sulphates per glass    
+`alcohol`: the alcohol content per glass     
+`quality`: whether the wine is good (`1`) or bad (`0`)
+
+-----------------------------------------------------------------------------------------------
+__Specific Questions__ (Show relevant R code as needed)           
+-----------------------------------------------------------------------------------------------
+
+a. Please decide which statistical test to use and please identify which model you are going to run (2 points).
+
+b. Please run the statistical test and interpret the result. Which variables are significantly associated with whether a wine is ranked as good or bad (1 point).
+
+c. For all significant variables, please interpret each beta coefficient in non-technical terms. Since the x variables are unitless, you can simply say 'for every 1 unit change in x...' (2 points).
+
+#  Question 5
+For 3 points extra credit, please find your own dataset and run a multiple linear regression. For full credit we will expect that you will check for multicollinearity, check all assumptions, and interpret results in non-technical terms. 
