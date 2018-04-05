@@ -1,0 +1,224 @@
+---
+title: "EAS 538 Lab ANCOVA and interactions: Answer Key"
+author: "Written by Arthur Endsley and modified by Oscar Feng-Hsun Chang"
+date: "Week 10"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+\newcommand\expect[1]{\mathbb{E}\left[{#1}\right]}
+\newcommand\var[1]{\mathrm{Var}\left[{#1}\right]}
+
+```{r, set global theme, eval=FALSE, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=10)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(rmarkdown)
+library(knitr) # Run R Code Chunks
+library(dplyr)
+library(tidyr)
+library(car)
+```
+
+# Exercise 1
+
+```{r, pull in data, results='hide'}
+dataset <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week10_ANCOVA/sanddata.csv", sep = ",", header = T,comment.char = "#")
+
+linmod <- lm(juveniles ~ sand + temperature + rainfall + humanpop + country, data = dataset)
+```
+
+## Exercise 1, Part 1
+
+> Now your turn! For each significant coefficient (at alpha = 0.05), please write out what each coefficient means in non-technical terms. You do not have to write a sentence out for sand since I already did that above. Please be careful not to suggest causality. Since this is an ANCOVA and one of your categorical variables is represented by the intercept, please interpret what the intercept means in non-technical terms.
+
+```{r}
+summary(linmod)
+```
+
+Here are a few different ways of describing the statistical associations we found without suggesting causality.
+
+- `sand`: For each 1 ton of sand removed annually from a site, there is an associated mean decrease of 1.5 cranes.
+- `temperature`: A 1 degree C increase in temperature is associated with a 76 fewer cranes, on average.
+- `humanpop`: Sites with 1,000 more people within a 50-mile radius, on average, have 0.39 fewer cranes annually.
+- `countryMalaysia`: Compared to China, sites in Malaysia have 190 fewer cranes annually.
+
+## Exercise 1, Part 2
+
+> For each non-significant coefficient (at alpha = 0.05), please write out what each coefficient means in non-technical terms. 
+
+Because these effects are not significant, we can't say that the coefficient is significantly different from zero (i.e., no effect).
+Thus, I tend to ignore the coefficients altogether. The most you could say, as in the `rainfall` example below, is that there appears to be a negative or positive association, but that it is not significant.
+
+- `rainfall`: There is no significant relationship between rainfall and the number of juvenile cranes, but sites with higher rainfall in our sample tend to have a higher number of cranes.
+- `countryIndia`: Sites in India have about the same number of juvenile cranes, on average, as sites in China.
+- `countryIndonesia`: Sites in Indonesia have about the same number of juvenile cranes, on average, as sites in China.
+
+# Exercise 2
+
+```{r, relevel}
+# Making India the reference level
+dataset$country <- relevel(dataset$country, ref = 'India')
+
+linmod2 <- lm(juveniles ~ sand + temperature + rainfall + humanpop + country, data = dataset)
+summary(linmod2)
+```
+
+> Please compare the results for your original linear model (`linmod`) and the new linear model you just ran (`linmod2`) where you used `India` instead of `China` as the intercept. Which coefficients stayed the same between both models? Which coefficients changed? Why?   
+
+The coefficients of all of our continuous variables are exactly the same as before, but the coefficients for the catgeorical variable's levels, `country`, have all changed.
+This is because each categorical coefficient, including the `(Intercept)` term, correspond only to shifts in the baseline number of cranes.
+If we think back to univariate regression, where we had one continuous independent variable, each categorical coefficient corresponds to a different y-intercept, and therefore a different line between X and Y, but the slope of the line is always the same.
+Here, the coefficients for each continuous variable are each a slope and are the same regardless of which country is set as the reference level.
+
+# Exercise 3
+
+> Please interpret the results of the Tukey HSD test. Which countries are different from one another? What additional information did we gain from this Tukey HSD test that we did not get from only running our linear model (linmod)?
+
+``` {r ANCOVA aov}
+# Not really an ANOVA because there are continuous variables and too many
+#   categorical variables on the right-hand size
+anomod <- aov(juveniles ~ sand + temperature + rainfall + humanpop + country, data = dataset)
+summary(anomod)
+```
+
+In the `anomod` that Meha fit as part of lab, it should be noted that this is **not** an ANOVA.
+An analysis of variance (ANOVA) can only have, at most, two categorical independent variables and no continuous independent variables.
+However, when R's ANOVA function, `aov()`, is given a formula that breaks this rule, it appears to work.
+What's really happening here?
+R has actually fit a linear regression (i.e., with `lm()`) and is returning the results in an ANOVA table.
+This can be misleading and, when we try to run a post-hoc test, can actually lead to warnings.
+Recall that Meha wrote:
+
+> Remember that the ANCOVA model you're creating is EXACTLY the same model. It is just interpreted differently depending on whether you use `lm` or `aov`.
+
+When we try to run the Tukey's HSD test we get a bunch of warnings:
+
+```
+non-factors ignored: sand
+non-factors ignored: temperature
+non-factors ignored: rainfall
+non-factors ignored: humanpop
+'which' specified some non-factors which will be dropped
+```
+
+It would be better if we fit a proper ANOVA before running the post-hoc test, but this would result in different estimated differences and different pair-wise p-values because the estimate effect of a country-to-country difference would be different when we are statically controlling for `sand`, `temperature`, `rainfall`, and `humanpop`.
+
+```{r}
+TukeyHSD(anomod)
+```
+
+The p-value in Tukey's HSD is interpreted just like any other p-value; it has already been corrected for multiple testing.
+This, for an alpha of 0.05, we would conclude:
+
+- There is a significant difference in the mean number of cranes between Malaysia and India (p-value of 0.018);
+- There is a significant difference in the mean number of cranes between Malaysia and China (p-value of 0.002);
+- There is a significant difference in the mean number of cranes between Malaysia and Indonesia (p-value of 0.035);
+- Between any other 2 countries, there is no significant difference in the mean number of juvenile cranes.
+
+# Exercise 4
+
+```{r, ANCOVA aov 3}
+anomod3 <- aov(juveniles ~ temperature + rainfall + humanpop + country + sand, data = dataset)
+summary(anomod3)
+```
+
+> Compare the p values between `anomod` and `anomod3`. Are the same variables significant (at alpha = 0.05)? Are the p values the same between both models? 
+
+The p-values are not the same. As Meha explains:
+
+> This has to do with the way an ANOVA works. Think back to when we learned about ANOVAs at the end of January. The way an ANOVA works is it partitions the sum of squares into the different variables included in your model - in essence it's looking for how much of the variance in your y variable can be explained by each of the x variables in your model. The ANOVA does this partioning sequentially, meaning that it will first attribute as much of the variance in y to the first variable you include in the model. It will then take all of the remaining variation that wasn't explained by that first variable, and then try to explain it using the second variable, and so on until it goes through all of the variables in your model. Because of this, the earlier you put in a variable in your model, the more variation it explains and the smaller the p value. This is why when we run variable importance metrics using ANOVAs (like is done with the `relaimpo` package), the function runs through all of the possible orders in which you could have included each variable (if this isn't ringing a bell, please go back to the lecture were we discussed variable importance).
+
+# Exercise 5
+
+```{r, interaction, results='hide'}
+dataset$country <- relevel(dataset$country, ref = 'China')
+linmod5 <- lm(juveniles ~ sand + temperature + rainfall + humanpop + 
+    country + humanpop*country, data = dataset)
+coef(summary(linmod5))
+```
+
+```{r, plot interaction}
+plot(1:1000, rep(-100, 1000), ylim = c(4000, 5500), xlim = c(50, 1000), xlab = 'Human Population', ylab = 'Juveniles')
+abline(a = 5054.11977, b = -1.24563, col = 'blue') # China
+abline(a = 5054.11977 - 818.65030, b = -1.24563 + 1.31526, col = 'red') # India
+abline(a = 5054.11977 - 961.39246 , b = -1.24563 + 1.53082, col = 'orange') # Indonesia
+abline(a = 5054.11977 - 676.65413, b = -1.24563 + 0.81239, col = 'green') # Malaysia
+```
+
+> Please explain where I got the numbers to calculate the slopes for each country (what I put as the `b` value in each `abline`). This is how you interpret interaction terms! If any of the interaction terms were not significant, then we would have added 0 to the original slope of -1.24563, meaning there is no difference in the effect of human population on juvenile bird populations in that country.
+
+In the `abline()` function we specify the equation of a line: `y = a + bx` (slightly different notation from what we saw in class).
+
+- The `a` term of the `abline()` function is the y-intercept. Because all the country-level coefficients (e.g., `countryIndia`) are *relative* to the global intercept, `(Intercept)`, we must add the respective country-level effect to the global `(Intercept)`. Since China is the reference level, this is the only country for which we can read the y-intercept directly from the table: $5054.11977$. For each of the other countries, it is a sum, e.g., for India, it is: `(Intercept) + countryIndia`$=5054.11977 + (-818.65030) = 5054.11977 - 818.65030$.
+- The `b` term of the `abline()` function is the slope of the line. **However, with an interaction term present, we no longer have the same slope for each line.** More specifically, because `humanpop` was interacted with `country`, the line representing the relationship of `humanpop` and `juveniles` now has both a different y-intercept and a different slope for every country. The main effect of `humanpop`, read from the coefficient table, is $-1.2456$. The country-specific effects of `humanpop` get their country-specific contrasts added to this main effect. For instance, for India, it is `humanpop + humanpop:countryIndia`$=-1.2456 + 1.3153$. For China, again, because it is the reference level, we read its effect of `humanpop` as just the main effect of `humanpop`: $-1.2456$.
+
+# Extra Credit
+
+> If you would like 1 point extra credit (and want to get some more practice) please create an ANCOVA model using the built in `iris` dataset in __R__. Please make sure you include at least two continuous and one categorical variables as your predictor variables. Please check for multicollinearity and the assumptions of a linear regression. Please interpret the results of the model.
+
+```{r}
+data(iris)
+
+# Check for potential multicollinearity
+cor(iris[,c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width")])
+```
+
+I've decided I'm interested in modeling `Petal.Width` as a function of other variables.
+Because `Petal.Length` has a high correlation with `Petal.Width`, I'll exclude it from the analysis so as to avoid any problems with collinearity.
+
+```{r}
+m1 <- lm(Petal.Width ~ Species + Sepal.Length + Sepal.Width, data = iris)
+summary(m1)
+```
+
+I see that while `Sepal.Width` has a significant effect on `Petal.Width`, `Sepal.Length` does not.
+Flowers of any species with a larger `Sepal.Width` tend to have a larger `Petal.Width` as well.
+Does the effect of `Sepal.Width` on `Petal.Width` vary by species?
+
+```{r}
+library(ggplot2)
+ggplot(iris, mapping = aes(x = Sepal.Width, y = Petal.Width, color = Species)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = F) +
+  theme_bw()
+```
+
+From a plot, it looks like while the two species Versicolor and Virginica do have a significant, positive relationship between `Sepal.Width` and `Petal.Width`, plants of the species Setosa have no such relationship.
+In this case, it might best best to include an interaction between `Species` and `Sepal.Width`.
+
+```{r}
+m2 <- lm(Petal.Width ~ Species + Sepal.Length + Sepal.Width + Species:Sepal.Width, 
+  data = iris)
+summary(m2)
+```
+
+The model with the interaction term does fit the data better, as the adjusted R-squared is slightly higher (from 0.94 to 0.95).
+Although `m2` is a more complicated model than `m1`, its complexity matches the complexity in our data.
+We see that the main effect of `Sepal.Width` is now insignificant but we must remember that, with an interaction term, `Sepal.Width` is the effect for the reference level of `Species`, Setosa.
+In our plot, we saw that the species Setosa had no significant effect of `Sepal.Width`, so this makes sense.
+The interaction terms of `Species` and `Sepal.Width` are positive, however, just as we saw there were strong trends between `Sepal.Width` and our dependent variable in the plot for the two species `Versicolor` and `Virginica`.
+
+**Do the residuals of the new model meet the assumptions of a linear regression?**
+Yes, the residuals appear to be homoscedastic in the residuals vs. fitted plot, below.
+Also, the residuals generally follow the 1:1 line in the normal QQ plot, below, indicating they are approximately normally distributed.
+Finally, we assume that the observations of each flower are independent within each `Species` group.
+
+```{r}
+plot(fitted(m2), residuals(m2), main = 'Residuals vs. Fitted')
+abline(h = 0, col = 'red', lty = 'dashed')
+
+qqnorm(residuals(m2))
+qqline(residuals(m2), col = 'red', lty = 'dashed')
+```

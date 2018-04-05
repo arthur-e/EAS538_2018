@@ -25,30 +25,41 @@ library(rmarkdown)
 library(knitr) # Run R Code Chunks
 library(dplyr)
 library(tidyr)
-library(MASS)
+library(MASS, warn.conflicts = F)
 ```
 
-```{r, pairs,results='hide',eval=FALSE}
+```{r, pairs, results='hide'}
 yield <- read.csv('https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week9_MultipleReg/yielddata.csv')
 head(yield)
 pairs(yield[,3:12])
-absCor <- abs(cor(yield[,3:12], use = 'complete.obs'))
-which(absCor == max(absCor[which(absCor<1)]), arr.ind=TRUE)
 
+# Also, try this out:
+absCor <- abs(cor(yield[,3:12], use = 'complete.obs'))
+which(absCor == max(absCor[which(absCor<1)]), arr.ind = TRUE)
 ```
 
----
+# Exercise 1
 
-**Exercise 1** (R code and outputs required for Part 2)
+> 1. Using information that you just produced from the scatterplots, correlation table, and vif, are there any variables you are concerned about including together in the same linear model? In other words, which variables do you think would lead to multi-collinearity in your model? Why?
 
-> 1. Using information that you just produced from the scatterplots, correlation table, and vif, are there any variables you are concerned about including together in the same linear model? In other words, which variables do you think would lead to multi-collinearity in your model? Why?   
+From the correlation plots and correlation coefficients, we see that the highest correlation is between `Temperature` and `Elevation`. The correlation coefficient is `r round(cor(yield$Temperature, yield$Elevation), 3)`. (Hope you still remember how we find the max correlation coefficient from Week 2.)
 
-From the correlation plots and associated correlation coefficients, we see that the highest correlation is between `Temperature` and `Elevation`. The correlation coefficient is `r round(cor(yield$Temperature, yield$Elevation), 3)`. (Hope you still remember how I find the max correlation coefficient from week 2.).  
-Since these two variabels have pretty high correlation, we should be concerned about having these two variables in the same regression model. Otherwise the estimation of the regression(beta) coefficients will be not precise. Notes that there are some variables that have correlation high enough to raise a red flag (typically I would be concerned when correlation coefficients are higher than 0.3, but it is not a hard rule). 
+Since these two variabels have pretty high correlation, we should be concerned about having these two variables in the same regression model. Otherwise the estimation of the regression (beta) coefficients will be not precise. We can verify that multi-collinearity is an issue by calculating variance inflation factors (VIFs).
+
+```{r}
+library(car)
+
+# The dot (.) in the formula below means "all other variables"
+vif(lm(Yield ~ ., data = yield[,3:12]))
+```
+
+`Rain` doesn't have a very high VIF even though it is highly correlated with other independent variables; sometimes that happens! VIFs are a good *starting point* for investigating multi-collinearity; they're easier to read than a large correlation matrix. However, you should follow up with a correlation matrix (as above) to find which variables, in particular, are highly correlated with one another.
+
+Notes that there are some variables that have correlation high enough to raise a red flag (Oscar says he would be concerned when correlation coefficients are higher than 0.3, but it is not a hard rule). 
 
 > 2. What are the two most correlated variables you see in the correlation table produced using `cor`? Please run two separate univariate models where `Yield` is your dependent variable and one of the two correlated variables is your predictor variable. Now run a multivariate regression with `Yield` as your dependent variable and both of your correlated variables as predictor variables in the same model. Compare the beta coefficients you get for each of the two predictor variables in the univariate model and the multivariate model. Are they the same? Are they different? Why?
 
-To demonstrate the problem of multicolinearity, let's build two models including the model with both `Temperature` and `Elevation` and the other one with only `Temperature`. 
+To demonstrate the problem of multi-collinearity, let's build two models including the model with both `Temperature` and `Elevation` and the other one with only `Temperature`. 
 
 ```{r}
 mod1 <- lm(Yield ~ Temperature, data = yield)
@@ -57,17 +68,15 @@ summary(mod1)
 summary(mod2)
 ```
 
-We see that the regression coefficient of `Temperature` changed. This is because the `Temperature` and `Elevation` are highly correlated. In multiple linear regression, we want to statically _control_ for other variables when estimating the regression coefficient for certain variable. Statically _controlling_ for other variables means we hold these variables constant. However, when two variables are correlated, holding one variable constant also constrain the range of the other variable. This results in imprecise estimation of the regression coefficients.  
+We see that the regression coefficient of `Temperature` changed. This is because the `Temperature` and `Elevation` are highly correlated. In multiple linear regression, we often want to statically _control_ for other variables while estimating the regression coefficient for one or more key variables. Statically _controlling_ for other variables means we hold these variables constant. However, when two variables are correlated, holding one variable constant also constrains the range of the other variable. This results in imprecise estimation of the regression coefficients.  
 
-Or, conceptualy, you can think that one variable is being represented by other correlated variables. Therefore the estimation of the regression coefficient becomes imprecise. 
+Alternatively, consider the problem of trying to estimate the relative effect sizes of each variable. If two independent variables are correlated with the dependent variable but also with each other, it can be very difficult to tell which variable has a stronger relationship with the dependent variable because they're so similar!
 
----
+Finally, if you remember your matrix algebra, another problem posed by multicollinearity is that it makes it hard to accurately calculate the inverse of a matrix that is required in estimating a linear regression model.
 
-# Checking assumptions and interpreting model results
+For more information on all of these interpretations, [check out the Wikipedia article on multicollinearity](https://en.wikipedia.org/wiki/Multicollinearity#Consequences_of_multicollinearity), which has a surprisingly good section on its consequences.
 
----
-
-**Exercise 2** (Some R code and outputs required)
+# Exercise 2
 
 > 1. Which model would you select considering the AIC values shown above?      
 
@@ -85,7 +94,7 @@ AIC(fullmod2)
 AIC(smallmod)
 ```
 
-From the three AIC values, we should select the model with lowest AIC, which is `fullmod2`. Note that AIC is in an opposit direction of likelihood (the probability of seeing the parameters you estimated given the data) of the model. 
+From the three AIC values, we should select the model with lowest AIC, which is `fullmod2`. AIC, like adjusted R-squared, penalizes models that are more complex (i.e., have more parameters/ independent variables). Whereas we might want to choose the model with the highest adjusted R-squared value, when looking at AIC scores, we want to choose the model with the lowest AIC.
 
 > 2. Please test the assumptions of normality and homoscedasticity of this model. Do you think there are problems with either normality or homoscedasticity of the residuals? Why or why not?        
 
@@ -97,24 +106,21 @@ By default, `plot` a model object returns four diagnostic plots allows you to ex
 
 The first and the third plots of the above show the residuals against fitted value (or the predicted y). The only difference is that the third one is standardized residuals. These two plots can be used to diagnose homoscedasticity of the model. We want to see relative constant variance of the residuals across the fitted value. Alternatively, you can use `bptest()` or `ncvTest()` to test for homoscedasticity. From the plot or the test, we shoud derive the concludion that the residuals are heteroscedastic becaue the residuals associated with small fitted values have less variation.
 
-The second plot is the qqplot of the residuals, which is the same plot if you used `qqPlot(residuals(fullmod2))`. We want to see the residuals to lie on the theoretical normal distribution line. Alternatively, you can use `shapiro.test` to test for the normality of the residuals. From the plot and the test, we should derive the conclusion that the residuals are normally distributed. 
+The second plot is the qqplot of the residuals, which is the same plot if you used `qqPlot(residuals(fullmod2))` (the "capital-P" version of this function is in the `car` package). We want to see the residuals lie on the theoretical normal distribution line. Alternatively, you can use `shapiro.test` to test for the normality of the residuals. From the plot and the test, we should derive the conclusion that the residuals are normally distributed. 
 
 The fourth plot is less common. It gives you an idea of how influencal each data point is in your model. The points associated with higher _leverage_ mean they have higher influence on the model fitting. However, if those high leverage points are not fat from zero, we don't have to be too concern about them.  
 
-3. Please run this model and look at the summary table. Which variables are significant? How does the beta coefficient value of `Temperature` differ between the multivariate and univariate models? Why do you think that is?    
+> 3. Please run this model and look at the summary table. Which variables are significant? How does the beta coefficient value of `Temperature` differ between the multivariate and univariate models? Why do you think that is?    
 
 ```{r}
 summary(fullmod2)
 ```
 
-From the above summary table, we see that only intercept, and the regression coefficients of `Temperature` and `SowDate` are significant. This means with one unit increase of temperature, yield should decrease about 142 units if all other variables are hold to be constant. Similarily, one unit increase of the day wheat was sown (`SowDate`), yield would decrease about 55 units. The intercept means the expected yield when the indenependnet variables are theoretically zero. 
+From the above summary table, we see that only intercept, and the regression coefficients of `Temperature` and `SowDate` are significant. This means with one unit increase of temperature, yield should decrease about 142 units if all other variables are hold to be constant. Similarily, one unit increase of the day wheat was sown (`SowDate`), yield would decrease about 55 units. The intercept means the expected yield when the independent variables are theoretically zero. 
 
-Note that the reason why regression coefficients changes is due to colinearity, which is explained in exercise 1. It is *Not* due to "_The regression coefficients change because the effect of each variable depends on the other variables that are also included in the model_". Whether the regression coefficient depends on the other variable can only be known if you have interaction term in your model. 
----
+Note that the reason why regression coefficients change is due to multicollinearity, which is explained in Exercise 1. It is **not** because, e.g., _"the effect of each variable depends on the other variables that are also included in the model."_ You may be recalling how we statically *control* for the effects of other variables in a multivariate linear regression. However, this does not mean that, e.g., the regression coefficient for any independent variable `x1` *depends* on the values of some `x2`. Whether the regression coefficient depends on the other variable can only be known if you have an interaction term in your model. 
 
----
-
-**Exercise 3** (Show R outputs and interpret)
+# Exercise 3
 
 > 1. Please interpret the results of the `calc.relimp()` function. Remember that you should only focus on the values under the `Relative importance metrics:` section. Which variable explains the most amount of variance? Which explains the second most? Which explains the least?
 
@@ -127,4 +133,4 @@ calc.relimp(fullmod2, type = c("lmg"), rela = TRUE)
 
 From the output table we see that `Temperature` is the most important variable taht contribute 59% of the explanation power of the model and the distance to the nearest canal (`Canal_Dist`) is the least important one. 
 
-Note that the relative importance does *not* represent the R2 of that variable. It is the contribution of that variable to the R2 of the model. For example, 0.59 of temperature means the temperature accounts for 59% of the explanation power (or R2) of the model. 
+Note that the relative importance does *not* represent the variation explained by that variable. It is the contribution of that variable to the variance explained (to $R^2$) of the model. For example, 0.59 of temperature means the temperature accounts for 59% of the explained variation (or $R^2$) in the model. 
