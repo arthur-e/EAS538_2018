@@ -40,7 +40,7 @@ Below are a series of questions related to datasets that you will pull in from o
 Let's use a dataset that has information about restaurant ratings through Yelp for restaurants from India and the United States. **Please test whether `Ratings` given to restaurants are significantly different between `Country`**.
 
 ```{r, pull in data,results='hide'}
-rating = read.csv('/Users/mehajain/Desktop/yelp.csv')
+rating = read.csv("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet2/yelp.csv")
 head(rating)
 ```
 
@@ -68,7 +68,7 @@ d. Please run the statistical test and interpret the result (1 point). Which gro
 Let's now use a dataset on a measure of poverty that is constructed by considering multiple dimensions. Specifically, this poverty index is comprised of both the number of people who are in poverty within a given country and also the intensity of poverty. If you are interested, you can read more about how the poverty index was constructed here (https://www.kaggle.com/ophi/mpi). **Please test whether `Regions` have different levels of `Poverty`.**
 
 ``` {r,load poverty data,results='hide'} 
-poverty <- read.csv('/Users/mehajain/Desktop/poverty.csv')
+poverty <- read.csv("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet2/poverty.csv")
 head(poverty)
 ```
 
@@ -94,7 +94,7 @@ d. Please run the statistical test and interpret the result (1 point). Which gro
 Let's use a real dataset from Facebook about 440 posts from 440 different people. Using this dataset, **identify which factors are significantly associated with more `shares` of a post.** 
 
 ``` {r,load rate data,results='hide'} 
-fbook <- read.csv('/Users/mehajain/Desktop/facebook.csv')
+fbook <- read.csv("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet2/facebook.csv")
 head(fbook)
 ```
 
@@ -125,7 +125,7 @@ e. Please run a second model that tests whether the number of `likes` has a diff
 Let's use another dataset on ratings of wine (either good or bad) and different characteristics of the wine. **Please use this dataset to identify which factors are significantly associated with ranking a wine as good (`1`) or bad (`0`).**
 
 ``` {r,load house data,results='hide'} 
-wine <- read.csv('/Users/mehajain/Desktop/wine.csv')
+wine <- read.csv("https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/ProblemSet2/wine.csv")
 head(wine)
 ```
 
@@ -148,5 +148,5 @@ b. Please run the statistical test and interpret the result. Which variables are
 
 c. For all significant variables, please interpret each beta coefficient in non-technical terms. Since the x variables are unitless, you can simply say 'for every 1 unit change in x...' (2 points).
 
-#  Question 5
+#  Extra Credit
 For 3 points extra credit, please find your own dataset and run a multiple linear regression. For full credit we will expect that you will check for multicollinearity, check all assumptions, and interpret results in non-technical terms. 
