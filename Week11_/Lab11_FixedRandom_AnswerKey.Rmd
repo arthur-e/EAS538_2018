@@ -1,0 +1,111 @@
+---
+title: "EAS 538 Week 11 Lab Answer Key"
+author: "Written by Arthur Endsley and modified by Oscar Feng-Hsun Change"
+date: "Week 11"
+output: 
+  html_document:
+    code_folding: show
+    highlight: textmate
+    keep_md: no
+    number_sections: true
+    theme: flatly
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+      toc_depth: 4
+---
+
+```{r, set global theme, eval=FALSE, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=10)
+```
+
+```{r, library loading, echo=FALSE, message=FALSE, warning=FALSE}
+library(rmarkdown)
+library(dplyr)
+```
+
+# Exercise 1
+
+> Think about a research project you've either worked on in the past or that you've read about recently in class. Think of one potential omitted variable that may have resulted in bias of your beta coefficients. Please describe the research project in one sentence and describe a potential omitted variable in 2-3 sentences. Remember! The omitted variable has to be associated with BOTH an x variable and the y variable.
+
+Examples:
+
+- **How does a neighborhood's vegetated area (in the form of trees, lawns, parks, etc.) depend on the wealth of its residents?** We develop a regression model `Vegetation ~ HomeValue + Income`. `HomeValue` is our measure of wealth; wealth is basically your assets after adding up income and property value but subtracting debts or other financial obligations. We assume wealthier people own higher-value homes. However, we recognize that `Income` influences wealth (higher incomes generate more wealth) and higher `Income` can likely buy more `Vegetation` (e.g., more water for a lawn, more extravagant landscaping, more free time to cultivate vegetation). **If we hadn't included `Income`, it would be an omitted variable. Are we missing any other variables?** In fact, `AverageParcelSize` is another thing we should have measured. Higher `AverageParcelSize` would be associated with higher `Vegetation` and higher `HomeValue` because larger parcels (or lot sizes) are more expensive, generally, and there is more room to plant trees, shrubs, and to grow a lawn.
+- **How does salary earned depend on education level?** Given a regression equation `Salary ~ Education`, our dependent variable is `Salary` and our independent variable is `Education`. However, what if `Salary` is also dependent on `Ability` (i.e., talent, skills, personal drive), which was excluded from our model because it is difficult to measure? `Ability` would certainly have an effect on `Salary` but it also probably has an affect on `Education` because people with more `Ability` might be driven to seek more `Education`.
+
+# Exercise 2
+
+```{r, pull in gwater data}
+irrdata <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/irrdata.csv", sep = ",", header = T, comment.char = "#")
+lmod3 <- lm(yield ~ irrigation, data = irrdata)
+summary(lmod3)
+```
+
+```{r}
+lmod4 <- lm(yield ~ irrigation + state, data = irrdata)
+summary(lmod4)
+```
+
+## Exercise 2, Part 1
+
+> Compare the beta coefficients on `irrigation` between `lmod3` and `lmod4`. How are they different? How are they similar?     
+
+`irrigation` is significant in both models but it is smaller in `lmod4`, after we add the state-level fixed effects. This is to be expected, because even though the state-fixed effect is not significant (p-value of 0.7), it does explain some variation in the dependent variable, `yield` (just not enough of the variation to be significant).
+
+## Exercise 2, Part 2
+
+> Can you explain why the beta coefficient on irrigation changes when you include `state` in your model using the information I've provided about the differences between `Punjab` and `Bihar` above?
+
+The effect of `irrigation` on `yield` decreases slightly when we add the state-level fixed effects. Meha told us that "in Punjab, farmers are much richer and have better access to inputs than farmers in Bihar." If this is true, accounting for which state a farm is in will explain some of the variation in `yield`; in particular, we know that farms in Punjab will have higher `yield`. In fact, we can verify this directly from our data.
+
+```{r}
+mean(subset(irrdata, state == 'Bihar')$yield)
+mean(subset(irrdata, state == 'Punjab')$yield)
+```
+
+We see that mean `yield` in Punjab is certainly higher than in Bihar. While the difference in mean `yield` between the two states is not large enough to be considered significant (think about a two-way t-test with `yield` as the dependent variable and `state` as the independent variable), observations of `yield` from the Punjab farms will be higher, on average, than those from Bihar. This reduces the amount of variation in the data explained by `irrigation`.
+
+# Exercise 3
+
+> Oscar is interested in understanding the impact of diversity of algal communities on lake productivity across hundreds of lakes in Michigan. Let's pull in a fake dataset about this work. 
+
+```{r, pull in lake data}
+lakedf <- read.csv(file = "https://raw.githubusercontent.com/OscarFHC/EAS538_2018/master/Week11_/lakedf.csv", sep = ",", header = T,comment.char = "#")
+
+lmod5 <- lm(prod ~ diversity + temp + rain + sun, data = lakedf)
+summary(lmod5)
+```
+
+```{r, install nlme, warning=FALSE, message=FALSE}
+library(nlme) # please install this package first
+mod <- lme(prod ~ diversity + temp + rain + sun, random = ~1|lake, data = lakedf)
+summary(mod)
+```
+
+## Exercise 3, Part 1
+
+> Compare the beta coefficients and p values between the linear model with no random effects (`lmod5`) and the mixed effect model with random effects (`mod`). What is the same? What is different?
+
+It seems that a random effect of `lake` does not change our model's main effects very much. The beta coefficients and p-values are extremely similar in both. The `(Intercept)` term changed the most, which is to be expected because the `lake` random effect allows for a lake-specific random intercept to be added to this global `(Intercept)` term.
+
+Does adding a random effect improve the fit of our model? While we have a goodness-of-fit statistic, the adjusted $R^2$, for the ordinary least squares model `lmod5`, we can't easily calculate this for a random effects model.
+We can, however, calculate the AIC of both models.
+AIC punishes models that are more complex (i.e., more independent variables/ parameters) without significantly improving the explanation of variation in the dependent variable, so we should expect it to provide a reasonable comparison between these two models which have the same number of fixed effects (`diversity + temp + rain + sun` plus the `(Intercept)` makes 5) but where the random effects model has 2 additional parameters (the mean and variation in the random `lake` intercepts).
+
+```{r}
+AIC(lmod5)
+AIC(mod)
+```
+
+It looks like our random effects model has a lower AIC, so it is fitting the data better. Our main effect coefficient estimates (our beta estimates) didn't change much, though. So, we might only prefer this more complex random effects model if we wanted to make predictions or if we were substantively interested in the variation of the random lake intercepts. In the latter case, we might ask, "What is the variation in the baseline productivity of our sample of lakes?" This can be answered by looking at the variation/ standard deviation estimate in the random effects model (`StdDev: 4.588`).
+
+## Exercise 3, Part 2
+
+> Think back to other research projects you've worked on or have read about. Can you give another example where a random effect would be more appropriate than a fixed effect?    
+
+Rather than provide an example, here, I want to emphasize what you should consider when thinking about using a random effect:
+
+- When you have an experimental setup and you have carefully controlled for all confounding factors (i.e., no omitted variable bias is possible), you might represent one or more experimental factors as a random effect. In ecology, a common example comes from studies of plant growth or productivity in a greenhouse. We can carefully control for all confounding factors (e.g., light, nutrients, water) but we can't control for things like the location of the plant within the greenhouse or the order in which plants receive treatment, perhaps, which may still have an effect on productivity. Thus, we might add a plant-specific intercept to allow for different baseline levels of productivity.
+- When you are interested in the variation between subjects in your study more than the mean effect of some independent variable. This is common in public health studies, apparently; what is the variation in the baseline response (random intercepts) or the effect of treatment (random slopes)?
+- Without an experimental setup, it is hard to justify using random effects because you have to be certain that omitted variable bias is not an issue. However, if your observational data are randomly sampled from a larger population (e.g., Oscar's lakes are randomly sampled from "all Michigan lakes" or "all eutrophic lakes between 10 and 1 meters depth"), and you have collected data on everything you think is associated with your study system, you might justifiably include a random effect.
